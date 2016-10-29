@@ -1,0 +1,49 @@
+<!-- Customization options common for both Docker and AWS dev clusters -->
+
+<configuration>
+
+   <property>
+     <name>target.hadoop.conf.dir</name>
+     <value></value>
+     <description>Name of a directory (under ./hadoop-resources) that will has hadoop conf that dev cluster will spawn with.
+        Make sure you create the folder as a copy of the default conf at ./hadoop-resources/cluster-default, which has
+        the minimum configuration to spawn a cloud CDH cluster.
+
+         You can then add your own configurations to the specific conf-xml file as you like.
+         Variables you may use include $master (will be replaced by the cluster master hostname)
+         and $local (will be replaced by the local node's host name).
+     </description>
+   </property>
+
+   <property>
+     <name>target.hive.aux.jars</name>
+     <value></value>
+     <description>
+        Comma separated list of jars needed to be added to Hive aux jar path on dev clusters and gateways.
+        These need to be placed under ./hadoop-resources/aux-jars
+      </description>
+   </property>
+
+
+    <!-- See below, we only spawn CDH5 on ubuntu trusty dev clusters for now,
+         so this would have to point to a valid version under
+         http://archive.cloudera.com/cdh5/ubuntu/trusty/amd64/cdh/dists/ -->
+    <property>
+        <name>target.hadoop.version</name>
+        <value>cdh5.5.0</value>
+        <description>
+            CDH version to download.
+            For now we only support CDH5 repositories of ubuntu trusty.
+            This would have to be a valid version listed under:
+            http://archive.cloudera.com/cdh5/ubuntu/trusty/amd64/cdh/dists/
+
+            Later, we can expand it to use Apache Bigtop
+        </description>
+    </property>
+
+    <property>
+        <name>target.base.os</name>
+        <value>ubuntu-trusty</value>
+        <description>Only Ubuntu 14.04 (Trusty) images generated for now.</description>
+    </property>
+</configuration>

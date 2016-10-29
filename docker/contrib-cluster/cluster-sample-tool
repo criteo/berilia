@@ -1,0 +1,8 @@
+#EXAMPLE plugin for creating a local cluster.  This prepares some env variables as well to run a sample tool that you mount in the docker container.
+
+FROM dev_cluster/local
+
+#It's not just a matter of ENV, but because it's a ssh server, we have to put this in /etc/profile to activate upon ssh.
+
+RUN echo "export VAR1=val1" >> /etc/profile
+RUN echo "export VAR2=val2" >> /etc/profile

@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+
+<!-- Sample Hive client configurations to mycluster-->
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+
+
+
+<configuration>
+
+  <property>
+    <name>hive.metastore.uris</name>
+    <value>thrift://mycluster:9083</value>
+    <description>IP address (or fully-qualified domain name) and port of the metastore host</description>
+  </property>
+
+</configuration>

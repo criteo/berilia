@@ -1,0 +1,12 @@
+#This copies the files under /hadoop-resources (hadoop jars and other resources) to docker image.
+
+FROM dev_cluster/gateway
+
+ARG resource
+ARG jarList
+
+# copy aux jars
+ADD /$resource /hadoop-resources/
+ENV jarList $jarList
+RUN touch /etc/hive/conf/hive-env.sh
+RUN echo "export HIVE_AUX_JARS_PATH=$jarList" >> /etc/hive/conf/hive-env.sh

@@ -1,0 +1,18 @@
+#!/bin/bash
+
+BASEDIR=$(dirname "$0")
+export CLASSPATH="${BASEDIR}/lib/*:${BASEDIR}/lib/dev-cluster-1.0-SNAPSHOT.jar"
+java -cp $CLASSPATH $JAVA_OPTS com.criteo.dev.cluster.DevClusterLauncher "$@"
+
+#As JVM cannot change the terminal, we change it here.
+if [[ $? == 0 ]] && [[ "$1" == "create-gateway" ||  "$1" == "resume-gateway" ]] && [[ -f ./temp-docker/tmpDocker.sh ]]; then
+  echo "Starting docker container."
+  echo "If you have configured unbound ports, run './dev-cluster list-gateway' in another terminal to find the ports"
+  echo "Attaching terminal.  Type 'exit' to quit.  If you have specified a mount directory, it will be under '/mount'"
+  source ./temp-docker/tmpDocker.sh
+  echo "Exited docker container.  Run './dev-cluster resume-gateway' to resume."
+fi
+
+if [ $? == 0 ]; then
+  rm -rf ./temp-docker
+fi

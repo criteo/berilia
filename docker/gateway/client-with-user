@@ -1,0 +1,25 @@
+FROM dev_cluster/gateway
+
+#use the original user from host machine
+ARG orig_user
+RUN useradd $orig_user
+
+#add user to sudoers and give him relevant priveleges on files that will be used.
+RUN echo "$orig_user  ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+
+#set some environment variables
+ENV USER $orig_user
+ENV HOME /home/$orig_user
+RUN export USER=$orig_user
+RUN export HOME=/home/$orig_user
+RUN mkdir -p $HOME
+RUN chown $orig_user $HOME
+
+
+#.bashrc stuff, make an alias for dev_cluster executable
+RUN touch $HOME/.bashrc
+RUN echo "export PATH=$PATH:." >> $HOME/.bashrc
+
+USER $orig_user
+
+CMD cd $HOME && exec "/bin/bash"

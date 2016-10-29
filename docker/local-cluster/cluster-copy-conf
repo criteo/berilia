@@ -1,0 +1,26 @@
+#This copies hadoop-conf to docker image.
+
+FROM dev_cluster/local
+
+ARG resource
+ARG accessKeyArg
+ARG secretKeyArg
+
+ENV accessKeyEnv $accessKeyArg
+ENV secretKeyEnv $secretKeyArg
+
+# copy hadoop and hive conf files
+ADD /$resource /hadoop-conf/
+RUN cp -a /hadoop-conf/hadoop/conf/. /etc/hadoop/conf/
+RUN cp -a /hadoop-conf/hive/conf/. /etc/hive/conf/
+
+# replace template variables
+RUN sudo find /etc/hadoop/conf/ -name *.xml -type f -exec sed -i 's/$master/dev-host/' {} +
+RUN sudo find /etc/hive/conf/ -name *.xml -type f -exec sed -i 's/$master/dev-host/' {} +
+RUN sudo find /etc/hadoop/conf/ -name *.xml -type f -exec sed -i 's/$local/dev-host/' {} +
+RUN sudo find /etc/hive/conf/ -name *.xml -type f -exec sed -i 's/$local/dev-host/' {} +
+
+#Substitue our own variable in the file with the env variable.
+#http://askubuntu.com/questions/76808/how-do-i-use-variables-in-a-sed-command
+RUN sudo find /etc/hadoop/conf/ -name *.xml -type f -exec sed -i 's/$accessKey/'"$accessKeyEnv"'/' {} +
+RUN sudo find /etc/hadoop/conf/ -name *.xml -type f -exec sed -i 's/$secretKey/'"$secretKeyEnv"'/' {} +

@@ -1,0 +1,43 @@
+FROM dev_cluster/base
+
+ARG hadoop_version
+ENV hadoop_version $hadoop_version
+RUN echo $hadoop_version
+RUN /bin/bash -c "wget --spider http://archive.cloudera.com/cdh5/ubuntu/trusty/amd64/cdh/dists/trusty-$hadoop_version &> /dev/null" ##Fails if invalid hadoop version, must be cdh5 minor version.
+
+#preliminary setup
+RUN sudo apt-get update
+RUN echo "127.0.0.1 $(hostname)" | sudo tee --append /etc/hosts
+RUN echo "0.0.0.0     dev-host" | sudo tee --append /etc/hosts
+
+#install some useful tools
+RUN sudo apt-get -y install vim
+
+#install cdh5.5
+RUN wget https://archive.cloudera.com/cdh5/ubuntu/trusty/amd64/cdh/archive.key -O archive.key
+RUN sudo apt-key add archive.key
+
+#CDH5.5 not officially supported on Ubuntu 14.04, due to zookeeper conflict.
+#Following steps from: http://blog.cloudera.com/blog/2014/11/guidelines-for-installing-cdh-packages-on-unsupported-operating-systems/
+RUN touch /etc/apt/preferences.d/cloudera.pref
+RUN echo "Package: *" >> /etc/apt/preferences.d/cloudera.pref
+RUN echo "Pin: release o=Cloudera, l=Cloudera" >> /etc/apt/preferences.d/cloudera.pref
+RUN echo "Pin-Priority: 501" >> /etc/apt/preferences.d/cloudera.pref
+
+RUN sudo wget "https://archive.cloudera.com/cdh5/ubuntu/trusty/amd64/cdh/cloudera.list" -O /etc/apt/sources.list.d/cloudera.list
+RUN sudo sed -i -e 's/trusty-cdh5/trusty-cdh5.5.0/g' /etc/apt/sources.list.d/cloudera.list
+RUN sudo apt-get update
+
+RUN sudo apt-get install -y hadoop-conf-pseudo
+
+#Format namenode
+RUN sudo -u hdfs hdfs namenode -format -force
+
+#Make HDFS directories
+RUN mkdir -p /var/lib/hadoop-hdfs/cache/hdfs/dfs/name
+RUN chown hdfs /var/lib/hadoop-hdfs/cache/hdfs/dfs/name
+RUN mkdir -p /var/lib/hadoop-hdfs/cache/hdfs/dfs/data
+RUN chown hdfs /var/lib/hadoop-hdfs/cache/hdfs/dfs/data
+
+#Install Hive (at end of this, it is only in embedded metastore db mode)
+RUN sudo apt-get -y install hive

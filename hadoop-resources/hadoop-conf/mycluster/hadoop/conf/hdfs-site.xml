@@ -1,0 +1,78 @@
+<?xml version="1.0"?>
+<!-- Sample Hadoop client configurations to mycluster-->
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+
+<!-- TODO- use velocity, convert this to velocity template to do proper replacement-->
+<configuration>
+  <property>
+    <name>dfs.replication</name>
+    <value>1</value>
+  </property>
+  <!-- Immediately exit safemode as soon as one DataNode checks in. 
+       On a multi-node cluster, these configurations must be removed.  -->
+  <property>
+    <name>dfs.client.use.datanode.hostname</name>
+    <value>true</value>
+  </property>
+
+  <!--Add these to allow remote connection from gateway -->
+  <property>
+    <name>dfs.datanode.address</name>
+    <value>mycluster:50010</value>
+  </property>
+  <property>
+    <name>dfs.datanode.http.address</name>
+    <value>mycluster:50075</value>
+  </property>
+  <property>
+    <name>dfs.datanode.ipc.address</name>
+    <value>mycluster:50020</value>
+  </property>
+  <property>
+    <name>dfs.datanode.hostname</name>
+    <value>mycluster</value>
+  </property>
+
+  <property>
+    <name>dfs.safemode.extension</name>
+    <value>0</value>
+  </property>
+  <property>
+     <name>dfs.safemode.min.datanodes</name>
+     <value>1</value>
+  </property>
+  <property>
+     <name>hadoop.tmp.dir</name>
+     <value>/var/lib/hadoop-hdfs/cache/${user.name}</value>
+  </property>
+  <property>
+     <name>dfs.namenode.name.dir</name>
+     <value>/var/lib/hadoop-hdfs/cache/${user.name}/dfs/name</value>
+  </property>
+  <property>
+     <name>dfs.namenode.checkpoint.dir</name>
+     <value>/var/lib/hadoop-hdfs/cache/${user.name}/dfs/namesecondary</value>
+  </property>
+  <property>
+     <name>dfs.datanode.data.dir</name>
+     <value>/var/lib/hadoop-hdfs/cache/${user.name}/dfs/data</value>
+  </property>
+
+  <property>
+    <name>dfs.client.read.shortcircuit</name>
+    <value>false</value>
+  </property>
+  <property>
+    <name>dfs.client.file-block-storage-locations.timeout.millis</name>
+    <value>10000</value>
+  </property>
+  <property>
+    <name>dfs.domain.socket.path</name>
+    <value>/var/run/hadoop-hdfs/dn._PORT</value>
+  </property>
+  <property>
+    <name>dfs.datanode.hdfs-blocks-metadata.enabled</name>
+    <value>true</value>
+  </property>
+
+</configuration>

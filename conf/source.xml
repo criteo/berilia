@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<configuration>
+    <!--DATA SOURCE PROPERTIES-->
+    <property>
+        <name>source.address</name>
+        <value></value>
+        <description>URL for gateway to cluster with source data.
+            Requirement is that the terminal running the dev_cluster tool has valid security credentials
+            to access this via password-less SSH, and may run HDFS and Hive commands on it.</description>
+    </property>
+
+    <property>
+        <name>source.tables</name>
+        <value></value>
+        <description>Fill this with comma separated list of "database"."table"</description>
+    </property>
+
+    <property>
+        <name>default.partition.count</name>
+        <value>2</value>
+        <description>How many leaf partitions to sample for each table.  May be overriden per table.</description>
+    </property>
+
+    <!--To override default number of partition samples for particular "database"."table",
+     provide property with key: "database"."table".partition.count, eg: -->
+    <property>
+        <name>database.table.partition.count</name>
+        <value>1</value>
+        <description>Table is a bit big, so sample only one partition.</description>
+    </property>
+
+    <property>
+        <name>source.files</name>
+        <value></value>
+        <description>Fill this with comma-separated list of source directories.  TODO: file sampling</description>
+    </property>
+
+    <!--If distcp is the copying mechanism (currently only for copy-bucket command)
+    then use this to determine how many top-level partitions to sample.  0 signifies entire table to be sampled.
+
+    The reason we need to do top-level is the mechanics of distcp, which work best on set of directories,
+    and not so well on a set of random leaf partitions that might not have a common parent.-->
+    <property>
+        <name>default.distcp.top.partition.count</name>
+        <value>2</value>
+        <description></description>
+    </property>
+
+
+    <!--If distcp is the copying mechanism, to override default number of top partition samples for particular "database"."table",
+         provide property with key: "database"."table".distcp.top.partition.count, eg: -->
+     <property>
+        <name>database.table.distcp.top.partition.count</name>
+        <value>1</value>
+        <description>Table is a bit big, so sample only one partition.</description>
+    </property>
+
+    <!--S3 Bucket Properties -->
+    <property>
+        <name>s3.bucket.prefix</name>
+        <value>berilla-dev-cluster</value>
+        <description>
+            This is for naming buckets created by this tool.
+            Important, make this unique to your org or team, as bucket names are global.</description>
+    </property>
+
+    <!--PROFILE EXAMPLE-->
+    <profile>
+        <id>sample-1</id>
+        <default>false</default>
+        <description>You may create profiles in this file like this to specify groups of files and tables.
+            This would be invoked via specifying on the command line the flag -Psample-1.</description>
+
+        <property>
+            <name>source.tables</name>
+            <value>mydatabase.mytable</value>
+        </property>
+
+        <property>
+            <name>source.files</name>
+            <value>/user/myuser/directory</value>
+        </property>
+    </profile>
+
+
+
+    <!-- ADVANCED PROPERTIES -->
+
+    <!-- Comma separated list of listeners to run on copy action, ex, handle special formats -->
+    <!--<property>
+        <name>source.copy.listeners</name>
+        <value>com.criteo.dev.cluster.copy.PailCopyListener</value>
+        <description>This copies over pail.meta file.  It is only a sample and you may provide your own for your own data formats.</description>
+    </property> -->
+
+
+    <!-- If distcp is the copying mechanism (currently only for copy-bucket command), this marks the threshold for
+    aggregate content size of a certain source.file directory (in bytes) that distcp is invoked.
+
+    Anything larger will invoke with scp command.
+
+    This is to handle some corner case of distcp running out of disk space in writing temporary files-->
+    <property>
+        <name>source.copy.distcp.threshold</name>
+        <value>250000000</value>
+        <description>This is 0.25 Gigabytes.</description>
+    </property>
+</configuration>

@@ -1,0 +1,14 @@
+#This copies the docker public key (pre-generated), which should allow passwordless ssh.
+
+FROM dev_cluster/local
+
+ARG resource
+
+RUN mkdir -p authorized_keys
+ADD $resource authorized_keys
+
+RUN mkdir -p ~/.ssh
+RUN mv authorized_keys/* ~/.ssh/authorized_keys
+
+
+

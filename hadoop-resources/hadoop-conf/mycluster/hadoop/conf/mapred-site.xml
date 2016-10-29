@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+
+<!-- Sample Hadoop client configurations to mycluster-->
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+
+
+
+<configuration>
+  <property>
+    <name>mapred.job.tracker</name>
+    <value>mycluster:8021</value>
+  </property>
+
+  <property>
+    <name>mapreduce.framework.name</name>
+    <value>yarn</value>
+  </property>
+
+  <property>
+    <name>mapreduce.jobhistory.address</name>
+    <value>mycluster:10020</value>
+  </property>
+  <property>
+    <name>mapreduce.jobhistory.webapp.address</name>
+    <value>mycluster:19888</value>
+  </property>
+
+  <property>
+    <description>To set the value of tmp directory for map and reduce tasks.</description>
+    <name>mapreduce.task.tmp.dir</name>
+    <value>/var/lib/hadoop-mapreduce/cache/${user.name}/tasks</value>
+  </property>
+
+  <property>
+    <name>yarn.app.mapreduce.am.staging-dir</name>
+    <value>/user</value>
+  </property>
+
+</configuration>

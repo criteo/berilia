@@ -1,0 +1,23 @@
+#Exposes a bunch of hadoop ports, as well as custom ports as specified in target-local.xml
+
+FROM dev_cluster/local
+
+#namenode
+EXPOSE 50070
+
+#datanode
+EXPOSE 50075
+
+#job-history
+EXPOSE 19888
+
+#resource manager
+EXPOSE 8088
+
+#node manager
+EXPOSE 8042
+
+#for user ports
+ARG portLabel
+
+LABEL portLabel=$portLabel

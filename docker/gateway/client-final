@@ -1,0 +1,6 @@
+FROM dev_cluster/gateway
+
+#for user ports
+ARG portLabel
+
+LABEL portLabel=$portLabel

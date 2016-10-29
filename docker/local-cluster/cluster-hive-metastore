@@ -1,0 +1,25 @@
+FROM dev_cluster/local
+
+RUN sudo apt-get -y install hive-metastore
+
+RUN echo "mysql-server mysql-server/root_password password root" | sudo debconf-set-selections
+RUN echo "mysql-server mysql-server/root_password_again password root" | sudo debconf-set-selections
+RUN sudo apt-get -y install mysql-server
+
+RUN sudo apt-get -y install libmysql-java
+RUN sudo ln -s /usr/share/java/mysql-connector-java.jar /usr/lib/hive/lib/mysql-connector-java.jar
+
+#setup hive
+RUN sudo touch create-metastore.sql
+RUN echo "CREATE DATABASE metastore;" | sudo tee --append create-metastore.sql
+RUN echo "USE metastore;" | sudo tee --append create-metastore.sql
+RUN echo "SOURCE /usr/lib/hive/scripts/metastore/upgrade/mysql/hive-schema-1.1.0.mysql.sql;" | sudo tee --append create-metastore.sql
+RUN echo "CREATE USER 'hive'@localhost IDENTIFIED BY 'hive';" | sudo tee --append create-metastore.sql
+RUN echo "GRANT ALL PRIVILEGES ON metastore.* TO 'hive'@localhost;" | sudo tee --append create-metastore.sql
+RUN echo "FLUSH PRIVILEGES;" | sudo tee --append create-metastore.sql
+RUN mv create-metastore.sql /usr/lib/hive/scripts/metastore/upgrade/mysql/create-metastore.sql
+
+#For some strange reason, docker intermediate containers do not maintain started services,
+#so have to do the below in one line
+
+RUN service mysql start && cd /usr/lib/hive/scripts/metastore/upgrade/mysql && mysql --user=root --password=root --protocol=tcp < "create-metastore.sql"

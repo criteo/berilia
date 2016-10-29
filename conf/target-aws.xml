@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<configuration>
+
+    <!--GENERAL PROPERTIES -->
+    <property>
+        <name>target.aws.access.id</name>
+        <value></value>
+        <description>Account id for AWs operations.  Confidential</description>
+    </property>
+    <property>
+        <name>target.aws.access.key</name>
+        <value></value>
+        <description>Account key for AWs operations.  Confidential.</description>
+    </property>
+    <property>
+        <name>target.aws.instance.type</name>
+        <value>m4.xlarge</value>
+        <description>Instance type to use in dev cluster.</description>
+    </property>
+    <property>
+        <name>target.aws.user</name>
+        <value>ubuntu</value>
+        <description>
+            The user to use to ssh into the dev cluster.
+            This is determined by the base Ubuntu image(s) specified in base.image.id.
+        </description>
+    </property>
+
+    <!--REGION-SPECIFIC PROPERTIES-->
+
+    <!-- AWS resources (AMI, security group, subnet, keypair, instance) are all artifacts of a data center.
+       Hence if using multiple AWS data centers, it would be a good idea to use different profiles for the following. -->
+    <property>
+        <name>target.aws.region</name>
+        <value>eu-west-1</value>
+        <description>Region to launch dev cluster in.</description>
+    </property>
+
+    <property>
+        <name>target.aws.subnet</name>
+        <value>subnet-xxxxxxxx</value>
+        <description>Subnet to spawn dev cluster in.</description>
+    </property>
+    <property>
+        <name>target.aws.security.group</name>
+        <value>sg-xxxxxxxx</value>
+        <description>Security group for dev cluster, which allows inbound only from your organization's IP's.</description>
+    </property>
+    <property>
+        <name>target.aws.key.pair</name>
+        <value>key_pair</value>
+        <description>Keypair name (determines key to use for ssh into dev cluster, see below).</description>
+    </property>
+    <property>
+        <name>target.aws.key.file</name>
+        <value>/path/to/key/file</value>
+        <description>Location of private key (of the key.pair) to use with dev cluster instances.</description>
+    </property>
+
+    <!-- Maybe there is a way to query for the official image from the data center?-->
+    <!-- This must match target.base.os -->
+    <property>
+        <name>target.aws.base.image.id</name>
+        <value>ami-ed82e39e</value>
+        <description>
+            Public Ubuntu 14.04 public image of eu-west data center.
+        </description>
+    </property>
+</configuration>
+

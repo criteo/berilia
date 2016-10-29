@@ -1,0 +1,6 @@
+#EXAMPLE plugin for creating a local cluster.  This prepares some env variables as well to run a sample tool that you mount in the docker gateway.
+
+FROM dev_cluster/gateway
+
+ENV VAR1=val1
+ENV VAR2=val2

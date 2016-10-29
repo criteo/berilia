@@ -1,0 +1,5 @@
+#Build the subsequent gateway, from the base
+
+FROM dev_cluster/base:final
+
+LABEL application="dev_cluster_gateway"
