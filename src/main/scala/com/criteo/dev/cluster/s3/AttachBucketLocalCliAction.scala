@@ -7,9 +7,9 @@ import org.slf4j.LoggerFactory
 /**
   * Points a local docker dev cluster to be able to run queries against tables in a given s3 bucket.
   */
-@Public object AttachS3LocalCliAction extends CliAction[Unit] {
+@Public object AttachBucketLocalCliAction extends CliAction[Unit] {
 
-  private val logger = LoggerFactory.getLogger(AttachS3LocalCliAction.getClass)
+  private val logger = LoggerFactory.getLogger(AttachBucketLocalCliAction.getClass)
 
   override def command: String = "attach-bucket-local"
 

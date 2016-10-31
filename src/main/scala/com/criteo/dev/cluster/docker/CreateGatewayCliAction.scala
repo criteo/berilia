@@ -8,9 +8,9 @@ import org.slf4j.LoggerFactory
 /**
   * Creates a gateway in docker.
   */
-@Public object DockerGatewayCliAction extends CliAction[Unit] {
+@Public object CreateGatewayCliAction extends CliAction[Unit] {
 
-  private val logger = LoggerFactory.getLogger(DockerGatewayCliAction.getClass)
+  private val logger = LoggerFactory.getLogger(CreateGatewayCliAction.getClass)
   override def command: String = "create-gateway"
 
   override def usageArgs: List[Any] = List("cluster", Option("mount.directory"))

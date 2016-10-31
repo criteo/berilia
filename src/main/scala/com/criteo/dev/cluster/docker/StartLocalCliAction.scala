@@ -9,9 +9,9 @@ import scala.sys.process.Process
 /**
   * Start docker container
   */
-@Public object StartDockerCliAction extends CliAction[Unit] {
+@Public object StartLocalCliAction extends CliAction[Unit] {
 
-  private val logger = LoggerFactory.getLogger(StartDockerCliAction.getClass)
+  private val logger = LoggerFactory.getLogger(StartLocalCliAction.getClass)
 
   override def command: String = "start-local"
 

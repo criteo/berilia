@@ -49,7 +49,7 @@ class S3Test extends FunSuite with BeforeAndAfter {
 
   test("Copy some data into the bucket") {
     //Create a docker cluster
-    val dockerMeta = CreateDockerCliAction(List(), conf)
+    val dockerMeta = CreateLocalCliAction(List(), conf)
 
     val dockerNode = NodeFactory.getDockerNode(conf, dockerMeta)
 
@@ -119,9 +119,9 @@ class S3Test extends FunSuite with BeforeAndAfter {
 
 
   test("Create a new docker cluster and point data to it.") {
-    val dockerMeta = CreateDockerCliAction(List(), conf)
+    val dockerMeta = CreateLocalCliAction(List(), conf)
     val dockerNode = NodeFactory.getDockerNode(conf, dockerMeta)
-    AttachS3LocalCliAction(List(testBucketName, dockerMeta.id), conf)
+    AttachBucketLocalCliAction(List(testBucketName, dockerMeta.id), conf)
     val resultPartitions = SshHiveAction(dockerNode, List(s"show partitions $testDbName.$testTableName"))
     val partitions = resultPartitions.split("\n")
     assert(partitions.length == 4)
@@ -141,7 +141,7 @@ class S3Test extends FunSuite with BeforeAndAfter {
     assert(hdfsLine.contains("a"))
     assert(hdfsLine.contains("b"))
 
-    DestroyDockerCliAction(List(dockerMeta.id), conf)
+    DestroyLocalCliAction(List(dockerMeta.id), conf)
     DestroyBucketCliAction(List(testBucketName), conf)
   }
 

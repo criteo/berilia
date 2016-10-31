@@ -7,7 +7,7 @@ import org.jclouds.compute.domain.NodeMetadata.Status
 /**
   * Restart all Hadoop services on all nodes of the cluster.  It can be a brute-force way to make sure all services are up.
   */
-@Public object RestartServiceCliAction extends CliAction[Unit] {
+@Public object RestartServicesCliAction extends CliAction[Unit] {
   override def command: String = "restart-services-aws"
 
   override def usageArgs: List[Any] = List("cluster.id")

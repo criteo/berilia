@@ -22,7 +22,7 @@ class LocalClusterTest extends FunSuite with BeforeAndAfter {
   test("Create a cluster, list it") {
 
     //Create a docker cluster
-    val dockerMeta = CreateDockerCliAction(List(), conf)
+    val dockerMeta = CreateLocalCliAction(List(), conf)
     assertResult(DockerRunning) (dockerMeta.dockerState)
     dockerId = dockerMeta.id
 
@@ -85,14 +85,14 @@ class LocalClusterTest extends FunSuite with BeforeAndAfter {
   test("Stop and restart cluster") {
 
     //Stop docker cluster and verify
-    StopDockerCliAction(List(dockerId), conf)
+    StopLocalCliAction(List(dockerId), conf)
     var dockerMetas = ListDockerCliAction(List(), conf)
     var dockerMeta = getDockerMeta(dockerId, dockerMetas)
     assertResult(DockerStopped) (dockerMeta.dockerState)
 
 
     //Restart docker cluster and verify
-    StartDockerCliAction(List(dockerId), conf)
+    StartLocalCliAction(List(dockerId), conf)
     dockerMetas = ListDockerCliAction(List(), conf)
     dockerMeta = getDockerMeta(dockerId, dockerMetas)
     assertResult(DockerRunning) (dockerMeta.dockerState)
@@ -107,7 +107,7 @@ class LocalClusterTest extends FunSuite with BeforeAndAfter {
   test("Copy data to another cluster, Run Tests, Destroy It") {
 
     //create a 'target' docker cluster
-    val newDockerMeta = CreateDockerCliAction(List(), conf)
+    val newDockerMeta = CreateLocalCliAction(List(), conf)
     assertResult(DockerRunning) (newDockerMeta.dockerState)
     val newDockerId = newDockerMeta.id
 
@@ -120,7 +120,7 @@ class LocalClusterTest extends FunSuite with BeforeAndAfter {
       ("default.partition.count" -> "2")
 
     //copy the data to the 'target' cluster
-    DockerCopyCliAction(List(newDockerId), newSourceConf)
+    CopyLocalCliAction(List(newDockerId), newSourceConf)
 
     //verify.  As we only copied 2 partitions out of 4, it should be half the data
     val dockerNode = NodeFactory.getDockerNode(conf, newDockerMeta)
@@ -129,16 +129,16 @@ class LocalClusterTest extends FunSuite with BeforeAndAfter {
 
     //try copy without source tables or files.  Should fail
     val invalidNewSourceConf = newSourceConf - "source.tables"
-    assertThrows[IllegalArgumentException] (DockerCopyCliAction(List(newDockerId), invalidNewSourceConf),
+    assertThrows[IllegalArgumentException] (CopyLocalCliAction(List(newDockerId), invalidNewSourceConf),
       "Exception expected as source.tables and source.files is not defined.")
 
     //Destroy the 'target' docker cluster
-    DestroyDockerCliAction(List(newDockerId), conf)
+    DestroyLocalCliAction(List(newDockerId), conf)
   }
 
   test("Destroy the local cluster") {
     //Destroy the local cluster and verify
-    DestroyDockerCliAction(List(dockerId), conf)
+    DestroyLocalCliAction(List(dockerId), conf)
     val dockerMetas = ListDockerCliAction(List(), conf)
     assertNoDocker(dockerId, dockerMetas)
   }

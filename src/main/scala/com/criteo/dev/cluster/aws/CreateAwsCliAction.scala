@@ -7,9 +7,9 @@ import org.slf4j.LoggerFactory
 /**
   * Create a multi-node CDH cluster.
   */
-@Public object CreateCompleteClusterCliAction extends CliAction[AwsCluster] {
+@Public object CreateAwsCliAction extends CliAction[AwsCluster] {
 
-  private val logger = LoggerFactory.getLogger(CreateCompleteClusterCliAction.getClass)
+  private val logger = LoggerFactory.getLogger(CreateAwsCliAction.getClass)
 
   override def command : String = "create-aws"
 

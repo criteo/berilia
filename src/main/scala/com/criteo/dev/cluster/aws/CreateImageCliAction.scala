@@ -25,7 +25,7 @@ import scala.collection.JavaConverters._
   */
 object CreateImageCliAction extends CliAction[Unit] {
 
-  private val logger = LoggerFactory.getLogger(CreateCompleteClusterCliAction.getClass)
+  private val logger = LoggerFactory.getLogger(CreateAwsCliAction.getClass)
 
   override def command: String = "create-image-aws"
 

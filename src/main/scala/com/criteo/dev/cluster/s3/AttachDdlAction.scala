@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory
   */
 object AttachDdlAction {
 
-  private val logger = LoggerFactory.getLogger(AttachS3LocalCliAction.getClass)
+  private val logger = LoggerFactory.getLogger(AttachDdlAction.getClass)
 
   def apply(bucketId: String, conf: Map[String, String]) = {
     val blobStore = BucketUtilities.getBlobStore(conf)

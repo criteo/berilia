@@ -3,7 +3,7 @@
 <pre>
 
 # Create local cluster, choose custom add-on to prepare for tool, mount a directory with local tool
-$ dev-cluster create-local -Plangoustine /path/to/local/langoustine/project/dir
+$ dev-cluster create-local -Psample-tool /path/to/local/sample/project/dir
 
 # Note that the ports configured in ./gateway.xml are properly displayed, and can be accessed once local tool is running.
 $ dev-cluster list-local
@@ -24,7 +24,7 @@ Welcome to Ubuntu 14.04.4 LTS (GNU/Linux 4.4.12-boot2docker x86_64)
 
  * Documentation:  https://help.ubuntu.com/
 root@a82426189cfc:~# cd /mount
-root@a82426189cfc:/mount# /bin/bash -ex ./bin/run_langoustine.sh
+root@a82426189cfc:/mount# ./sample-tool.py
 
 # Run tests
 
@@ -39,5 +39,5 @@ Configure ./conf/target-local.xml:
 <pre>
 profile : sample-tool
 target.local.docker.files=cluster-sample-tool
-target.local.ports=SampleHttp/9400, SampleHttps/9401
+target.local.ports=SampleHttp/9400, SampleHttps/9401 (sample-app.py listens on ports 9400 and 9401)
 </pre>

@@ -11,8 +11,8 @@ import scala.sys.process.Process
 /**
   * Create a local docker cluster.
   */
-@Public object CreateDockerCliAction extends CliAction[DockerMeta] {
-  private val logger = LoggerFactory.getLogger(CreateDockerCliAction.getClass)
+@Public object CreateLocalCliAction extends CliAction[DockerMeta] {
+  private val logger = LoggerFactory.getLogger(CreateLocalCliAction.getClass)
 
   override def command: String = "create-local"
 

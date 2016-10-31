@@ -30,6 +30,7 @@ Berilla  Specific Functionalities:
 7. Access via CLI or Scala library.
 
 Comparing to existing solutions:
+
 1. VM/Docker Hadoop Quickstart images: Non-customizable, fixed components/environment.  Berilla has options to create/customize dev clusters, also provides cluster management and other utilities.
 2. Custom scripts (Bash/Vagrant): Hard to maintain.  Berilla is well-defined for customization, and also provides cluster management and other utilities.
 3. Hadoop management tools:  Installed on each node of bare-metal cluster.  Berilla does not have to be installed on many nodes, as dev clusters are either local/cloud based (no bare metal required).
@@ -290,12 +291,14 @@ Usage: dev-cluster destroy-gateway [(Optional) container.id]
 ## Scala API
 
 All these Berilla functionalities can be accessed as a Scala library, instead of via CLI commands, for automation purpose.
-* Install Berilla  as mentioned in [Setup] (#setup)
-* Add project as a dependency to your project, using groupId=com.criteo.hadoop, artifactId=berilla
-* Use Berilla public api's annotated with [public] (./src/main/scala/com/criteo/dev/cluster/Public.scala).
- * As a rule of thumb, the equivalent call to access a CLI command 'command' will be the Scala object 'CommandCliAction'.
- * See [unit tests](./src/test/scala/com.criteo.dev.cluster) for examples.
-* Set following environment variable "DEV_CLUSTER_HOME" to point to Berilla install.
+* Install:    Build and unzip Berilla  as mentioned in [Setup] (#setup)
+* Dependency: Add project as a dependency to your project, using groupId=com.criteo.hadoop, artifactId=berilla
+* Compile:    Use Berilla public api's annotated with [public] (./src/main/scala/com/criteo/dev/cluster/Public.scala).  Non-annotated API's may be removed in subsequent release.
+ * Use the Scala object 'fooCLiAction' to run the equivalent to the CLI command 'foo'.
+ * Use ConfigLoader object to load configuration for Berilla commands, or alternatively construct the configuration manually using Scala map.
+ * Use SshAction, SshMultiAction, SshHiveAction, ScpAction, RsyncAction objects with nodes from NodeFactory as helper classes to execute actions on a dev cluster.
+ * Check [unit tests](./src/test/scala/com.criteo.dev.cluster) for the latest examples.
+* Run:        Set following environment variable "DEV_CLUSTER_HOME" to point to Berilla install.
  * This will be used by Berilla libraries to find conf and script files.
  * All relative paths referred by conf files will be relative to DEV_CLUSTER_HOME.
 
@@ -437,10 +440,9 @@ These will be run to finalize the local-cluster image.
 * AWS commands fail sporadically:
   * Exception Message: 17:27:54.232 INFO  c.c.dev.cluster.node.AwsUtilities$ - Connecting to AWS in region eu-west-1
   org.jclouds.rest.AuthorizationException: POST http://ec2.eu-west-1.amazonaws.com/HTTP/1.1 -> HTTP/1.1 401 Unauthorized
-  * It seems this is due to AWS blocking requests from too many different machines, as there is only one available AWS account in
-  the default configuration.
+  * It seems this is due to AWS blocking requests from too many different machines with same AWS secret/key.
   * Wait a little bit (maybe even a few hours) and try again.
-  * If you have your own AWS key/id, feel free to put it in the configuration.
+  * Use different AWS secret/key per machine, if available.
 <br>
 * 'create-gateway' command on a production cluster succeeds, but commands in gateway fail talking to production cluster, with hive/hdfs fails with Kerberos errors.
  * Make sure you have run "kinit -f" successfully before running hive/hdfs.

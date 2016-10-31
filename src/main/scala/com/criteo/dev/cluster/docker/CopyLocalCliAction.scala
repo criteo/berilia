@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory
 /**
   * Copies data into docker container.
   */
-@Public object DockerCopyCliAction extends CliAction[Unit] {
+@Public object CopyLocalCliAction extends CliAction[Unit] {
 
   def applyInternal(args: List[String], conf: Map[String, String]) : Unit = {
     val dockerContainerId = args(0)

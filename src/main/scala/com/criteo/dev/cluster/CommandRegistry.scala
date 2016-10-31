@@ -12,13 +12,13 @@ object CommandRegistry {
   private val localCommands = new CliActionCategory(
     "Local Cluster",
     List[CliAction[_]] (
-      CreateDockerCliAction,
-      DestroyDockerCliAction,
+      CreateLocalCliAction,
+      DestroyLocalCliAction,
       ListDockerCliAction,
-      StartDockerCliAction,
-      StopDockerCliAction,
-      DockerCopyCliAction,
-      AttachS3LocalCliAction
+      StartLocalCliAction,
+      StopLocalCliAction,
+      CopyLocalCliAction,
+      AttachBucketLocalCliAction
     ),
     Some(GeneralConstants.localClusterType)
   )
@@ -26,24 +26,24 @@ object CommandRegistry {
   private val awsCommands = new CliActionCategory(
     "AWS Cluster",
     List[CliAction[_]] (
-      CreateCompleteClusterCliAction,
+      CreateAwsCliAction,
       DestroyAwsCliAction,
       ListAwsCliAction,
       StartAwsCliAction,
       StopAwsCliAction,
-      CopyConfCliAction,
-      RestartServiceCliAction,
+      ConfigureAwsCliAction,
+      RestartServicesCliAction,
       ExtendAwsCliAction,
       PurgeAwsCliAction,
       CopyAwsCliAction,
-      AttachS3AwsCliAction
+      AttachBucketAwsCliAction
     ),
     Some(GeneralConstants.awsType))
 
   private val gatewayAwsCommands = new CliActionCategory(
     "Docker-Gateway for Remote Cluster (including AWS cluster)",
     List[CliAction[_]] (
-      DockerGatewayCliAction,
+      CreateGatewayCliAction,
       ListGatewayCliAction,
       ResumeGatewayCliAction,
       DestroyGatewayCliAction),

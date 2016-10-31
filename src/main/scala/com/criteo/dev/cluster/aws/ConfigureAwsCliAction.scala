@@ -5,7 +5,7 @@ import com.criteo.dev.cluster.{CliAction, Public}
 /**
   * Copies the hadoop-configuration under /hadoop-conf/${target.hadoop.conf.dir} to a cluster
   */
-@Public object CopyConfCliAction extends CliAction[Unit] {
+@Public object ConfigureAwsCliAction extends CliAction[Unit] {
   override def command: String = "configure-aws"
 
   override def usageArgs: List[Any] = List("cluster.id")

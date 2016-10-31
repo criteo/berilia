@@ -24,7 +24,7 @@ class AwsClusterTest extends FunSuite with BeforeAndAfter {
   test("Create a cluster, list it") {
 
     //Create a docker cluster
-    val cluster = CreateCompleteClusterCliAction(List("3"), conf)
+    val cluster = CreateAwsCliAction(List("3"), conf)
     clusterId = cluster.master.id
 
     assertResult(2) (cluster.slaves.size)
@@ -109,7 +109,7 @@ class AwsClusterTest extends FunSuite with BeforeAndAfter {
   test("Copy data to another cluster, Run Tests, Destroy It") {
 
     //create a 'target' docker cluster
-    val newCluster = CreateCompleteClusterCliAction(List("2"), conf)
+    val newCluster = CreateAwsCliAction(List("2"), conf)
     assertResult(AwsRunning) (newCluster.master.status)
     val newClusterId = newCluster.master.id
 

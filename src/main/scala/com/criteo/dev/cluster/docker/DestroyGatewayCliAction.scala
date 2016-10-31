@@ -9,7 +9,7 @@ import scala.sys.process.Process
   * Destroys docker gateway container.
   */
 @Public object DestroyGatewayCliAction extends CliAction[Unit] {
-  private val logger = LoggerFactory.getLogger(DestroyDockerCliAction.getClass)
+  private val logger = LoggerFactory.getLogger(DestroyGatewayCliAction.getClass)
 
   override def command: String = "destroy-gateway"
 

@@ -1,7 +1,7 @@
 package com.criteo.dev.cluster
 
 import com.criteo.dev.cluster.aws._
-import com.criteo.dev.cluster.docker.{DestroyGatewayCliAction, DockerGatewayCliAction, DockerMeta, ListDockerCliAction}
+import com.criteo.dev.cluster.docker.{DestroyGatewayCliAction, CreateGatewayCliAction, DockerMeta, ListDockerCliAction}
 import org.scalatest.{BeforeAndAfter, FunSuite}
 
 /**
@@ -25,7 +25,7 @@ class AwsClusterAdvanceTest extends FunSuite with BeforeAndAfter {
   test("Create a cluster, populate cluster") {
 
     //Create a docker cluster
-    val cluster = CreateCompleteClusterCliAction(List("3"), conf)
+    val cluster = CreateAwsCliAction(List("3"), conf)
     clusterId = cluster.master.id
 
     assertResult(2)(cluster.slaves.size)
@@ -54,8 +54,8 @@ class AwsClusterAdvanceTest extends FunSuite with BeforeAndAfter {
     var clusters = ListAwsCliAction(List(), conf)
     val cluster = getCluster(clusterId, clusters)
     val master = NodeFactory.getAwsNode(conf, cluster.master)
-    CopyConfCliAction(List(clusterId), conf)
-    RestartServiceCliAction(List(clusterId), conf)
+    ConfigureAwsCliAction(List(clusterId), conf)
+    RestartServicesCliAction(List(clusterId), conf)
 
     //Run Hive Query, verify count is correct
     val results = SshHiveAction(master, List(s"select count(*) from $testDbName.$testTableName"))
@@ -63,7 +63,7 @@ class AwsClusterAdvanceTest extends FunSuite with BeforeAndAfter {
   }
 
   test("Create a gateway") {
-    DockerGatewayCliAction(List(clusterId), conf)
+    CreateGatewayCliAction(List(clusterId), conf)
     //TODO- Docker Gateway is in interactive mode as part of the CLI, so doesn't actually run as part of the program.
     //No way to unit test for now.. should we add a background mode like local-cluster?
     DestroyGatewayCliAction(List(), conf)

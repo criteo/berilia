@@ -8,8 +8,8 @@ import scala.sys.process.Process
 /**
   * Stops docker container
   */
-@Public object StopDockerCliAction extends CliAction[Unit] {
-  private val logger = LoggerFactory.getLogger(StopDockerCliAction.getClass)
+@Public object StopLocalCliAction extends CliAction[Unit] {
+  private val logger = LoggerFactory.getLogger(StopLocalCliAction.getClass)
 
   override def command: String = "stop-local"
 

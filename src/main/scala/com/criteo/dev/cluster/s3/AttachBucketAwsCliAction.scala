@@ -8,9 +8,9 @@ import org.slf4j.LoggerFactory
 /**
   * Points a AWS-hosted dev cluster to be able to run queries against tables in a given s3 bucket.
   */
-@Public object AttachS3AwsCliAction extends CliAction[Unit] {
+@Public object AttachBucketAwsCliAction extends CliAction[Unit] {
 
-  private val logger = LoggerFactory.getLogger(AttachS3AwsCliAction.getClass)
+  private val logger = LoggerFactory.getLogger(AttachBucketAwsCliAction.getClass)
 
   override def command: String = "attach-bucket-aws"
 

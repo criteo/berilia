@@ -8,8 +8,8 @@ import scala.sys.process.Process
 /**
   * Destroy a local docker cluster
   */
-@Public object DestroyDockerCliAction extends CliAction[Unit] {
-  private val logger = LoggerFactory.getLogger(DestroyDockerCliAction.getClass)
+@Public object DestroyLocalCliAction extends CliAction[Unit] {
+  private val logger = LoggerFactory.getLogger(DestroyLocalCliAction.getClass)
 
   override def command: String = "destroy-local"
 
