@@ -14,6 +14,11 @@ class LocalClusterTest extends FunSuite with BeforeAndAfter {
   def testTableName = "testtable"
   def testFileName = "testfile"
 
+  def testFileName2 = "testfile2"
+  def testTableName2 = "testtable2"
+  def testTableName3 = "testtable3"
+  def testTableName4 = "testtable4"
+
   var dockerId: String = null
 
   before {
@@ -135,6 +140,71 @@ class LocalClusterTest extends FunSuite with BeforeAndAfter {
     //Destroy the 'target' docker cluster
     DestroyLocalCliAction(List(newDockerId), conf)
   }
+
+  //There is a very miniscule chance (0.00.....001)^100 that this test does not generate data and fails.
+  //Sorry about that, it comes with sampling probability.
+  test("Test sampling.") {
+
+    val dockerMetas = ListDockerCliAction(List(), conf)
+    val dockerMeta = getDockerMeta(dockerId, dockerMetas)
+    val dockerNode = NodeFactory.getDockerNode(conf, dockerMeta)
+
+      val newDockerMeta = CreateLocalCliAction(List(), conf)
+
+    val newDockerNode = NodeFactory.getDockerNode(conf, newDockerMeta)
+
+    //create partition table with 4 partitions, and two unpartitioned tables, to test both case.
+    SshHiveAction(dockerNode, List(s"create database if not exists dev_cluster_sample",
+      s"create database if not exists $testDbName",
+      s"create table $testDbName.$testTableName2 (name string) partitioned by (month int, day int)",
+      s"alter table $testDbName.$testTableName2 add partition (month=1, day=1)",
+      s"alter table $testDbName.$testTableName2 add partition (month=1, day=2)",
+      s"alter table $testDbName.$testTableName2 add partition (month=2, day=1)",
+      s"alter table $testDbName.$testTableName2 add partition (month=2, day=2)",
+      s"create table $testDbName.$testTableName3 (name string)",
+      s"create table $testDbName.$testTableName4 (name string)"))
+
+    //load data into the partitions (more rows to increase chance that sampling generates some data)
+    SshMultiAction(dockerNode,
+      (1 to 100).map(i => s"echo $i | tee --append $testFileName2").toList)
+
+
+    SshHiveAction(dockerNode, List(
+      s"load data local inpath '$testFileName2' into table $testDbName.$testTableName2 partition (month=1, day=1)",
+      s"load data local inpath '$testFileName2' into table $testDbName.$testTableName2 partition (month=1, day=2)",
+      s"load data local inpath '$testFileName2' into table $testDbName.$testTableName2 partition (month=2, day=1)",
+      s"load data local inpath '$testFileName2' into table $testDbName.$testTableName2 partition (month=2, day=2)",
+      s"load data local inpath '$testFileName2' into table $testDbName.$testTableName3",
+      s"load data local inpath '$testFileName2' into table $testDbName.$testTableName4"))
+
+    //create the source configuration to specify sample for some tables, and not for other tables,
+    //to test both cases
+    val newSourceConf = conf + ("source.user" -> conf.get("target.local.cluster.user").get) +
+      ("source.address" -> DockerUtilities.getSshHost(conf)) +
+      ("source.port" -> DockerUtilities.getSshPort(dockerId)) +
+      ("source.tables" -> s"$testDbName.$testTableName2, $testDbName.$testTableName3, $testDbName.$testTableName4") +
+      ("source.key.file" -> DockerConstants.dockerPrivateKey) +
+      ("default.partition.count" -> "3") +
+      ("source.copy.sample.threshold" -> "1") +
+      (s"$testDbName.$testTableName2.sample.prob" -> "0.99999999999") +
+      (s"$testDbName.$testTableName3.sample.prob" -> "0.9999999999999999") +
+      (s"$testDbName.$testTableName4.sample.prob" -> "1.0")
+
+    CopyLocalCliAction(List(newDockerMeta.id), newSourceConf)
+
+    //Run Hive Query, verify count is correct
+    var results = SshHiveAction(newDockerNode, List(s"select count(*) from $testDbName.$testTableName2"))
+    assert(results.stripLineEnd.toInt > 0)
+
+    results = SshHiveAction(newDockerNode, List(s"select count(*) from $testDbName.$testTableName3"))
+    assert(results.stripLineEnd.toInt > 0)
+
+    results = SshHiveAction(newDockerNode, List(s"select count(*) from $testDbName.$testTableName4"))
+    assert(results.stripLineEnd.toInt > 0)
+
+    DestroyLocalCliAction(List(newDockerMeta.id), conf)
+  }
+
 
   test("Destroy the local cluster") {
     //Destroy the local cluster and verify

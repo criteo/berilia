@@ -66,5 +66,17 @@
             Public Ubuntu 14.04 public image of eu-west data center.
         </description>
     </property>
+
+
+    <!-- S3 Props -->
+
+    <!--S3 Bucket Properties -->
+    <property>
+        <name>s3.bucket.prefix</name>
+        <value>berilla-dev-cluster</value>
+        <description>
+            This is for naming buckets created by this tool.
+            Important, make this unique to your org or team, as bucket names are global.</description>
+    </property>
 </configuration>
 

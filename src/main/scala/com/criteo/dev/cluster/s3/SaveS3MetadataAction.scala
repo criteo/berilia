@@ -80,6 +80,6 @@ class SaveS3MetadataAction(conf: Map[String, String], target: Node) extends Crea
 
   def toS3Location(conf: Map[String, String], sourceLocation: String) = {
     val relativeLocation = CopyUtilities.toRelative(sourceLocation)
-    CopyUtilities.toS3Bucket(conf, relativeLocation, includeCredentials = false)
+    CopyUtilities.toS3BucketTarget(conf, relativeLocation, includeCredentials = false)
   }
 }

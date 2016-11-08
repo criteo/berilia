@@ -13,7 +13,11 @@ object CopyConstants {
 
   def copyListeners = "source.copy.listeners"
 
-  def distcpThreshold = "source.copy.distcp.threshold"
+  def sampleThreshold = "source.copy.sample.threshold"
+
+  def sampleDb = "source.sample.database"
+
+  def sampleProb = "sample.prob"
 
   def tmpDataDirName = "tmpData"
 
@@ -24,6 +28,8 @@ object CopyConstants {
   def tmpTgt = s"/tmp/$tmpDataDirName"
 
   def tmpTgtParent = "/tmp"
+
+  def tempTableHint = "dev_cluster"
 
   def absolutePartCount = "partition.count"
 

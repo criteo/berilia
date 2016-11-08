@@ -11,6 +11,7 @@ abstract class CopyFileAction(conf: Map[String, String], source: Node, target: N
   /**
     * Copies file(s) from source to target, replicates the directory structure.
     *
+    *
     * All files of sourceFiles must start with sourceBase.
     * The algorithm will copy every file to targetBase/(sourceFile - sourceBase)
     *
@@ -25,5 +26,7 @@ abstract class CopyFileAction(conf: Map[String, String], source: Node, target: N
     * /target/2016-08-28/1
     * /target/2016-08-28/2
     */
+
+
   def apply(sourceFiles: Array[String], sourceBase: String, targetBase: String)
 }

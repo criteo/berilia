@@ -1,12 +1,25 @@
 package com.criteo.dev.cluster.copy
 
 import com.criteo.dev.cluster.aws.{AwsConstants, AwsUtilities}
-import com.criteo.dev.cluster.{NodeFactory, SshAction}
+import com.criteo.dev.cluster.{GeneralConstants, GeneralUtilities, NodeFactory, SshAction}
+
+import scala.util.Random
 
 /**
   * Utilities for copying metadata.
   */
 object CopyUtilities {
+
+  //For configuration stuff
+
+  def getOverridableConf(conf: Map[String, String], database: String, table: String, prop: String) : String = {
+    val propConf = conf.get(s"$database.$table.$prop")
+    if (propConf.isEmpty) {
+      GeneralUtilities.getConfStrict(conf, s"default.$prop", GeneralConstants.sourceProps)
+    } else {
+      propConf.get
+    }
+  }
 
 
   /**
@@ -56,7 +69,7 @@ object CopyUtilities {
   }
 
 
-  def toS3Bucket(conf: Map[String, String], path: String, includeCredentials: Boolean = true) = {
+  def toS3BucketTarget(conf: Map[String, String], path: String, includeCredentials: Boolean = true) = {
     val target = NodeFactory.getTarget(conf)
     val bucketName = target.ip
     if (includeCredentials) {
@@ -83,9 +96,9 @@ object CopyUtilities {
   }
 
   /**
-    * partition spec string, ie (day='2015-05-05', hour='20') for each partition.
-    *
     * @param partSpecs array of the the partition specs (column, value) of this partition.
+    *
+    * @return partition spec string, ie (day='2015-05-05', hour='20') for each partition.
     */
   def partitionSpecString(partSpecs : PartSpec): String = {
     val partSpecStrings = partSpecs.specs.map(
@@ -93,5 +106,55 @@ object CopyUtilities {
         s"${p.column}='${p.value}'"
       })
     partSpecStrings.mkString(", ")
+  }
+
+  /**
+    * @param partSpecs array of the the partition specs (column, value) of this partition.
+    *
+    * @return partition spec filter, ie (day='2015-05-05' and hour='20')
+    */
+  def partitionSpecFilter(partSpecs : PartSpec): String = {
+    val partSpecStrings = partSpecs.specs.map(
+      p => {
+        s"${p.column}='${p.value}'"
+      })
+    partSpecStrings.mkString(" and ")
+  }
+
+  /**
+    * @param part partition info
+    *
+    * @return partition column list of this table, ie (day, hour)
+    */
+  def partitionColumns(part: PartitionInfo) : String = {
+    part.partSpec.specs.map(_.column).mkString("(", ", ", ")")
+  }
+
+
+  /**
+    * Get a temp table name, for sampling purpose.
+    */
+  def getTempTableName(tableName: String) : String = {
+    val rand = Random.nextInt(10000).toString
+    s"${tableName}_${CopyConstants.tempTableHint}_$rand"
+  }
+
+  /**
+    * Get a common file location to copy for.
+    */
+  def getCommonLocation(tableLocation: String, partitionInfos: Array[PartitionInfo]): String = {
+    if (partitionInfos.isEmpty) {
+      tableLocation
+    } else {
+      val partLocations = partitionInfos.map(_.location)
+      // getCommonLocation(partLocations)
+
+      partitionInfos.foreach(p => {
+        //TODO - support this case, find the common parent of partitions if not under table directory,
+        //will work with the following code.
+        require(p.location.startsWith(tableLocation))
+      })
+      tableLocation
+    }
   }
 }

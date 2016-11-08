@@ -29,7 +29,6 @@ object SshAction {
     */
   def apply(node: Node, script: String, returnResult: Boolean = false, ignoreFailure: Boolean = false): String = {
     val command = s"ssh -o StrictHostKeyChecking=no ${GeneralUtilities.nodeString(node)} $script"
-    logger.info(command)
 
     val commands = command.split("\\s+")
     val p = DevClusterProcess.processSeq(commands)

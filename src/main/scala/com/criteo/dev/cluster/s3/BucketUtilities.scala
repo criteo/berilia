@@ -73,7 +73,7 @@ object BucketUtilities {
   }
 
   def getS3BucketPrefix(conf: Map[String, String]) =
-    GeneralUtilities.getConfStrict(conf, BucketConstants.bucketPrefix, GeneralConstants.sourceProps)
+    GeneralUtilities.getConfStrict(conf, BucketConstants.bucketPrefix, GeneralConstants.targetAwsProps)
 
 
   //-----

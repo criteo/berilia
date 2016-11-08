@@ -15,28 +15,34 @@ object CopyAllAction {
     val sourceTables = GeneralUtilities.getNonEmptyConf(conf, CopyConstants.sourceTables)
     val sourceFiles = GeneralUtilities.getNonEmptyConf(conf, CopyConstants.sourceFiles)
 
+    val source = NodeFactory.getSource(conf)
+    val target = NodeFactory.getTarget(conf)
+
     require ((sourceTables.isDefined || sourceFiles.isDefined),
       "No source tables or files configured")
 
     //copy source tables
     if (sourceTables.isDefined) {
-      val tableInfos: Array[TableInfo] = GetMetadataAction(conf, NodeFactory.getSource(conf))
-      tableInfos.foreach(ti => CopyTableAction(conf, ti))
-      val createMetadataAction = CreateMetadataActionFactory.getCopyFileAction(conf, NodeFactory.getTarget(conf))
+      val tableInfos: Array[TableInfo] = GetMetadataAction(conf, source)
+      tableInfos.foreach(ti => {
+        val copyTableAction = new CopyTableAction(conf, source, target)
+        copyTableAction.copy(ti)
+      })
+      val createMetadataAction = CreateMetadataActionFactory.getCopyFileAction(conf, target)
       createMetadataAction(tableInfos)
     }
 
     //copy files
     if (sourceFiles.isDefined) {
       val files = GeneralUtilities.getConfCSV(conf, CopyConstants.sourceFiles)
-      val copyFileAction = CopyFileActionFactory.getCopyFileAction(conf)
+      val copyFileAction = CopyFileActionFactory.getCopyFileAction(conf, source, target)
       files.foreach(f => copyFileAction(Array(f), f, CopyUtilities.toRelative(f)))
 
       //write in the logs
       val targetType = GeneralUtilities.getConfStrict(conf, GeneralConstants.targetTypeProp, "Internally-provided")
       if (targetType.equals(GeneralConstants.s3Type)) {
         UploadS3Action(conf, NodeFactory.getTarget(conf), DataType.hdfs, files.toList.map(
-          f => CopyUtilities.toS3Bucket(conf, f, includeCredentials=false)))
+          f => CopyUtilities.toS3BucketTarget(conf, f, includeCredentials=false)))
       }
     }
 

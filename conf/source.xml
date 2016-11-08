@@ -18,50 +18,47 @@
     <property>
         <name>default.partition.count</name>
         <value>2</value>
-        <description>How many leaf partitions to sample for each table.  May be overriden per table.</description>
+        <description>How many leaf partitions to copy for each table.  May be overriden per table.</description>
     </property>
 
-    <!--To override default number of partition samples for particular "database"."table",
-     provide property with key: "database"."table".partition.count, eg: -->
     <property>
-        <name>database.table.partition.count</name>
+        <name>default.sample.prob</name>
+        <value>0.2</value>
+        <description>
+            This controls how many rows we sample when we copy a partition/table.  Must be between 0(exc) and 1(inclusive)
+
+            If copy-bucket jobs errors with "No Space Left on Disk" when writing to S3, tune this flag to control
+            how much the job spills to disk while writing to S3.
+        </description>
+    </property>
+
+    <property>
+        <name>source.sample.database</name>
+        <value>dev_cluster_sample</value>
+        <description>
+            Name of intermediate Hive database where sampled source tables will live, if sampling is enabled during copy.
+            This needs to be created before the copy command is run.
+        </description>
+    </property>
+
+    <!--To override default partition and sampling configs for particular "my_db"."my_table",
+     provide property with key: "my_db"."my_table".partition.count, eg: -->
+    <property>
+        <name>my_db.my_table.partition.count</name>
         <value>1</value>
-        <description>Table is a bit big, so sample only one partition.</description>
+        <description>Table is a bit big, so copy only one partition.</description>
+    </property>
+
+    <property>
+        <name>my_db.my_table.sample.rows</name>
+        <value>200000</value>
+        <description>Override sampling in that partition.</description>
     </property>
 
     <property>
         <name>source.files</name>
         <value></value>
         <description>Fill this with comma-separated list of source directories.  TODO: file sampling</description>
-    </property>
-
-    <!--If distcp is the copying mechanism (currently only for copy-bucket command)
-    then use this to determine how many top-level partitions to sample.  0 signifies entire table to be sampled.
-
-    The reason we need to do top-level is the mechanics of distcp, which work best on set of directories,
-    and not so well on a set of random leaf partitions that might not have a common parent.-->
-    <property>
-        <name>default.distcp.top.partition.count</name>
-        <value>2</value>
-        <description></description>
-    </property>
-
-
-    <!--If distcp is the copying mechanism, to override default number of top partition samples for particular "database"."table",
-         provide property with key: "database"."table".distcp.top.partition.count, eg: -->
-     <property>
-        <name>database.table.distcp.top.partition.count</name>
-        <value>1</value>
-        <description>Table is a bit big, so sample only one partition.</description>
-    </property>
-
-    <!--S3 Bucket Properties -->
-    <property>
-        <name>s3.bucket.prefix</name>
-        <value>berilla-dev-cluster</value>
-        <description>
-            This is for naming buckets created by this tool.
-            Important, make this unique to your org or team, as bucket names are global.</description>
     </property>
 
     <!--PROFILE EXAMPLE-->
@@ -93,16 +90,14 @@
         <description>This copies over pail.meta file.  It is only a sample and you may provide your own for your own data formats.</description>
     </property> -->
 
-
-    <!-- If distcp is the copying mechanism (currently only for copy-bucket command), this marks the threshold for
-    aggregate content size of a certain source.file directory (in bytes) that distcp is invoked.
-
-    Anything larger will invoke with scp command.
-
-    This is to handle some corner case of distcp running out of disk space in writing temporary files-->
     <property>
-        <name>source.copy.distcp.threshold</name>
-        <value>250000000</value>
-        <description>This is 0.25 Gigabytes.</description>
+        <name>source.copy.sample.threshold</name>
+        <value>50000000000</value>
+        <description>
+            Threshold for aggregate size of data marked for copy in a given table above which to begin sampling.
+            There is some overhead in generating the sample, but it is quicker to move it to the final destination.
+
+            Unit is bytes.  This default is 50 Gigabytes.
+        </description>
     </property>
 </configuration>

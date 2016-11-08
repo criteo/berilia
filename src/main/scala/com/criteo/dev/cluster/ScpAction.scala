@@ -70,7 +70,6 @@ object ScpAction {
     }
     sb.append(targetPath)
     val command = sb.toString
-    logger.info(command)
     val commands = command.split("\\s+")
     val p = DevClusterProcess.processSeq(commands)
     p.!!(processLogger)

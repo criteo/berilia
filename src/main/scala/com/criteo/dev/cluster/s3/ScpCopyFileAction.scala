@@ -59,7 +59,7 @@ class ScpCopyFileAction(conf: Map[String, String], source: Node, target: Node)
     val putCommands = sourceFiles.flatMap(f => {
       val tmpLocation = getTgtTmpLocation(f, sourceBase)
       //don't know the name of namenode.. use relative path for HDFS
-      val targetLocation = CopyUtilities.toRelative(f)
+      val targetLocation = targetBase + f.stripPrefix(sourceBase)
       val targetLocationParent = CopyUtilities.getParent(targetLocation)
       s"hdfs dfs -mkdir -p $targetLocationParent" ::
         s"hdfs dfs -put $tmpLocation $targetLocationParent" :: Nil

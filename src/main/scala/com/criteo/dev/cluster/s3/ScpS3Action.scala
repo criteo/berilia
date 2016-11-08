@@ -40,7 +40,7 @@ class ScpS3Action(conf: Map[String, String],
       val tmpLocation = getSrcTmpLocation(f, sourceBase)
       //don't know the name of namenode.. use relative path for HDFS
       val relPath = CopyUtilities.toRelative(f)
-      val targetLocation = CopyUtilities.toS3Bucket(conf, relPath)
+      val targetLocation = CopyUtilities.toS3BucketTarget(conf, relPath)
       val targetLocationParent = CopyUtilities.getParent(targetLocation)
 
       s"hdfs dfs -mkdir -p $targetLocationParent" ::

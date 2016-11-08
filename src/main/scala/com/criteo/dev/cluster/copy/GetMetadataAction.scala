@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory
   *
   * TODO- rewrite this using HiveMetaStoreClient for much better performance.
   */
-class GetMetadataAction(conf : Map[String, String], node : Node) {
+class GetMetadataAction(conf : Map[String, String], node : Node, throttle: Boolean = true) {
 
   private val logger = LoggerFactory.getLogger(GetMetadataAction.getClass)
 
@@ -29,7 +29,7 @@ class GetMetadataAction(conf : Map[String, String], node : Node) {
         //2.  If partitioned, get the list of partitions.
         val partitionList: Array[String] =
           if (isPartitioned) {
-            ListPartitionAction(conf, node, db, table)
+            ListPartitionAction(conf, node, db, table, throttle)
           } else {
             Array.empty[String]
           }
@@ -55,8 +55,8 @@ class GetMetadataAction(conf : Map[String, String], node : Node) {
 }
 
 object GetMetadataAction {
-  def apply(conf: Map[String, String], node: Node) = {
-    val getMetadataAction = new GetMetadataAction(conf, node)
+  def apply(conf: Map[String, String], node: Node, throttle: Boolean=true) = {
+    val getMetadataAction = new GetMetadataAction(conf, node, throttle)
     getMetadataAction()
   }
 }
