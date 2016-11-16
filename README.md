@@ -16,10 +16,10 @@
 # Introduction
 While developing on Hadoop, it is nice to test on a private sandbox before pushing to a production cluster. 
 However, it can be hard for developers to get access to a cluster, and Hadoop is difficult to set up locally.  
-Berilla allows developers to quickly set up and manage a variety of simple Hadoop clusters and environments,
+Berilia allows developers to quickly set up and manage a variety of simple Hadoop clusters and environments,
 as well as sample and manage test data accessible to these clusters.
 
-Berilla  Specific Functionalities:
+Berilia  Specific Functionalities:
 
 1. Create, stop, start, destroy single-node Hadoop/Hive dev cluster on local Docker, with ability to mount local artifacts.
 2. Create, stop, start, destroy multi-node Hadoop/Hive dev cluster on AWS cloud.
@@ -31,16 +31,16 @@ Berilla  Specific Functionalities:
 
 Comparing to existing solutions:
 
-1. VM/Docker Hadoop Quickstart images: Non-customizable, fixed components/environment.  Berilla has options to create/customize dev clusters, also provides cluster management and other utilities.
-2. Custom scripts (Bash/Vagrant): Hard to maintain.  Berilla is well-defined for customization, and also provides cluster management and other utilities.
-3. Hadoop management tools:  Installed on each node of bare-metal cluster.  Berilla does not have to be installed on many nodes, as dev clusters are either local/cloud based (no bare metal required).
-4. Cloud Hadoop management services: Subscription based, accessed as a service, fixed components/environment.  Berilla is open source, all scripts are viewable and changable, and is run locally as library or CLI tool.
+1. VM/Docker Hadoop Quickstart images: Non-customizable, fixed components/environment.  Berilia has options to create/customize dev clusters, also provides cluster management and other utilities.
+2. Custom scripts (Bash/Vagrant): Hard to maintain.  Berilia is well-defined for customization, and also provides cluster management and other utilities.
+3. Hadoop management tools:  Installed on each node of bare-metal cluster.  Berilia does not have to be installed on many nodes, as dev clusters are either local/cloud based (no bare metal required).
+4. Cloud Hadoop management services: Subscription based, accessed as a service, fixed components/environment.  Berilia is open source, all scripts are viewable and changable, and is run locally as library or CLI tool.
 
 # Setup
 
 1. Clone this project.
 2. mvn clean install -DskipTests
-3. "cd target/berilla-{version}-bin" or unzip target/berilla-{version}-bin.tar.gz to a location and cd into it.
+3. "cd target/berilia-{version}-bin" or unzip target/berilia-{version}-bin.tar.gz to a location and cd into it.
 4. Run "./dev-cluster help" or just "./dev-cluster" to get a list of commands
 5. Run "./dev-cluster [command] [args]" to run an action
 6. Configure commands via config files in [./conf] (./conf) directory.
@@ -290,16 +290,16 @@ Usage: dev-cluster destroy-gateway [(Optional) container.id]
 
 ## Scala API
 
-All these Berilla functionalities can be accessed as a Scala library, instead of via CLI commands, for automation purpose.
-* Install:    Build and unzip Berilla  as mentioned in [Setup] (#setup)
-* Dependency: Add project as a dependency to your project, using groupId=com.criteo.hadoop, artifactId=berilla
-* Compile:    Use Berilla public api's annotated with [public] (./src/main/scala/com/criteo/dev/cluster/Public.scala).  Non-annotated API's may be removed in subsequent release.
+All these berilia functionalities can be accessed as a Scala library, instead of via CLI commands, for automation purpose.
+* Install:    Build and unzip berilia as mentioned in [Setup] (#setup)
+* Dependency: Add project as a dependency to your project, using groupId=com.criteo.hadoop, artifactId=berilia
+* Compile:    Use berilia public api's annotated with [public] (./src/main/scala/com/criteo/dev/cluster/Public.scala).  Non-annotated API's may be removed in subsequent release.
  * Use the Scala object 'fooCLiAction' to run the equivalent to the CLI command 'foo'.
- * Use ConfigLoader object to load configuration for Berilla commands, or alternatively construct the configuration manually using Scala map.
+ * Use ConfigLoader object to load configuration for berilia commands, or alternatively construct the configuration manually using Scala map.
  * Use SshAction, SshMultiAction, SshHiveAction, ScpAction, RsyncAction objects with nodes from NodeFactory as helper classes to execute actions on a dev cluster.
  * Check [unit tests](./src/test/scala/com.criteo.dev.cluster) for the latest examples.
-* Run:        Set following environment variable "DEV_CLUSTER_HOME" to point to Berilla install.
- * This will be used by Berilla libraries to find conf and script files.
+* Run:        Set following environment variable "DEV_CLUSTER_HOME" to point to berilia install.
+ * This will be used by berilia libraries to find conf and script files.
  * All relative paths referred by conf files will be relative to DEV_CLUSTER_HOME.
 
 # Configuration Guide

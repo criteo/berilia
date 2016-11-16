@@ -144,7 +144,7 @@ object GeneralUtilities {
   }
 
   //----
-  // Support the case of running against the API on a Berilla install.
+  // Support the case of running against the API on a berilia install.
   //----
 
   private val envvar = System.getenv(GeneralConstants.homeSysVar)

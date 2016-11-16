@@ -5,14 +5,14 @@
 # create a S3 bucket
 $ dev-cluster create-bucket demo
 ...
-11:44:53.994 [main] c.c.d.c.aws.CreateBucketCliAction$ - Created bucket berilla-dev-cluster-demo
+11:44:53.994 [main] c.c.d.c.aws.CreateBucketCliAction$ - Created bucket berilia-dev-cluster-demo
 $ dev-cluster list-bucket
 ...
-berilla-dev-cluster-demo
+berilia-dev-cluster-demo
 
 
 # Copy over a large amount of test data (two days worth)
-$ dev-cluster copy-bucket berilla-dev-cluster-demo -Psample-2
+$ dev-cluster copy-bucket berilia-dev-cluster-demo -Psample-2
 ...
 12:16:55.912 [Thread-30] com.criteo.dev.cluster.SshAction$ - 16/09/28 19:16:53 INFO mapreduce.Job: Job job_1473932492402_2237191 completed successfully
 12:16:55.982 [Thread-30] com.criteo.dev.cluster.SshAction$ - 16/09/28 19:16:53 INFO mapreduce.Job: Counters: 38
@@ -135,7 +135,7 @@ DataNode:           52.211.37.229:50075
 	DataNode:           52.211.1.104:50075
 
 # Point the AWS cluster to the data/metadata in S3 cluster
-$ dev-cluster attach-bucket-aws berilla-dev-cluster-demo i-797c91f6
+$ dev-cluster attach-bucket-aws berilia-dev-cluster-demo i-797c91f6
 ...
 
 # Login and verify the data (notice it is pointing to S3 bucket).
@@ -163,7 +163,7 @@ CreateTime:         	Wed Sep 28 21:10:04 UTC 2016
 LastAccessTime:     	UNKNOWN
 Protect Mode:       	None
 Retention:          	0
-Location:           	s3a://berilla-dev-cluster-demo/user/myuser/mydb/bigtable
+Location:           	s3a://berilia-dev-cluster-demo/user/myuser/mydb/bigtable
 Table Type:         	EXTERNAL_TABLE
 Table Parameters:
 EXTERNAL            	TRUE
@@ -230,7 +230,7 @@ logout
 Connection to 52.211.37.229 closed.
 
 # Destroy the bucket
-$ dev-cluster destroy-bucket berilla-dev-cluster-demo
+$ dev-cluster destroy-bucket berilia-dev-cluster-demo
 
 # Destroy cluster (which now points to non-existent cluster).
 $ dev-cluster destroy-aws i-797c91f6

@@ -6,9 +6,9 @@
 
   <groupId>com.criteo.hadoop</groupId>
 
-  <artifactId>berilla</artifactId>
+  <artifactId>berilia</artifactId>
 
-  <version>1.0</version>
+  <version>1.0-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <properties>
