@@ -14,7 +14,9 @@
         <value></value>
         <description>
             Fill this with semi-colon separated list of "database"."table" (partspec).
-            Partspec is optional, if it is specified, it will be passed to Hive to only fetch partitions that match.
+            Partspec is optional, if it is specified, it will be passed to Hive to only fetch matching partitions that match
+            (up to the partition count).
+            Multiple part specs may be passed, and all matching partitions will be returned (up to the partition count).
         </description>
     </property>
 
@@ -79,7 +81,8 @@
             <name>source.tables</name>
             <value>
                 mydatabase.mytable (day='2000-01-01');
-                mydatabase.mytable2 (day='2000-01-01, platform='US')
+                mydatabase.mytable2 (day='2000-01-01', platform='US');
+                mydatabase.mytable3 (day='2000-01-01', hour=00) (day='2000-01-01', hour=01)
             </value>
         </property>
 
@@ -115,6 +118,15 @@
             There is some overhead in generating the sample, but it is quicker to move it to the final destination.
 
             Unit is bytes.  This default is 50 Gigabytes.
+        </description>
+    </property>
+
+    <property>
+        <name>source.s3.hdfs.scheme</name>
+        <value>s3a</value>
+        <description>
+            For using distcp to S3 on the source, this is the HDFS scheme used.
+            For example, older versions of Hadoop supported only s3 or s3n.
         </description>
     </property>
 </configuration>

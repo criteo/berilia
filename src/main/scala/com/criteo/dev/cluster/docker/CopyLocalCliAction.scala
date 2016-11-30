@@ -20,11 +20,9 @@ import org.slf4j.LoggerFactory
     require(runningDockerMeta.length == 1, s"Cannot find running docker container with id $dockerContainerId")
 
     //add some conf arguments expected by the DockerCopyFileAction command, as this is the argument used by 'docker cp'
-    val newConf = collection.mutable.Map(conf.toArray:_*)
-    newConf.+= (DockerConstants.localContainerId -> dockerContainerId)
-    newConf += (DockerConstants.getAddressFull -> DockerUtilities.getSshHost(conf))
-    newConf += (DockerConstants.getPortFull -> DockerUtilities.getSshPort(dockerContainerId))
-    CopyAllAction(newConf.toMap)
+    val target = NodeFactory.getDockerNode(conf, runningDockerMeta(0))
+    val source = NodeFactory.getSourceFromConf(conf)
+    CopyAllAction(conf, source, target)
 
     DockerUtilities.printClusterDockerContainerInfo(conf, dockerMeta)
   }

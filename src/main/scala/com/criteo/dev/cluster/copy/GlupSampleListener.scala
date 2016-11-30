@@ -38,13 +38,13 @@ class GlupSampleListener extends SampleTableListener {
             alterTableAction.add(s"use ${sampleTableInfo.database}")
             alterTableAction.add(alterStmtBase + setFormatBase)
 
-            sampleTableInfo.partitions.foreach(p => {
-              val alterPartSb = new StringBuilder(alterStmtBase)
-              alterPartSb.append(s"partition (${CopyUtilities.partitionSpecString(p.partSpec,
-                sampleTableInfo.ddl.partitionedBy)}) ")
-              alterPartSb.append(setFormatBase)
-              alterTableAction.add(alterPartSb.toString)
-            })
+//            sampleTableInfo.partitions.foreach(p => {
+//              val alterPartSb = new StringBuilder(alterStmtBase)
+//              alterPartSb.append(s"partition (${CopyUtilities.partitionSpecString(p.partSpec,
+//                sampleTableInfo.ddl.partitionedBy)}) ")
+//              alterPartSb.append(setFormatBase)
+//              alterTableAction.add(alterPartSb.toString)
+//            })
 
             alterTableAction.run()
           } recoverWith { case NonFatal(e) =>
@@ -61,15 +61,14 @@ class GlupSampleListener extends SampleTableListener {
               alterTableAction.add(s"use ${sampleTableInfo.database}")
               alterTableAction.add(alterStmtBase + setFormatBase + addendum)
 
-              sampleTableInfo.partitions.foreach(p => {
-                val alterPartSb = new StringBuilder(alterStmtBase)
-                alterPartSb.append(s"partition (${CopyUtilities.partitionSpecString(p.partSpec,
-                  sampleTableInfo.ddl.partitionedBy)}) ")
-                alterPartSb.append(setFormatBase)
-                alterPartSb.append(addendum)
-                alterTableAction.add(alterPartSb.toString)
-              })
-
+//              sampleTableInfo.partitions.foreach(p => {
+//                val alterPartSb = new StringBuilder(alterStmtBase)
+//                alterPartSb.append(s"partition (${CopyUtilities.partitionSpecString(p.partSpec,
+//                  sampleTableInfo.ddl.partitionedBy)}) ")
+//                alterPartSb.append(setFormatBase)
+//                alterPartSb.append(addendum)
+//                alterTableAction.add(alterPartSb.toString)
+//              })
               alterTableAction.run()
             }
           }

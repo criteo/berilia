@@ -1,7 +1,9 @@
 package com.criteo.dev.cluster.s3
 
-import com.criteo.dev.cluster.{GeneralConstants, GeneralUtilities}
+import com.criteo.dev.cluster.NodeType._
+import com.criteo.dev.cluster.{GeneralConstants, GeneralUtilities, NodeType}
 import com.criteo.dev.cluster.aws.{AwsConstants, AwsUtilities, ImageGroup}
+import com.criteo.dev.cluster.copy.{CopyConstants, CopyUtilities}
 import com.criteo.dev.cluster.s3.DataType.DataType
 import com.google.common.base.Charsets
 import com.google.common.io.ByteSource
@@ -144,4 +146,44 @@ object BucketUtilities {
     DataType.withName(file.getUserMetadata.get(BucketConstants.dataType))
   }
 
+  def toS3Location(conf: Map[String, String],
+                   bucketName: String,
+                   sourceLocation: String,
+                   accessNodeType: NodeType,
+                   includeCredentials: Boolean) : String = {
+    val relativeLocation = CopyUtilities.toRelative(sourceLocation)
+    val bucketLocation = getS3Location(conf, bucketName, accessNodeType, includeCredentials)
+    bucketLocation + relativeLocation
+  }
+
+  def getS3Location(conf: Map[String, String],
+                    bucketName: String,
+                    accessNodeType: NodeType,
+                    includeCredentials: Boolean = true) = {
+    val s3Type = accessNodeType match {
+      case NodeType.AWS => "s3a"
+      case NodeType.Local => "s3a"
+      case NodeType.User => GeneralUtilities.getConfStrict(
+        conf, CopyConstants.sourceS3Scheme, GeneralConstants.sourceProps)
+      case _ => throw new IllegalStateException("Running s3 command on an unexpected node type.")
+    }
+
+    if (includeCredentials) {
+      val id = AwsUtilities.getAwsProp(conf, AwsConstants.accessId)
+      val key = AwsUtilities.getAwsProp(conf, AwsConstants.accessKey)
+      s"$s3Type://$id:$key@$bucketName"
+    } else {
+      s"$s3Type://$bucketName"
+    }
+  }
+
+  def getAllFolders(conf: Map[String, String], bucketId: String, accessNode: NodeType) : Iterable[String] = {
+    //TODO- here we treat all first level artifacts as folders, find a way to identify folders.
+    val blobStore = BucketUtilities.getBlobStore(conf)
+    val filesJava = blobStore.list(bucketId, new ListContainerOptions())
+    val files = filesJava.asScala
+    val filesToCopy = files.map(_.getName()).filter(!_.equals(BucketConstants.bucketLogDir))
+    filesToCopy.map(f =>
+      s"${getS3Location(conf, bucketId, accessNode, includeCredentials = true)}/$f")
+  }
 }

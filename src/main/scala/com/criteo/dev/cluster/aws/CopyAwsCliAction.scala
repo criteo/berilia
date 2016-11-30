@@ -24,11 +24,10 @@ import org.slf4j.LoggerFactory
     val cluster = AwsUtilities.getUserCluster(conf, instanceId)
     val master = cluster.master
     require(master.getStatus().equals(Status.RUNNING), "No clusters found in RUNNING state matching criteria.")
-    val ip = AwsUtilities.ipAddress(master)
+    val target = NodeFactory.getAwsNode(conf, master)
+    val source = NodeFactory.getSourceFromConf(conf)
 
-    val newConf = collection.mutable.Map(conf.toArray:_*)
-    newConf.+= (AwsConstants.getAddressFull -> ip) //add target.address
-    CopyAllAction(newConf.toMap)
+    CopyAllAction(conf, source, target)
 
     logger.info(s"Successfully copied to cluster: ${cluster.master.getId}")
     AwsUtilities.printClusterInfo(conf, cluster)

@@ -55,7 +55,7 @@ class CopyTableAction(conf: Map[String, String], source: Node, target: Node) {
 
 
   def underThreshold(sourceFiles: Array[String]) : Boolean = {
-    val listAction = new SshMultiAction(NodeFactory.getSource(conf))
+    val listAction = new SshMultiAction(source)
     sourceFiles.foreach(sf => {
       logger.info(s"Checking directory for need of sampling: $sf")
       listAction.add(s"hdfs dfs -ls -R $sf")

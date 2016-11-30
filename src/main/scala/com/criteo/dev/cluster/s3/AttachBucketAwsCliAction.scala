@@ -1,6 +1,6 @@
 package com.criteo.dev.cluster.s3
 
-import com.criteo.dev.cluster.{CliAction, Public}
+import com.criteo.dev.cluster.{CliAction, NodeFactory, Public}
 import com.criteo.dev.cluster.aws.{AwsConstants, AwsUtilities}
 import org.jclouds.compute.domain.NodeMetadata.Status
 import org.slf4j.LoggerFactory
@@ -28,11 +28,9 @@ import org.slf4j.LoggerFactory
     val master = cluster.master
 
     require(master.getStatus().equals(Status.RUNNING), "No clusters found in RUNNING state matching criteria.")
-    val ip = AwsUtilities.ipAddress(master)
 
-    val newConf = collection.mutable.Map(conf.toArray:_*)
-    newConf.+= (AwsConstants.getAddressFull -> ip) //add target.address
-    AttachDdlAction(bucketId, newConf.toMap)
+    val node = NodeFactory.getAwsNode(conf, master)
+    RunS3DdlAction(node, bucketId, copiedLocally = false, conf)
 
     AwsUtilities.printClusterInfo(conf, cluster)
   }

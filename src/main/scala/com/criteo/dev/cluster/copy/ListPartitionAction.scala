@@ -25,13 +25,13 @@ class ListPartitionAction(conf: Map[String, String], node: Node, throttle: Boole
     }
 
     if (partSpec.isDefined && resultList.length == 0) {
-      throw new IllegalArgumentException(s"partspec returns no result: $partSpec")
+      throw new IllegalArgumentException(s"partspec returns no result: ${partSpec.get}")
     }
 
     //Throttle number of partitions.
     val result = getAbsoluteParts(database, table, resultList)
 
-    logger.info(s"Will sample last ${result.length} partitions from $database.$table:")
+    logger.info(s"Selecting following ${result.length} partitions from $database.$table:")
     result.foreach(u => println(u))
     result
   }

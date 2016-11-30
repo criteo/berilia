@@ -13,7 +13,7 @@ class GetMetadataAction(conf : Map[String, String], node : Node, throttle: Boole
   private val logger = LoggerFactory.getLogger(classOf[GetMetadataAction])
 
   def apply(dbTablePartSpec: String) : TableInfo = {
-    //parse the configured source tables of form "$db.$table (part1=$part1, part2=$part2)"
+    //parse the configured source tables of form "$db.$table (part1=$part1, part2=$part2) (part1=$part1, part2=$part3)"
     val regex = """(\S*)\.(\S*)\s*(.*)""".r
 
     dbTablePartSpec match {
@@ -28,7 +28,9 @@ class GetMetadataAction(conf : Map[String, String], node : Node, throttle: Boole
             if (partSpec.isEmpty) {
               ListPartitionAction(conf, node, db, table, None, throttle)
             } else {
-              ListPartitionAction(conf, node, db, table, Some(partSpec), throttle)
+              val parenRegex = """\((.*?)\)""".r
+              parenRegex.findAllIn(partSpec).flatMap(
+                p => ListPartitionAction(conf, node, db, table, Some(p), throttle)).toArray.distinct
             }
           } else {
             Array.empty[String]

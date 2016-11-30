@@ -22,7 +22,7 @@ class ScpCopyFileAction(conf: Map[String, String], source: Node, target: Node)
   override def apply(sourceFiles: Array[String], sourceBase: String, targetBase: String): Unit = {
 
     logger.info("Cleaning temp directories")
-    CleanupAction(conf)
+    CleanupAction(conf, source, target)
 
     //check arguments
     sourceFiles.foreach(sf =>

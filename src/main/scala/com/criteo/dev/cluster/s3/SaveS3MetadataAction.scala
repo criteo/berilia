@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory
   * It's marked by a timestamp, so that the nodes can run all the ddl's of a bucket
   * in sequence.
   */
-class SaveS3MetadataAction(conf: Map[String, String], target: Node) extends CreateMetadataAction (conf, target) {
+class SaveS3MetadataAction(conf: Map[String, String], source: Node, target: Node) extends CreateMetadataAction (conf, target) {
 
   private val logger = LoggerFactory.getLogger(classOf[SaveS3MetadataAction])
 
@@ -27,13 +27,16 @@ class SaveS3MetadataAction(conf: Map[String, String], target: Node) extends Crea
     val createDb = s"create database if not exists $database;"
 
     //Create tables and add partitions.
-    val createTable = tableInfo.ddl.copy(location = Some(toS3Location(conf, tableInfo.ddl.location.get))).format
+    val newTableInfo = tableInfo.ddl.copy(
+      location = Some(CopyUtilities.toLocationVar(tableInfo.ddl.location.get))
+    )
+    val createTable = newTableInfo.format.replaceAll("""\n""", " ")
 
     val partitionDdls =
       tableInfo.partitions.map(p => {
             s"alter table $table add if not exists " +
             s"partition (${CopyUtilities.partitionSpecString(p.partSpec, tableInfo.ddl.partitionedBy)}) " +
-            s"location '${toS3Location(conf, p.location)}';"
+            s"location '${CopyUtilities.toLocationVar(p.location)}';"
         })
 
     val ddl = List(createDb, s"use $database", createTable) ++ partitionDdls
@@ -66,13 +69,8 @@ class SaveS3MetadataAction(conf: Map[String, String], target: Node) extends Crea
     //replace location string
     val locationIndex = stbuffer.map(s => s.trim()).indexOf("LOCATION")
     stbuffer.remove(locationIndex + 1)
-    stbuffer.insert(locationIndex + 1, s"'${toS3Location(conf, location)}'")
+    stbuffer.insert(locationIndex + 1, s"'${CopyUtilities.toLocationVar(location)}'")
 
     return stbuffer.mkString(" ", "", ";")
-  }
-
-  def toS3Location(conf: Map[String, String], sourceLocation: String) = {
-    val relativeLocation = CopyUtilities.toRelative(sourceLocation)
-    CopyUtilities.toS3BucketTarget(conf, relativeLocation, includeCredentials = false)
   }
 }

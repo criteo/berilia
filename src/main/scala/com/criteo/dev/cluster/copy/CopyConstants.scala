@@ -21,6 +21,8 @@ object CopyConstants {
 
   def sampleProb = "sample.prob"
 
+  def sourceS3Scheme = "source.s3.hdfs.scheme"
+
   def tmpDataDirName = "tmpData"
 
   /** Temporary dir on the src machine **/

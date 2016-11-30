@@ -1,5 +1,6 @@
 package com.criteo.dev.cluster.copy
 
+import com.criteo.dev.cluster.NodeType.NodeType
 import com.criteo.dev.cluster.aws.{AwsConstants, AwsUtilities}
 import com.criteo.dev.cluster._
 import com.criteo.dev.cluster.utils.ddl.Column
@@ -32,30 +33,21 @@ object CopyUtilities {
     dir.replaceAll("\\/[^\\/]*$", "")
   }
 
-  def deleteTmpSrc(conf: Map[String, String]) =
-    //cleanup of tmp dir on source
-    SshAction(NodeFactory.getSource(conf), "rm -rf " + CopyConstants.tmpSrc, ignoreFailure = true)
+  def deleteTmp(node: Node, tmp: String) = {
+    if (!node.nodeType.equals(NodeType.S3)) {
+      SshAction(node, "rm -rf " + tmp, ignoreFailure = true)
+    }
+  }
 
-
-  def deleteTmpTgt(conf: Map[String, String]) =
-    SshAction(NodeFactory.getTarget(conf), "rm -rf " + CopyConstants.tmpTgt, ignoreFailure = true)
 
   def toRelative(srcLocation: String) : String = {
     //Strips the hdfs://<namenode-url> part of the path.
     srcLocation.replaceAll("^(hdfs:\\/\\/)[^\\/]*", "")
   }
 
-
-  def toS3BucketTarget(conf: Map[String, String], path: String, includeCredentials: Boolean = true) = {
-    val target = NodeFactory.getTarget(conf)
-    val bucketName = target.ip
-    if (includeCredentials) {
-      val id = AwsUtilities.getAwsProp(conf, AwsConstants.accessId)
-      val key = AwsUtilities.getAwsProp(conf, AwsConstants.accessKey)
-      s"s3a://$id:$key@$bucketName$path"
-    } else {
-      s"s3a://$bucketName$path"
-    }
+  def toLocationVar(sourceLocation: String) : String = {
+    val relativeLocation = CopyUtilities.toRelative(sourceLocation)
+    "$LOCATION" + relativeLocation
   }
 
 

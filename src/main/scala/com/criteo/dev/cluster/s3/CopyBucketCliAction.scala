@@ -2,7 +2,7 @@ package com.criteo.dev.cluster.s3
 
 import com.criteo.dev.cluster.aws.{AwsConstants, CopyAwsCliAction}
 import com.criteo.dev.cluster.copy._
-import com.criteo.dev.cluster.{CliAction, GeneralConstants, Public}
+import com.criteo.dev.cluster.{CliAction, GeneralConstants, NodeFactory, Public}
 import org.slf4j.LoggerFactory
 
 /**
@@ -24,12 +24,10 @@ object CopyBucketCliAction extends CliAction[Unit] {
     val bucketId = args(0)
     val s3Client = BucketUtilities.getS3Client(conf)
     require(s3Client.bucketExists(bucketId), s"Bucket $bucketId not found.")
-
-    val newConf = collection.mutable.Map(conf.toArray: _*)
-    newConf.+=(s"${AwsConstants.bucketKeyPrefix}.${GeneralConstants.address}" -> bucketId) //add target.address for the copy action.
-    val newConfMap = newConf.toMap
+    val target = NodeFactory.getS3Node(conf, bucketId)
+    val source = NodeFactory.getSourceFromConf(conf)
 
     //parse source-tables.
-    CopyAllAction(newConfMap)
+    CopyAllAction(conf, source, target)
   }
 }

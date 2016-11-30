@@ -1,7 +1,7 @@
 package com.criteo.dev.cluster.copy
 
-import com.criteo.dev.cluster.s3.{DataType, UploadS3Action}
-import com.criteo.dev.cluster.{GeneralConstants, GeneralUtilities, NodeFactory}
+import com.criteo.dev.cluster.s3.{BucketUtilities, DataType, UploadS3Action}
+import com.criteo.dev.cluster._
 import org.slf4j.LoggerFactory
 
 /**
@@ -11,12 +11,9 @@ object CopyAllAction {
 
   private val logger = LoggerFactory.getLogger(CopyAllAction.getClass)
 
-  def apply(conf: Map[String, String]) = {
+  def apply(conf: Map[String, String], source: Node, target: Node) = {
     val sourceTables = GeneralUtilities.getNonEmptyConf(conf, CopyConstants.sourceTables)
     val sourceFiles = GeneralUtilities.getNonEmptyConf(conf, CopyConstants.sourceFiles)
-
-    val source = NodeFactory.getSource(conf)
-    val target = NodeFactory.getTarget(conf)
 
     require ((sourceTables.isDefined || sourceFiles.isDefined),
       "No source tables or files configured")
@@ -34,7 +31,7 @@ object CopyAllAction {
         val copyTableAction = new CopyTableAction(conf, source, target)
         val tt = copyTableAction.copy(ti)
 
-        val createMetadataAction = CreateMetadataActionFactory.getCopyFileAction(conf, target)
+        val createMetadataAction = CreateMetadataActionFactory.getCreateMetadataAction(conf, source, target)
         createMetadataAction(tt)
       })
 
@@ -49,12 +46,12 @@ object CopyAllAction {
       //write in the logs
       val targetType = GeneralUtilities.getConfStrict(conf, GeneralConstants.targetTypeProp, "Internally-provided")
       if (targetType.equals(GeneralConstants.s3Type)) {
-        UploadS3Action(conf, NodeFactory.getTarget(conf), DataType.hdfs, files.toList.map(
-          f => CopyUtilities.toS3BucketTarget(conf, f, includeCredentials=false)))
+        UploadS3Action(conf, target, DataType.hdfs, files.toList.map(
+          f => BucketUtilities.toS3Location(conf, target.ip, f, NodeType.AWS, includeCredentials = false)))
       }
     }
 
     logger.info("Cleaning up temp directories")
-    CleanupAction(conf)
+    CleanupAction(conf, source, target)
   }
 }

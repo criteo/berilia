@@ -18,7 +18,8 @@ object CommandRegistry {
       StartLocalCliAction,
       StopLocalCliAction,
       CopyLocalCliAction,
-      AttachBucketLocalCliAction
+      AttachBucketLocalCliAction,
+      CopyBucketLocalAction
     ),
     Some(GeneralConstants.localClusterType)
   )
@@ -37,7 +38,8 @@ object CommandRegistry {
       ExtendAwsCliAction,
       PurgeAwsCliAction,
       CopyAwsCliAction,
-      AttachBucketAwsCliAction
+      AttachBucketAwsCliAction,
+      CopyBucketAwsAction
     ),
     Some(GeneralConstants.awsType))
 
@@ -55,7 +57,8 @@ object CommandRegistry {
     DestroyBucketCliAction,
     ListBucketCliAction,
     CopyBucketCliAction,
-    DescribeBucketCliAction),
+    DescribeBucketCliAction,
+    CopyBucketLocalAction),
     Some(GeneralConstants.s3Type))
 
 

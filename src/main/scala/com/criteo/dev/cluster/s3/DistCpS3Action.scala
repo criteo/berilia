@@ -5,9 +5,7 @@ import com.criteo.dev.cluster.copy.{CopyConstants, CopyFileAction, CopyUtilities
 import org.slf4j.LoggerFactory
 
 /**
-  * Copies over a file to S3 via distcp.
-  *
-  * Falls back to scp if the file is above the threshold.
+  * Copies over a file to or from S3 via distcp.
   */
 class DistCpS3Action(conf: Map[String, String],
                      source: Node,
@@ -16,8 +14,8 @@ class DistCpS3Action(conf: Map[String, String],
   private val logger = LoggerFactory.getLogger(classOf[DistCpS3Action])
 
   override def apply(sourceFiles: Array[String], sourceBase: String, targetBase: String): Unit = {
+    CopyUtilities.deleteTmp(source, CopyConstants.tmpSrc)
 
-    CopyUtilities.deleteTmpSrc(conf)
     if (fallback(sourceFiles)) {
       val scpAction = new ScpS3Action(conf, source, target)
       scpAction(sourceFiles, sourceBase, targetBase)
@@ -26,12 +24,26 @@ class DistCpS3Action(conf: Map[String, String],
 
     val processedSources = processSource(sourceFiles, sourceBase)
     val distCpCmd = new StringBuilder("hadoop distcp ")
-    processedSources.foreach(sf => distCpCmd.append(s"$sf "))
+    processedSources.foreach(sf => {
+      val sourcePath = source.nodeType match {
+        case NodeType.S3 => BucketUtilities.getS3Location(conf, source.ip, target.nodeType) + sf
+        case _ => sf
+      }
+      distCpCmd.append(s"$sourcePath ")
+    })
 
-    val targetPath = CopyUtilities.toS3BucketTarget(conf, targetBase)
+    val targetPath = target.nodeType match {
+      case NodeType.S3 => BucketUtilities.getS3Location(conf, target.ip, source.nodeType) + targetBase
+      case _ => targetBase
+    }
+
     distCpCmd.append(s"$targetPath")
 
-    SshAction(NodeFactory.getSource(conf), distCpCmd.toString)
+    if (target.nodeType == NodeType.S3) {
+      SshAction(source, distCpCmd.toString)
+    } else if (source.nodeType == NodeType.S3) {
+      SshAction(target, distCpCmd.toString)
+    }
   }
 
   /**
