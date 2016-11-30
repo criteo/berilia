@@ -73,4 +73,5 @@ object AwsConstants {
   def twiceExtensionTime = (2 * 3) days
 
 
+  def copyLocation = "/copy"
 }

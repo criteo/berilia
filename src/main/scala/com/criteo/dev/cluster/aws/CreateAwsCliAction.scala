@@ -1,6 +1,6 @@
 package com.criteo.dev.cluster.aws
 
-import com.criteo.dev.cluster.{CliAction, GeneralConstants, GeneralUtilities, Public}
+import com.criteo.dev.cluster._
 import org.slf4j.LoggerFactory
 
 
@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory
 
   override def command : String = "create-aws"
 
-  override def usageArgs = List("nodes")
+  override def usageArgs = List("nodes", Option("copy.dir"))
 
   override def help = "Creates an AWS multi-node cluster from the base OS image provided by AWS.  Runs all the " +
     "install scripts and custom overrides."
@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory
 
   def applyInternal(args: List[String], conf: Map[String, String]) : AwsCluster = {
     val nodes = Integer.valueOf(args(0))
+
     require(nodes > 0, "Invalid number of nodes")
     val baseImage = GeneralUtilities.getConfStrict(conf, AwsConstants.baseImageId, GeneralConstants.targetAwsProps)
 
@@ -39,6 +40,13 @@ import org.slf4j.LoggerFactory
 
     //Copy over Hadoop-configurations
     CopyConfAction(conf, cluster)
+
+    //Copy over user-data (similar to mount in local cluster mode)
+    if (args.length == 2) {
+      val toCopy = args(1)
+      CopyDirCliAction.copyDir(NodeFactory.getAwsNode(conf, cluster.master), toCopy)
+
+    }
 
     //Start services.
     StartClusterAction(conf, List(cluster))

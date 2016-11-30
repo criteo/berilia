@@ -33,6 +33,7 @@ object CommandRegistry {
       StopAwsCliAction,
       ConfigureAwsCliAction,
       RestartServicesCliAction,
+      CopyDirCliAction,
       ExtendAwsCliAction,
       PurgeAwsCliAction,
       CopyAwsCliAction,
