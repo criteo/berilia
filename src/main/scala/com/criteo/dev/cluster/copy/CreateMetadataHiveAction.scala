@@ -61,6 +61,17 @@ class CreateMetadataHiveAction(conf: Map[String, String], node: Node) extends Cr
     stbuffer.remove(locationIndex + 1)
     stbuffer.insert(locationIndex + 1, s"'${CopyUtilities.toRelative(location)}'")
 
+    val results = stbuffer.takeWhile(!_.startsWith("ROW FORMAT SERDE"))
+      .map(s => {
+        if (!s.startsWith("CREATE") && !s.startsWith("PARTITIONED BY")) {
+          s.replaceAll("""^\s*(\w+) (.+)$""", """`$1` $2""")
+        } else {
+          s
+        }
+      }) ++ stbuffer.dropWhile(!_.startsWith("ROW FORMAT SERDE"))
+
+
+
     //handle pail format.  Use glupInputFormat to read it as a sequenceFile.
     //The other option is
     // 1.  Copy the pail.meta file in the table's root directory.
@@ -73,6 +84,6 @@ class CreateMetadataHiveAction(conf: Map[String, String], node: Node) extends Cr
 //      stbuffer.insert(inputFormatIndex + 1, "  'com.criteo.hadoop.hive.ql.io.GlupInputFormat'")
 //    }
 
-    return stbuffer.mkString(" ")
+    return results.mkString(" ")
   }
 }

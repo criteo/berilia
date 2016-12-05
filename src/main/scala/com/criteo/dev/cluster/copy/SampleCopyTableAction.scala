@@ -121,6 +121,15 @@ class SampleCopyTableAction(conf: Map[String, String], source: Node, target: Nod
     stbuffer.remove(locationIndex + 1)
     stbuffer.remove(locationIndex)
 
+    val results = stbuffer.takeWhile(!_.startsWith("ROW FORMAT SERDE"))
+      .map(s => {
+        if (!s.startsWith("CREATE") && !s.startsWith("PARTITIONED BY")) {
+          s.replaceAll("""^\s*(\w+) (.+)$""", """`$1` $2""")
+        } else {
+          s
+        }
+      }) ++ stbuffer.dropWhile(!_.startsWith("ROW FORMAT SERDE"))
+
     //handle pail format.  Use glupInputFormat to read it as a sequenceFile.
     //The other option is
     // 1.  Copy the pail.meta file in the table's root directory.
@@ -133,6 +142,6 @@ class SampleCopyTableAction(conf: Map[String, String], source: Node, target: Nod
     //      stbuffer.insert(inputFormatIndex + 1, "  'com.criteo.hadoop.hive.ql.io.GlupInputFormat'")
     //    }
 
-    return stbuffer.mkString(" ")
+    return results.mkString(" ")
   }
 }
