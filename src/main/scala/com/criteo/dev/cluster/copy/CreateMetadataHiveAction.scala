@@ -45,45 +45,6 @@ class CreateMetadataHiveAction(conf: Map[String, String], node: Node) extends Cr
     * @param location
     */
   def formatCreateDdl(ddl: String, location: String): String = {
-    var strings: Array[String] = ddl.split("\n")
-
-    //for some reason, hive's own 'show create table statement'
-    //doesn't compile and needs to be fixed like below
-    strings = strings.map(s => s.trim()).map(s => s.replace("(", " ("))
-
-    //strip tblProperties, which do not seem to parse..
-    var stbuffer: scala.collection.mutable.Buffer[String] = strings.toBuffer
-    val tblPropertiesIndex = stbuffer.indexWhere(s => s.startsWith("TBLPROPERTIES"))
-    stbuffer = stbuffer.dropRight(stbuffer.size - tblPropertiesIndex)
-
-    //replace location string
-    val locationIndex = stbuffer.map(s => s.trim()).indexOf("LOCATION")
-    stbuffer.remove(locationIndex + 1)
-    stbuffer.insert(locationIndex + 1, s"'${CopyUtilities.toRelative(location)}'")
-
-    val results = stbuffer.takeWhile(!_.startsWith("ROW FORMAT SERDE"))
-      .map(s => {
-        if (!s.startsWith("CREATE") && !s.startsWith("PARTITIONED BY")) {
-          s.replaceAll("""^\s*(\w+) (.+)$""", """`$1` $2""")
-        } else {
-          s
-        }
-      }) ++ stbuffer.dropWhile(!_.startsWith("ROW FORMAT SERDE"))
-
-
-
-    //handle pail format.  Use glupInputFormat to read it as a sequenceFile.
-    //The other option is
-    // 1.  Copy the pail.meta file in the table's root directory.
-    // 2.  Set hive.input.format = com.criteo.hadoop.hive.ql.io.PailOrCombineHiveInputFormat on the target cluster.
-//    val inputFormatIndex = stbuffer.map(s => s.trim()).indexOf("STORED AS INPUTFORMAT")
-//    val isPailif =
-//      stbuffer(inputFormatIndex + 1).toString().trim().contains("SequenceFileFormat$SequenceFilePailInputFormat")
-//    if (isPailif) {
-//      stbuffer.remove(inputFormatIndex + 1)
-//      stbuffer.insert(inputFormatIndex + 1, "  'com.criteo.hadoop.hive.ql.io.GlupInputFormat'")
-//    }
-
-    return results.mkString(" ")
+    CopyUtilities.formatDdl(ddl, tableName = None, location = Some(CopyUtilities.toRelative(location)))
   }
 }

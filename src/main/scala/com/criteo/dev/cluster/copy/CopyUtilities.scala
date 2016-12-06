@@ -97,7 +97,6 @@ object CopyUtilities {
 
   /**
     * @param partSpecs array of the the partition specs (column, value) of this partition.
-    *
     * @return partition spec string, ie (day='2015-05-05', hour='20') for each partition.
     */
   def partitionSpecString(partSpecs : PartSpec): String = {
@@ -110,7 +109,6 @@ object CopyUtilities {
 
   /**
     * @param partSpecs array of the the partition specs (column, value) of this partition.
-    *
     * @return partition spec filter, ie (day='2015-05-05' and hour='20')
     */
   def partitionSpecFilter(partSpecs : PartSpec): String = {
@@ -123,7 +121,6 @@ object CopyUtilities {
 
   /**
     * @param part partition info
-    *
     * @return partition column list of this table, ie (day, hour)
     */
   def partitionColumns(part: PartitionInfo) : String = {
@@ -156,5 +153,68 @@ object CopyUtilities {
       })
       tableLocation
     }
+  }
+
+
+  def formatDdl(ddl: String, tableName: Option[String], location: Option[String]) : String = {
+    var strings: Array[String] = ddl.split("\n")
+
+    //for some reason, hive's own 'show create table statement'
+    //doesn't compile and needs to be fixed like below
+    strings = strings.map(s => s.trim()).map(s => s.replace("(", " ("))
+
+    //strip tblProperties, which do not seem to parse..
+    var stbuffer: scala.collection.mutable.Buffer[String] = strings.toBuffer
+    val tblPropertiesIndex = stbuffer.indexWhere(s => s.startsWith("TBLPROPERTIES"))
+    stbuffer = stbuffer.dropRight(stbuffer.size - tblPropertiesIndex)
+
+    //replace create table
+    if (tableName.isDefined) {
+      stbuffer.remove(0)
+      stbuffer.insert(0, s"CREATE TABLE ${tableName.get} (")
+    }
+
+    //replace location string
+    val locationIndex = stbuffer.map(s => s.trim()).indexOf("LOCATION")
+    stbuffer.remove(locationIndex + 1)
+    if (location.isDefined) {
+      stbuffer.insert(locationIndex + 1, s"'${location.get}'")
+    } else {
+      stbuffer.remove(locationIndex)
+    }
+
+    //for older versions of hive, they don't escape the column name :(
+    val results = stbuffer.takeWhile(!_.startsWith("ROW FORMAT SERDE"))
+      .map(s => {
+        if (s.startsWith("CREATE") || s.startsWith("PARTITIONED BY")) {
+          s
+        } else {
+          val regexString = """([^\s]+)"""
+          val regex = regexString.r
+          val column: Option[String] = regex findFirstIn s
+          if (!column.isDefined) {
+            throw new IllegalThreadStateException(s"Unexpected hive ddl: $ddl")
+          }
+          if (column.get.startsWith("`") && column.get.endsWith("`")) {
+            s //newer version of Hive, no processing required.
+          } else {
+            s.replaceAll(regexString, """`$1`""") //older version of Hive, add backticks.
+          }
+        }
+      }) ++ stbuffer.dropWhile(!_.startsWith("ROW FORMAT SERDE"))
+
+    //handle pail format.  Use glupInputFormat to read it as a sequenceFile.
+    //The other option is
+    // 1.  Copy the pail.meta file in the table's root directory.
+    // 2.  Set hive.input.format = com.criteo.hadoop.hive.ql.io.PailOrCombineHiveInputFormat on the target cluster.
+    //    val inputFormatIndex = stbuffer.map(s => s.trim()).indexOf("STORED AS INPUTFORMAT")
+    //    val isPailif =
+    //      stbuffer(inputFormatIndex + 1).toString().trim().contains("SequenceFileFormat$SequenceFilePailInputFormat")
+    //    if (isPailif) {
+    //      stbuffer.remove(inputFormatIndex + 1)
+    //      stbuffer.insert(inputFormatIndex + 1, "  'com.criteo.hadoop.hive.ql.io.GlupInputFormat'")
+    //    }
+
+    return results.mkString(" ")
   }
 }

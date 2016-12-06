@@ -62,7 +62,6 @@ class SampleCopyTableAction(conf: Map[String, String], source: Node, target: Nod
     sshHiveAction.add(s"use $sampleDb")
     sshHiveAction.add("set hive.exec.dynamic.partition=true")
     sshHiveAction.add("set hive.exec.dynamic.partition.mode=nonstrict")
-    sshHiveAction.add("set hive.merge.mapfiles=false")
     val ddl = formatCreateDdl(sourceTableInfo.createStmt, sampleTable)
     sshHiveAction.add(ddl)
 
@@ -101,47 +100,6 @@ class SampleCopyTableAction(conf: Map[String, String], source: Node, target: Nod
     * TODO- model the create ddl and generate it programatically to be less delicate.
     */
   private def formatCreateDdl(ddl: String, newTableName: String): String = {
-    var strings: Array[String] = ddl.split("\n")
-
-    //for some reason, hive's own 'show create table statement'
-    //doesn't compile and needs to be fixed like below
-    strings = strings.map(s => s.trim()).map(s => s.replace("(", " ("))
-
-    //strip tblProperties, which do not seem to parse..
-    var stbuffer: scala.collection.mutable.Buffer[String] = strings.toBuffer
-    val tblPropertiesIndex = stbuffer.indexWhere(s => s.startsWith("TBLPROPERTIES"))
-    stbuffer = stbuffer.dropRight(stbuffer.size - tblPropertiesIndex)
-
-    //replace create table
-    stbuffer.remove(0)
-    stbuffer.insert(0, s"CREATE TABLE $newTableName (")
-
-    //replace location string
-    val locationIndex = stbuffer.map(s => s.trim()).indexOf("LOCATION")
-    stbuffer.remove(locationIndex + 1)
-    stbuffer.remove(locationIndex)
-
-    val results = stbuffer.takeWhile(!_.startsWith("ROW FORMAT SERDE"))
-      .map(s => {
-        if (!s.startsWith("CREATE") && !s.startsWith("PARTITIONED BY")) {
-          s.replaceAll("""^\s*(\w+) (.+)$""", """`$1` $2""")
-        } else {
-          s
-        }
-      }) ++ stbuffer.dropWhile(!_.startsWith("ROW FORMAT SERDE"))
-
-    //handle pail format.  Use glupInputFormat to read it as a sequenceFile.
-    //The other option is
-    // 1.  Copy the pail.meta file in the table's root directory.
-    // 2.  Set hive.input.format = com.criteo.hadoop.hive.ql.io.PailOrCombineHiveInputFormat on the target cluster.
-    //    val inputFormatIndex = stbuffer.map(s => s.trim()).indexOf("STORED AS INPUTFORMAT")
-    //    val isPailif =
-    //      stbuffer(inputFormatIndex + 1).toString().trim().contains("SequenceFileFormat$SequenceFilePailInputFormat")
-    //    if (isPailif) {
-    //      stbuffer.remove(inputFormatIndex + 1)
-    //      stbuffer.insert(inputFormatIndex + 1, "  'com.criteo.hadoop.hive.ql.io.GlupInputFormat'")
-    //    }
-
-    return results.mkString(" ")
+    CopyUtilities.formatDdl(ddl, tableName = Some(newTableName), location = None)
   }
 }
