@@ -8,11 +8,21 @@ class ListPartitionAction(conf: Map[String, String], node: Node, throttle: Boole
 
   private val logger = LoggerFactory.getLogger(ListPartitionAction.getClass)
 
-  def apply(database: String, table: String): Array[String] = {
+  def apply(database: String, table: String, partSpec: Option[String]): Array[String] = {
+        val sshHiveAction = new SshHiveAction(node, ignoreError=false)
+    sshHiveAction.add(s"use $database")
 
-    val queryResult = SshAction(node,
-      "hive --database " + database + " -e 'show partitions " + table + ";'", returnResult = true)
-    val resultList = queryResult.split("\n")
+    val hiveQuery = new StringBuilder(s"show partitions $table")
+    if (partSpec.isDefined) {
+      hiveQuery.append(s" partition ${partSpec.get}")
+    }
+    sshHiveAction.add(hiveQuery.toString)
+    val hiveResult = sshHiveAction.run
+    val resultList: Array[String] = if (!hiveResult.isEmpty) {
+      hiveResult.split("\n")
+    } else {
+      Array()
+    }
 
     //Throttle number of partitions.
     val result = getAbsoluteParts(database, table, resultList)
@@ -29,7 +39,8 @@ class ListPartitionAction(conf: Map[String, String], node: Node, throttle: Boole
       val limitConf = CopyUtilities.getOverridableConf(conf, database, table, CopyConstants.absolutePartCount)
       Integer.min(limitConf.toInt, resultList.length)
     }
-    if (throttle) {
+    // -1 configured limit, means no limit
+    if (throttle && limit > 0) {
       resultList.takeRight(limit)
     } else {
       resultList
@@ -39,8 +50,13 @@ class ListPartitionAction(conf: Map[String, String], node: Node, throttle: Boole
 }
 
 object ListPartitionAction {
-  def apply(conf: Map[String, String], node: Node, database: String, table: String, throttle: Boolean=true) : Array[String] = {
+  def apply(conf: Map[String, String],
+            node: Node,
+            database: String,
+            table: String,
+            partSpec: Option[String],
+            throttle: Boolean=true) : Array[String] = {
     val action = new ListPartitionAction(conf, node, throttle)
-    action.apply(database, table)
+    action.apply(database, table, partSpec)
   }
 }

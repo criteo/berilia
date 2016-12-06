@@ -18,7 +18,16 @@ class GetMetadataAction(conf : Map[String, String], node : Node, throttle: Boole
     dbTables.map(s => getTableMetadata(s))
   }
 
-  def getTableMetadata(dbTable: String) : TableInfo = {
+  def getTableMetadata(dbTablePartSpec: String) : TableInfo = {
+    //parse the configured source tables of form "$db.$table (part1=$part1, part2=$part2)"
+    dbTablePartSpec.split(" +").toList match {
+      case dbTable :: partSpec :: Nil => getTableMetadataHelper(dbTable.trim, Some(partSpec.trim))
+      case dbTable :: Nil => getTableMetadataHelper(dbTable.trim, None)
+      case _ => throw new IllegalArgumentException(s"${CopyConstants.sourceTables}: $dbTablePartSpec")
+    }
+  }
+
+  def getTableMetadataHelper(dbTable: String, partSpec: Option[String]) : TableInfo = {
     dbTable.split('.').toList match {
       case db :: table :: Nil =>
 
@@ -29,7 +38,7 @@ class GetMetadataAction(conf : Map[String, String], node : Node, throttle: Boole
         //2.  If partitioned, get the list of partitions.
         val partitionList: Array[String] =
           if (isPartitioned) {
-            ListPartitionAction(conf, node, db, table, throttle)
+            ListPartitionAction(conf, node, db, table, partSpec, throttle)
           } else {
             Array.empty[String]
           }
