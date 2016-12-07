@@ -189,17 +189,8 @@ object CopyUtilities {
         if (s.startsWith("CREATE") || s.startsWith("PARTITIONED BY")) {
           s
         } else {
-          val regexString = """([^\s]+)"""
-          val regex = regexString.r
-          val column: Option[String] = regex findFirstIn s
-          if (!column.isDefined) {
-            throw new IllegalThreadStateException(s"Unexpected hive ddl: $ddl")
-          }
-          if (column.get.startsWith("`") && column.get.endsWith("`")) {
-            s //newer version of Hive, no processing required.
-          } else {
-            s.replaceAll(regexString, """`$1`""") //older version of Hive, add backticks.
-          }
+          val regexString = """^\s*([^\s`]+)"""
+          s.replaceAll(regexString, """`$1`""")
         }
       }) ++ stbuffer.dropWhile(!_.startsWith("ROW FORMAT SERDE"))
 
