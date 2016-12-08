@@ -14,23 +14,17 @@ class GetMetadataAction(conf : Map[String, String], node : Node, throttle: Boole
 
   def apply() = {
     logger.info("Getting source table metadata.")
-    val dbTables = GeneralUtilities.getConfCSVStrict(conf, CopyConstants.sourceTables, GeneralConstants.sourceProps)
+    val stringList = GeneralUtilities.getConfStrict(conf, CopyConstants.sourceTables, GeneralConstants.sourceProps)
+    val dbTables = stringList.split(";").map(s => s.trim())
     dbTables.map(s => getTableMetadata(s))
   }
 
   def getTableMetadata(dbTablePartSpec: String) : TableInfo = {
     //parse the configured source tables of form "$db.$table (part1=$part1, part2=$part2)"
-    dbTablePartSpec.split(" +").toList match {
-      case dbTable :: partSpec :: Nil => getTableMetadataHelper(dbTable.trim, Some(partSpec.trim))
-      case dbTable :: Nil => getTableMetadataHelper(dbTable.trim, None)
-      case _ => throw new IllegalArgumentException(s"${CopyConstants.sourceTables}: $dbTablePartSpec")
-    }
-  }
+    val regex = """(\S*)\.(\S*)\s*(.*)""".r
 
-  def getTableMetadataHelper(dbTable: String, partSpec: Option[String]) : TableInfo = {
-    dbTable.split('.').toList match {
-      case db :: table :: Nil =>
-
+    dbTablePartSpec match {
+      case regex(db, table, part) => {
         //1. Get the table metadata, like location, isPartitioned, and createStmt.
         val getTableMetadataAction = new GetTableMetadataAction(conf, node)
         val (isPartitioned, createStmt) = getTableMetadataAction(db, table)
@@ -38,7 +32,12 @@ class GetMetadataAction(conf : Map[String, String], node : Node, throttle: Boole
         //2.  If partitioned, get the list of partitions.
         val partitionList: Array[String] =
           if (isPartitioned) {
-            ListPartitionAction(conf, node, db, table, partSpec, throttle)
+            if (part.isEmpty) {
+              ListPartitionAction(conf, node, db, table, None, throttle)
+            } else {
+              ListPartitionAction(conf, node, db, table, Some(part), throttle)
+            }
+
           } else {
             Array.empty[String]
           }
@@ -57,8 +56,8 @@ class GetMetadataAction(conf : Map[String, String], node : Node, throttle: Boole
           CopyUtilities.inputFormat(createStmt),
           createStmt,
           partitions)
-      case _ =>
-        throw new IllegalArgumentException(s"${CopyConstants.sourceTables}: $dbTable")
+      }
+      case _ => throw new IllegalArgumentException(s"${CopyConstants.sourceTables}: $dbTablePartSpec")
     }
   }
 }

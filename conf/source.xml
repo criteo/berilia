@@ -13,7 +13,7 @@
         <name>source.tables</name>
         <value></value>
         <description>
-            Fill this with comma separated list of "database"."table" (partspec).
+            Fill this with semi-colon separated list of "database"."table" (partspec).
             Partspec is optional, if it is specified, it will be passed to Hive to only fetch partitions that match.
         </description>
     </property>
@@ -77,7 +77,10 @@
 
         <property>
             <name>source.tables</name>
-            <value>mydatabase.mytable (day='2000-01-01')</value>
+            <value>
+                mydatabase.mytable (day='2000-01-01');
+                mydatabase.mytable2 (day='2000-01-01, platform='US')
+            </value>
         </property>
 
         <property>
