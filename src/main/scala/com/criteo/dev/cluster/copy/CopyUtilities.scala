@@ -184,7 +184,7 @@ object CopyUtilities {
     }
 
     //for older versions of hive, they don't escape the column name :(
-    val results = stbuffer.takeWhile(!_.startsWith("ROW FORMAT SERDE"))
+    val results = stbuffer.takeWhile(s => !s.startsWith("ROW") && !s.startsWith("COMMENT"))
       .map(s => {
         if (s.startsWith("CREATE") || s.startsWith("PARTITIONED BY")) {
           s
