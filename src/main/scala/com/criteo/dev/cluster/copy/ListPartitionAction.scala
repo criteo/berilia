@@ -24,6 +24,10 @@ class ListPartitionAction(conf: Map[String, String], node: Node, throttle: Boole
       Array()
     }
 
+    if (partSpec.isDefined && resultList.length == 0) {
+      throw new IllegalArgumentException(s"partspec returns no result: $partSpec")
+    }
+
     //Throttle number of partitions.
     val result = getAbsoluteParts(database, table, resultList)
 

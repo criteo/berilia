@@ -10,16 +10,9 @@ import org.slf4j.LoggerFactory
   */
 class GetMetadataAction(conf : Map[String, String], node : Node, throttle: Boolean = true) {
 
-  private val logger = LoggerFactory.getLogger(GetMetadataAction.getClass)
+  private val logger = LoggerFactory.getLogger(classOf[GetMetadataAction])
 
-  def apply() = {
-    logger.info("Getting source table metadata.")
-    val stringList = GeneralUtilities.getConfStrict(conf, CopyConstants.sourceTables, GeneralConstants.sourceProps)
-    val dbTables = stringList.split(";").map(s => s.trim())
-    dbTables.map(s => getTableMetadata(s))
-  }
-
-  def getTableMetadata(dbTablePartSpec: String) : TableInfo = {
+  def apply(dbTablePartSpec: String) : TableInfo = {
     //parse the configured source tables of form "$db.$table (part1=$part1, part2=$part2)"
     val regex = """(\S*)\.(\S*)\s*(.*)""".r
 
@@ -59,12 +52,5 @@ class GetMetadataAction(conf : Map[String, String], node : Node, throttle: Boole
       }
       case _ => throw new IllegalArgumentException(s"${CopyConstants.sourceTables}: $dbTablePartSpec")
     }
-  }
-}
-
-object GetMetadataAction {
-  def apply(conf: Map[String, String], node: Node, throttle: Boolean=true) = {
-    val getMetadataAction = new GetMetadataAction(conf, node, throttle)
-    getMetadataAction()
   }
 }

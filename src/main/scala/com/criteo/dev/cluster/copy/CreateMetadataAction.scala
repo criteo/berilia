@@ -9,5 +9,5 @@ import com.criteo.dev.cluster.Node
   */
 abstract class CreateMetadataAction(conf: Map[String, String], target: Node) {
 
-  def apply(tableInfos: Array[TableInfo]): Unit
+  def apply(tableInfos: TableInfo): Unit
 }

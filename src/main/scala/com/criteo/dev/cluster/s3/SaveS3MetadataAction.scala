@@ -18,32 +18,26 @@ class SaveS3MetadataAction(conf: Map[String, String], target: Node) extends Crea
   private val logger = LoggerFactory.getLogger(classOf[SaveS3MetadataAction])
 
 
-  def apply(tableInfos: Array[TableInfo]): Unit = {
-    val databases = tableInfos.map(ti => ti.database).distinct
+  def apply(tableInfo: TableInfo): Unit = {
+
+    val database = tableInfo.database
+    val table = tableInfo.table
 
     //Create databases
-    val createDbs = databases.toList.map { d =>
-      s"create database if not exists $d;"
-    }
+    val createDb = s"create database if not exists $database;"
 
     //Create tables and add partitions.
-    val createTables = tableInfos.flatMap(ti => {
-      val database = ti.database
-      val table = ti.table
+    val createTable =
+      formatCreateDdl(tableInfo, tableInfo.createStmt, tableInfo.location)
 
-      val tableDdl = Seq(s"use $database;", formatCreateDdl(ti, ti.createStmt, ti.location))
-
-      val partitionDdls =
-        ti.partitions.map(p => {
+    val partitionDdls =
+      tableInfo.partitions.map(p => {
             s"alter table $table add if not exists " +
             s"partition (${CopyUtilities.partitionSpecString(p.partSpec)}) " +
             s"location '${toS3Location(conf, p.location)}';"
         })
 
-      tableDdl ++ partitionDdls
-    })
-
-    val ddl = createDbs ++ createTables
+    val ddl = List(createDb, s"use $database", createTable) ++ partitionDdls
     logger.info("Uploading Hive DDL to S3 Bucket")
     UploadS3Action(conf, target, DataType.hive, ddl)
   }

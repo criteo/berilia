@@ -23,13 +23,21 @@ object CopyAllAction {
 
     //copy source tables
     if (sourceTables.isDefined) {
-      val tableInfos: Array[TableInfo] = GetMetadataAction(conf, source)
-      tableInfos.foreach(ti => {
+      logger.info("Getting source table metadata.")
+      val stringList = GeneralUtilities.getConfStrict(conf, CopyConstants.sourceTables, GeneralConstants.sourceProps)
+      val dbTables = stringList.split(";").map(s => s.trim())
+      dbTables.foreach(dbTable => {
+
+        val getMetadataAction = new GetMetadataAction(conf, source)
+        val ti = getMetadataAction(dbTable)
+
         val copyTableAction = new CopyTableAction(conf, source, target)
         copyTableAction.copy(ti)
+
+        val createMetadataAction = CreateMetadataActionFactory.getCopyFileAction(conf, target)
+        createMetadataAction(ti)
       })
-      val createMetadataAction = CreateMetadataActionFactory.getCopyFileAction(conf, target)
-      createMetadataAction(tableInfos)
+
     }
 
     //copy files

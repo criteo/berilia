@@ -9,33 +9,31 @@ import com.criteo.dev.cluster._
   */
 class CreateMetadataHiveAction(conf: Map[String, String], node: Node) extends CreateMetadataAction(conf, node) {
 
-  def apply(tableInfos: Array[TableInfo]): Unit = {
-    val databases = tableInfos.map(ti => ti.database).distinct
+  def apply(tableInfo: TableInfo): Unit = {
+
+    val database = tableInfo.database
+    val table = tableInfo.table
 
     //Create databases
-    val createDbs = databases.toList.map { d =>
-      s"create database if not exists $d"
-    }
+    val createDb = s"create database if not exists ${tableInfo.database}"
 
     //Create tables and add partitions.
-    val createTables = tableInfos.flatMap { ti =>
-      val database = ti.database
-      val table = ti.table
+    val createDdl = formatCreateDdl(tableInfo.createStmt, tableInfo.location)
 
-      val createDdl = formatCreateDdl(ti.createStmt, ti.location)
-      val createPartition =
-        if (ti.partitions.nonEmpty) {
-          Some(ti.partitions.map(p => {
-            s"partition (${CopyUtilities.partitionSpecString(p.partSpec)}) " +
-              s"location '${CopyUtilities.toRelative(p.location)}' "
-          }).mkString(s"alter table $table add ", "", ""))
-        } else None
-
-      Seq(s"use $database", createDdl) ++ createPartition
-    }
+    val createPartitions =
+      if (tableInfo.partitions.nonEmpty) {
+        Some(tableInfo.partitions.map(p => {
+          s"partition (${CopyUtilities.partitionSpecString(p.partSpec)}) " +
+            s"location '${CopyUtilities.toRelative(p.location)}' "
+        }).mkString(s"alter table $table add ", "", ""))
+      } else None
 
     //To make it idempotent, do not fail if database or tables exist.
-    SshHiveAction(node, createDbs ++ createTables, ignoreError = true)
+    if (createPartitions.isDefined) {
+      SshHiveAction(node, List(createDb, s"use $database", createDdl, createPartitions.get), ignoreError = true)
+    } else {
+      SshHiveAction(node, List(createDb, s"use $database", createDdl), ignoreError = true)
+    }
   }
 
   /**

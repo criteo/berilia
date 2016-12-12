@@ -16,7 +16,6 @@ class CopyTableAction(conf: Map[String, String], source: Node, target: Node) {
     val sampleProb = sampleProbConf.toDouble
     require(sampleProb > 0 && sampleProb <= 1, "Sample probability must be between 0 (exclusive) and 1 (inclusive)")
 
-    val location = tableInfo.location
     val partitions = tableInfo.partitions
     val partLocations = partitions.map(_.location)
 

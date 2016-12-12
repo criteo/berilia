@@ -44,7 +44,7 @@ class SampleCopyTableAction(conf: Map[String, String], source: Node, target: Nod
   //copy over the sample data to S3 using distcp.
   private def copyToDest(sampleDb: String, sampleTable: String, targetLocation: String): Unit = {
     val getTempMetadata = new GetMetadataAction(conf, source, throttle = false)
-    val tempTableInfo = getTempMetadata.getTableMetadata(s"$sampleDb.$sampleTable")
+    val tempTableInfo = getTempMetadata(s"$sampleDb.$sampleTable")
     val tempLocation = tempTableInfo.location
     val tempLocationCommon = CopyUtilities.getCommonLocation(tempLocation, tempTableInfo.partitions)
     val tempLocations: Array[String] = {
