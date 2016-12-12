@@ -28,10 +28,10 @@ object SshAction {
     * @return Output if 'returnResult' is true, else null
     */
   def apply(node: Node, script: String, returnResult: Boolean = false, ignoreFailure: Boolean = false): String = {
-    val command = s"ssh -o StrictHostKeyChecking=no ${GeneralUtilities.nodeString(node)} $script"
+    val command = s"ssh -o StrictHostKeyChecking=no ${GeneralUtilities.nodeString(node)}"
 
     val commands = command.split("\\s+")
-    val p = DevClusterProcess.processSeq(commands)
+    val p = DevClusterProcess.processSeq(commands :+ script)
 
     (returnResult, ignoreFailure) match {
       case (false, true) => {
