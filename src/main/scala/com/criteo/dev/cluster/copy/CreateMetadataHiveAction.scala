@@ -18,7 +18,8 @@ class CreateMetadataHiveAction(conf: Map[String, String], node: Node) extends Cr
     val createDb = s"create database if not exists ${tableInfo.database}"
 
     //Create tables and add partitions.
-    val createDdl = formatCreateDdl(tableInfo.createStmt, tableInfo.location)
+    val newTableDdl = tableInfo.ddl.copy(location = Some(CopyUtilities.toRelative(tableInfo.ddl.location.get)))
+      .format
 
     val createPartitions =
       if (tableInfo.partitions.nonEmpty) {
@@ -30,9 +31,9 @@ class CreateMetadataHiveAction(conf: Map[String, String], node: Node) extends Cr
 
     //To make it idempotent, do not fail if database or tables exist.
     if (createPartitions.isDefined) {
-      SshHiveAction(node, List(createDb, s"use $database", createDdl, createPartitions.get), ignoreError = true)
+      SshHiveAction(node, List(createDb, s"use $database", newTableDdl, createPartitions.get), ignoreError = true)
     } else {
-      SshHiveAction(node, List(createDb, s"use $database", createDdl), ignoreError = true)
+      SshHiveAction(node, List(createDb, s"use $database", newTableDdl), ignoreError = true)
     }
   }
 

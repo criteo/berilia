@@ -11,8 +11,7 @@ class SampleCopyTableAction(conf: Map[String, String], source: Node, target: Nod
   private val logger = LoggerFactory.getLogger(classOf[SampleCopyTableAction])
 
   def copy(tableInfo: TableInfo): Unit = {
-
-    val location = tableInfo.location
+    val location = tableInfo.ddl.location.get
     val partitions = tableInfo.partitions
 
     //this algorithm first creates a sampled temp table on the source cluster.
@@ -45,7 +44,7 @@ class SampleCopyTableAction(conf: Map[String, String], source: Node, target: Nod
   private def copyToDest(sampleDb: String, sampleTable: String, targetLocation: String): Unit = {
     val getTempMetadata = new GetMetadataAction(conf, source, throttle = false)
     val tempTableInfo = getTempMetadata(s"$sampleDb.$sampleTable")
-    val tempLocation = tempTableInfo.location
+    val tempLocation = tempTableInfo.ddl.location.get
     val tempLocationCommon = CopyUtilities.getCommonLocation(tempLocation, tempTableInfo.partitions)
     val tempLocations: Array[String] = {
       if (tempTableInfo.partitions.isEmpty) Array(tempLocation)
@@ -62,7 +61,7 @@ class SampleCopyTableAction(conf: Map[String, String], source: Node, target: Nod
     sshHiveAction.add(s"use $sampleDb")
     sshHiveAction.add("set hive.exec.dynamic.partition=true")
     sshHiveAction.add("set hive.exec.dynamic.partition.mode=nonstrict")
-    val ddl = formatCreateDdl(sourceTableInfo.createStmt, sampleTable)
+    val ddl = sourceTableInfo.ddl.copy(table = sampleTable).format
     sshHiveAction.add(ddl)
 
     val query = new StringBuilder(s"insert into table $sampleTable")

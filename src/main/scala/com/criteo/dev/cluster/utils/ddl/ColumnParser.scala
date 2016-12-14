@@ -45,26 +45,44 @@ case class Column(
                    name: String,
                    `type`: String, // TODO: better typed 'types'
                    comment: Option[String]
-                 )
+                 ) {
+  def format = "`" + name + "`"
+    s" ${`type`}${comment.map(" COMMENT '" + _ + "'").getOrElse("")}"
+}
 
 case class SortableColumn(
                            name: String,
                            order: SortOrder
-                         )
+                         ) {
+  def format = s"$name ${order.toString}"
+}
 
 case class ClusteredBy(
                         columns: List[String],
                         sortedBy: List[SortableColumn],
                         numBuckets: Int
-                      )
+                      ) {
+  def format =
+    s"""CLUSTERED BY ${columns.mkString("(", ",", ")")}
+        |  SORTED BY ${sortedBy.map(_.format).mkString("(", ",", ")")}
+        |  INTO $numBuckets BUCKETS
+    """.stripMargin
+}
 
 case class SkewedBy(
                      columns: List[String],
                      on: String, // TODO proper parsing of ON(...)
                      asDirectories: Boolean
-                   )
+                   ) {
+  def format =
+    s"""SKEWED BY ${columns.mkString("(", ",", ")")}
+       | ON ($on)
+       | ${if (asDirectories) "STORED AS DIRECTORIES" else ""}
+     """.stripMargin
+}
 
 sealed trait SortOrder
+
 object SortOrder {
   def apply(in: String) = in.toLowerCase match {
     case "desc" => DESC
@@ -72,6 +90,9 @@ object SortOrder {
     case _ => InvalidOrder
   }
 }
+
 case object InvalidOrder extends SortOrder
+
 case object DESC extends SortOrder
+
 case object ASC extends SortOrder

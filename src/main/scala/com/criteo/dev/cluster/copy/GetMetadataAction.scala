@@ -17,20 +17,19 @@ class GetMetadataAction(conf : Map[String, String], node : Node, throttle: Boole
     val regex = """(\S*)\.(\S*)\s*(.*)""".r
 
     dbTablePartSpec match {
-      case regex(db, table, part) => {
+      case regex(db, table, partSpec) => {
         //1. Get the table metadata, like location, isPartitioned, and createStmt.
         val getTableMetadataAction = new GetTableMetadataAction(conf, node)
-        val (isPartitioned, createStmt) = getTableMetadataAction(db, table)
+        val createTable = getTableMetadataAction(db, table)
 
         //2.  If partitioned, get the list of partitions.
         val partitionList: Array[String] =
-          if (isPartitioned) {
-            if (part.isEmpty) {
+          if (createTable.partitionedBy.length != 0) {
+            if (partSpec.isEmpty) {
               ListPartitionAction(conf, node, db, table, None, throttle)
             } else {
-              ListPartitionAction(conf, node, db, table, Some(part), throttle)
+              ListPartitionAction(conf, node, db, table, Some(partSpec), throttle)
             }
-
           } else {
             Array.empty[String]
           }
@@ -43,12 +42,7 @@ class GetMetadataAction(conf : Map[String, String], node : Node, throttle: Boole
         //4.  Get partition locations as well
         val getPartitionAction = new GetPartitionMetadataAction(conf, node)
         val partitions = getPartitionAction(db, table, partitionSpecList)
-        TableInfo(db,
-          table,
-          CopyUtilities.location(createStmt),
-          CopyUtilities.inputFormat(createStmt),
-          createStmt,
-          partitions)
+        TableInfo(db, table, createTable, partitions)
       }
       case _ => throw new IllegalArgumentException(s"${CopyConstants.sourceTables}: $dbTablePartSpec")
     }

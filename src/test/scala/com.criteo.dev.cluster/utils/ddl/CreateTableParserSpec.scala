@@ -76,4 +76,25 @@ class CreateTableParserSpec extends FlatSpec with Matchers with CreateTableParse
       selectAs = Some("SELECT * FROM a")
     )
   }
+
+  it should "format create statement" in {
+    val createStmt = CreateTable(
+      isTemporary = true,
+      isExternal = true,
+      ifNotExists = true,
+      database = Some("db"),
+      table = "t",
+      columns = List(Column("a", "int", Some("comment for a")), Column("b", "struct<name:string>", None)),
+      comment = Some("comment for table"),
+      partitionedBy = List(Column("a", "int", None)),
+      clusteredBy = Some(ClusteredBy(List("a"), List(SortableColumn("a", DESC)), 32)),
+      skewedBy = Some(SkewedBy(List("a"), "1,2,3", asDirectories = true)),
+      rowFormat = Some(SerDe("org.serde", Map.empty, TEXTFILE)),
+      location = Some("/dir"),
+      tblProperties = Map("1" -> "a"),
+      selectAs = Some("SELECT * FROM a")
+    )
+
+    createStmt.format
+  }
 }

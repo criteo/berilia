@@ -48,12 +48,18 @@ trait FormatParser extends BaseParser {
 
 sealed trait Format
 
-case class StoredBy(
-                     name: String,
-                     properties: Map[String, String]
-                   ) extends Format
-
-case class SerDe(name: String, properties: Map[String, String], storageFormat: StorageFormat) extends Format
+case class SerDe(name: String, properties: Map[String, String], storageFormat: StorageFormat) extends Format {
+  def format =
+    s"""ROW FORMAT SERDE '$name'
+        | ${properties.map { case (k, v) => s"'$k'='$v'" } toList match {
+            case Nil => ""
+            case props => s"WITH SERDEPROPERTIES ${props.mkString("(", ",", ")")}"
+          }}
+        | STORED AS $storageFormat
+    }
+    |
+     """.stripMargin
+}
 
 case class Delimited(
                       fields: Option[String],
@@ -65,6 +71,11 @@ case class Delimited(
                       storageFormat: StorageFormat
                     ) extends Format
 
+
+case class StoredBy(
+                     name: String,
+                     properties: Map[String, String]
+                   ) extends Format
 
 sealed trait StorageFormat
 
