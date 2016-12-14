@@ -1,11 +1,13 @@
 package com.criteo.dev.cluster.utils.ddl
 
-trait RowFormatParser extends BaseParser {
-  // TODO
-  // STORED BY
-  def rowFormat: Parser[RowFormat] = ("row format" ~> (serde | delimited)) | storedBy
+trait FormatParser extends BaseParser {
+  def format: Parser[Format] = ("row format" ~> (serde | delimited)) | storedBy
 
-  def delimiter: Parser[String] = "'[^']+'".r ^^ ( _.replaceAll("'", ""))
+  def storedBy: Parser[StoredBy] = "stored by" ~> hiveStringLiteral ~ ("with serdeproperties" ~> properties("=")).? ^^ {
+    case name ~ props => StoredBy(name, props.getOrElse(Map.empty))
+  }
+
+  def delimiter: Parser[String] = "'[^']+'".r ^^ (_.replaceAll("'", ""))
 
   def delimited: Parser[Delimited] = "delimited" ~>
     ("fields terminated by" ~> delimiter).? ~
@@ -13,30 +15,30 @@ trait RowFormatParser extends BaseParser {
     ("collection items terminated by" ~> delimiter).? ~
     ("map keys terminated by" ~> delimiter).? ~
     ("lines terminated by" ~> delimiter).? ~
-    ("null defined as" ~> delimiter).? ^^ {
-    case fields ~ escaped ~ col ~ map ~ lines ~ nul =>
+    ("null defined as" ~> delimiter).? ~
+    ("stored as" ~> storageFormat) ^^ {
+    case fields ~ escaped ~ col ~ map ~ lines ~ nul ~ storageFormat =>
       Delimited(
         fields,
         escaped,
         col,
         map,
         lines,
-        nul
+        nul,
+        storageFormat
       )
-  }
-
-  def storedBy: Parser[StoredBy] = "stored by" ~> hiveStringLiteral ~ ("with serdeproperties" ~> properties("=")).? ^^ {
-    case name ~ props => StoredBy(name, props.getOrElse(Map.empty))
   }
 
   def serde: Parser[SerDe] =
     ("serde" ~> hiveStringLiteral) ~
       ("with serdeproperties" ~> properties("=")).? ~
-      ("stored as" ~> (storageFormat | ioFormat)) ^^ {
+      ("stored as" ~> storageFormat) ^^ {
       case name ~ props ~ format => SerDe(name, props.getOrElse(Map.empty), format)
     }
 
-  def storageFormat: Parser[StorageFormat] = ("textfile" | "sequencefile" | "orc" | "parquet" | "avro" | "rcfile") ^^ StorageFormat.apply
+  def storageFormat: Parser[StorageFormat] = asFormat | ioFormat
+
+  def asFormat: Parser[StorageFormat] = ("textfile" | "sequencefile" | "orc" | "parquet" | "avro" | "rcfile") ^^ StorageFormat.apply
 
   def ioFormat: Parser[IOFormat] =
     ("inputformat" ~> hiveStringLiteral) ~ ("outputformat" ~> hiveStringLiteral) ^^ {
@@ -44,9 +46,14 @@ trait RowFormatParser extends BaseParser {
     }
 }
 
-sealed trait RowFormat
+sealed trait Format
 
-case class SerDe(name: String, properties: Map[String, String], storageFormat: StorageFormat) extends RowFormat
+case class StoredBy(
+                     name: String,
+                     properties: Map[String, String]
+                   ) extends Format
+
+case class SerDe(name: String, properties: Map[String, String], storageFormat: StorageFormat) extends Format
 
 case class Delimited(
                       fields: Option[String],
@@ -54,13 +61,10 @@ case class Delimited(
                       collection: Option[String],
                       mapKeys: Option[String],
                       lines: Option[String],
-                      nullDefinedAs: Option[String]
-                    ) extends RowFormat
+                      nullDefinedAs: Option[String],
+                      storageFormat: StorageFormat
+                    ) extends Format
 
-case class StoredBy(
-                    name: String,
-                    properties: Map[String, String]
-                   ) extends RowFormat
 
 sealed trait StorageFormat
 

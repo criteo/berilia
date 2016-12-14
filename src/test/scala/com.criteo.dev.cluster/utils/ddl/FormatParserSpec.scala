@@ -2,9 +2,9 @@ package com.criteo.dev.cluster.utils.ddl
 
 import org.scalatest.{FlatSpec, Matchers}
 
-class RowFormatParserSpec extends FlatSpec with Matchers with RowFormatParser {
+class FormatParserSpec extends FlatSpec with Matchers with FormatParser {
   it should "parse SerDe row format" in {
-    val res = parse(rowFormat,
+    val res = parse(format,
       """
         |ROW FORMAT SERDE
         | 'org.apache'
@@ -20,7 +20,7 @@ class RowFormatParserSpec extends FlatSpec with Matchers with RowFormatParser {
   }
 
   it should "parse Delimited row format" in {
-    val res = parse(rowFormat,
+    val res = parse(format,
       """
         |ROW FORMAT DELIMITED
         |FIELDS TERMINATED BY '\t'
@@ -29,6 +29,7 @@ class RowFormatParserSpec extends FlatSpec with Matchers with RowFormatParser {
         |MAP KEYS TERMINATED BY ','
         |LINES TERMINATED BY 'c'
         |NULL DEFINED AS ' '
+        |STORED AS TEXTFILE
       """.stripMargin
     )
     res.get shouldEqual Delimited(
@@ -37,12 +38,13 @@ class RowFormatParserSpec extends FlatSpec with Matchers with RowFormatParser {
       Some("\\n"),
       Some(","),
       Some("c"),
-      Some(" ")
+      Some(" "),
+      TEXTFILE
     )
   }
 
   it should "parse stored by format" in {
-    val res = parse(rowFormat,
+    val res = parse(format,
       """
         |STORED BY 'org.storage'
         |WITH SERDEPROPERTIES(

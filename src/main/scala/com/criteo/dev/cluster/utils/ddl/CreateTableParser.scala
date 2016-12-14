@@ -1,6 +1,6 @@
 package com.criteo.dev.cluster.utils.ddl
 
-trait CreateTableParser extends BaseParser with ColumnParser with RowFormatParser {
+trait CreateTableParser extends BaseParser with ColumnParser with FormatParser {
   def createTable: Parser[CreateTable] =
     "create" ~>
       "temporary".? ~
@@ -13,11 +13,11 @@ trait CreateTableParser extends BaseParser with ColumnParser with RowFormatParse
       partitionedBy.? ~
       clusteredBy.? ~
       skewedBy.? ~
-      rowFormat.? ~
+      format.? ~
       location.? ~
       tblProps.? ~
       selectAs.? ^^ {
-      case temp ~ ext ~ ifNotExists ~ db ~ table ~ columns ~ comment ~ partitions ~ cluster ~ skew ~ rowFormat ~ location ~ tblProps ~ selectAs =>
+      case temp ~ ext ~ ifNotExists ~ db ~ table ~ columns ~ comment ~ partitions ~ cluster ~ skew ~ format ~ location ~ tblProps ~ selectAs =>
         CreateTable(
           isTemporary = temp.isDefined,
           isExternal = ext.isDefined,
@@ -29,7 +29,7 @@ trait CreateTableParser extends BaseParser with ColumnParser with RowFormatParse
           partitionedBy = partitions.getOrElse(List.empty),
           clusteredBy = cluster,
           skewedBy = skew,
-          rowFormat = rowFormat,
+          format = format,
           location = location,
           tblProperties = tblProps.getOrElse(Map.empty),
           selectAs = selectAs
