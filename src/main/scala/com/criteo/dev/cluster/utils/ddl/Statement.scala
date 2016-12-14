@@ -13,7 +13,7 @@ case class CreateTable(
                         partitionedBy: List[Column],
                         clusteredBy: Option[ClusteredBy],
                         skewedBy: Option[SkewedBy],
-                        rowFormat: Option[RowFormat],
+                        format: Option[Format],
                         location: Option[String],
                         tblProperties: Map[String, String],
                         selectAs: Option[String]
