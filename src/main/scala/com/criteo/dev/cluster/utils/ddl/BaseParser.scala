@@ -3,7 +3,7 @@ package com.criteo.dev.cluster.utils.ddl
 import scala.util.parsing.combinator.RegexParsers
 
 trait BaseParser extends RegexParsers {
-  def validName: Parser[String] = "[A-Za-z0-9_]+".r
+  def validName: Parser[String] = "`".? ~> "[A-Za-z0-9_]+".r  <~ "`".?
 
   def hiveStringLiteral: Parser[String] = ("'" | "\"") ~> "[^'\"]*".r <~ ("'" | "\"")
 

@@ -12,10 +12,10 @@ class CreateMetadataHiveAction(conf: Map[String, String], node: Node) extends Cr
   def apply(tableInfo: TableInfo): Unit = {
 
     val database = tableInfo.database
-    val table = tableInfo.table
+    val table = tableInfo.ddl.table
 
     //Create databases
-    val createDb = s"create database if not exists ${tableInfo.database}"
+    val createDb = s"create database if not exists $database"
 
     //Create tables and add partitions.
     val newTableDdl = tableInfo.ddl.copy(location = Some(CopyUtilities.toRelative(tableInfo.ddl.location.get)))
@@ -35,15 +35,5 @@ class CreateMetadataHiveAction(conf: Map[String, String], node: Node) extends Cr
     } else {
       SshHiveAction(node, List(createDb, s"use $database", newTableDdl), ignoreError = true)
     }
-  }
-
-  /**
-    * More delicate parsing, to format the DDL so it creates the right table.
-    *
-    * @param ddl
-    * @param location
-    */
-  def formatCreateDdl(ddl: String, location: String): String = {
-    CopyUtilities.formatDdl(ddl, tableName = None, location = Some(CopyUtilities.toRelative(location)))
   }
 }

@@ -21,14 +21,13 @@ class SaveS3MetadataAction(conf: Map[String, String], target: Node) extends Crea
   def apply(tableInfo: TableInfo): Unit = {
 
     val database = tableInfo.database
-    val table = tableInfo.table
+    val table = tableInfo.ddl.table
 
     //Create databases
     val createDb = s"create database if not exists $database;"
 
     //Create tables and add partitions.
-    val createTable =
-      formatCreateDdl(tableInfo, tableInfo.createStmt, tableInfo.location)
+    val createTable = tableInfo.ddl.copy(location = Some(toS3Location(conf, tableInfo.ddl.location.get))).format
 
     val partitionDdls =
       tableInfo.partitions.map(p => {
@@ -58,7 +57,7 @@ class SaveS3MetadataAction(conf: Map[String, String], target: Node) extends Crea
     //Also take opportunity to insert 'if not exists'
     var stbuffer: scala.collection.mutable.Buffer[String] = strings.toBuffer
     stbuffer.remove(0)
-    stbuffer.insert(0, s"CREATE EXTERNAL TABLE IF NOT EXISTS `${tableInfo.database}.${tableInfo.table}` (")
+    stbuffer.insert(0, s"CREATE EXTERNAL TABLE IF NOT EXISTS `${tableInfo.database}.${tableInfo.ddl.table}` (")
 
     //strip tblProperties, which do not seem to parse..
     val tblPropertiesIndex = stbuffer.indexWhere(s => s.startsWith("TBLPROPERTIES"))

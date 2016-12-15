@@ -18,10 +18,10 @@ class SampleCopyTableAction(conf: Map[String, String], source: Node, target: Nod
     //Note that if target is S3, we could have made an external table on S3 and skipped the temp-sample table.
     //But we ran into issues with some versions of Hive doing this.
     val sampleDb = GeneralUtilities.getConfStrict(conf, CopyConstants.sampleDb, GeneralConstants.sourceProps)
-    val sampleTable = CopyUtilities.getTempTableName(tableInfo.table)
+    val sampleTable = CopyUtilities.getTempTableName(tableInfo.ddl.table)
 
     logger.info(s"Sampling " + partitions.length + " partitions from " +
-      tableInfo.database + "." + tableInfo.table)
+      tableInfo.database + "." + tableInfo.ddl.table)
     createSampleTable(tableInfo, sampleDb, sampleTable)
 
     //Copy the sampled data to final destination.
@@ -57,12 +57,22 @@ class SampleCopyTableAction(conf: Map[String, String], source: Node, target: Nod
 
   //create table with sampled data
   private def createSampleTable(sourceTableInfo: TableInfo, sampleDb: String, sampleTable: String): String = {
-    val sshHiveAction = new SshHiveAction(source)
-    sshHiveAction.add(s"use $sampleDb")
-    sshHiveAction.add("set hive.exec.dynamic.partition=true")
-    sshHiveAction.add("set hive.exec.dynamic.partition.mode=nonstrict")
-    val ddl = sourceTableInfo.ddl.copy(table = sampleTable).format
-    sshHiveAction.add(ddl)
+    val sampleTableInfo: TableInfo = sourceTableInfo.copy(
+      database = sampleDb,
+      ddl = sourceTableInfo.ddl.copy(database = Some(sampleDb), table = sampleTable, location = None))
+
+    val createAction = new SshHiveAction(source)
+    createAction.add(s"use $sampleDb")
+    val ddl = sampleTableInfo.ddl
+    createAction.add(ddl.format)
+    createAction.run
+
+    fireBeforeSample(conf, sourceTableInfo, sampleTableInfo)
+
+    val insertAction = new SshHiveAction(source)
+    insertAction.add(s"use $sampleDb")
+    insertAction.add("set hive.exec.dynamic.partition=true")
+    insertAction.add("set hive.exec.dynamic.partition.mode=nonstrict")
 
     val query = new StringBuilder(s"insert into table $sampleTable")
     if (sourceTableInfo.partitions.length > 0) {
@@ -70,7 +80,7 @@ class SampleCopyTableAction(conf: Map[String, String], source: Node, target: Nod
       query.append(CopyUtilities.partitionColumns(sourceTableInfo.partitions(0)))
     }
 
-    query.append(s" select * from ${sourceTableInfo.database}.${sourceTableInfo.table} ")
+    query.append(s" select * from ${sourceTableInfo.database}.${sourceTableInfo.ddl.table} ")
     if (sourceTableInfo.partitions.length > 0 || sampleProb < 1) {
       query.append("where ")
 
@@ -89,16 +99,19 @@ class SampleCopyTableAction(conf: Map[String, String], source: Node, target: Nod
         query.append(partFilter)
       }
     }
-    sshHiveAction.add(query.toString)
-    sshHiveAction.run()
+    insertAction.add(query.toString)
+    insertAction.run()
   }
 
-  /**
-    * More delicate parsing, to format the DDL so it creates the right table.
-    *
-    * TODO- model the create ddl and generate it programatically to be less delicate.
-    */
-  private def formatCreateDdl(ddl: String, newTableName: String): String = {
-    CopyUtilities.formatDdl(ddl, tableName = Some(newTableName), location = None)
+  def fireBeforeSample(conf: Map[String, String], tableInfo: TableInfo, sampleTableInfo: TableInfo) = {
+    val listeners = GeneralUtilities.getNonEmptyConf(conf, CopyConstants.sampleListeners)
+    if (listeners.isDefined) {
+      listeners.get.split(",").map(_.trim()).foreach(l => {
+        val clazz = this.getClass.getClassLoader.loadClass(l)
+        val listener = clazz.newInstance().asInstanceOf[SampleTableListener]
+        val copyFileAction = CopyFileActionFactory.getCopyFileAction(conf, source, target)
+        listener.onBeforeSample(tableInfo, sampleTableInfo, source)
+      })
+    }
   }
 }

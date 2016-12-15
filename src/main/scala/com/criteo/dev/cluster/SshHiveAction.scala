@@ -42,6 +42,7 @@ class SshHiveAction(node: Node, ignoreError: Boolean = false) {
 
     ScpAction(None, localTmpQueryFile, Some(node), remoteTmpQueryFile)
     val ignoreErrorFlag = if (ignoreError) "-hiveconf hive.cli.errors.ignore=true" else ""
+
     val ret = SshAction(node, s"hive $ignoreErrorFlag -f $remoteTmpQueryFile", returnResult = true, ignoreError)
     GeneralUtilities.cleanupTempDir
     ret

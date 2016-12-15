@@ -34,7 +34,7 @@ class CreateTableParserSpec extends FlatSpec with Matchers with CreateTableParse
   it should "parse create table statement" in {
     val res = parse(createTable,
       """
-        |CREATE TEMPORARY EXTERNAL TABLE IF NOT EXISTS db.t(
+        |CREATE TEMPORARY EXTERNAL TABLE IF NOT EXISTS db.`t`(
         | a int COMMENT 'comment for a',
         | b struct<name:string>
         |)
@@ -70,7 +70,8 @@ class CreateTableParserSpec extends FlatSpec with Matchers with CreateTableParse
       partitionedBy = List(Column("a", "int", None)),
       clusteredBy = Some(ClusteredBy(List("a"), List(SortableColumn("a", DESC)), 32)),
       skewedBy = Some(SkewedBy(List("a"), "1,2,3", asDirectories = true)),
-      format = Some(SerDe("org.serde", Map.empty, TEXTFILE)),
+      rowFormat = Some(SerDe("org.serde", Map.empty)),
+      storageFormat = Some(TEXTFILE),
       location = Some("/dir"),
       tblProperties = Map("1" -> "a"),
       selectAs = Some("SELECT * FROM a")
@@ -89,12 +90,13 @@ class CreateTableParserSpec extends FlatSpec with Matchers with CreateTableParse
       partitionedBy = List(Column("a", "int", None)),
       clusteredBy = Some(ClusteredBy(List("a"), List(SortableColumn("a", DESC)), 32)),
       skewedBy = Some(SkewedBy(List("a"), "1,2,3", asDirectories = true)),
-      rowFormat = Some(SerDe("org.serde", Map.empty, TEXTFILE)),
+      rowFormat = Some(SerDe("org.serde", Map("a" -> "b"))),
+      storageFormat = Some(TEXTFILE),
       location = Some("/dir"),
       tblProperties = Map("1" -> "a"),
       selectAs = Some("SELECT * FROM a")
     )
 
-    createStmt.format
+    println(createStmt.format)
   }
 }

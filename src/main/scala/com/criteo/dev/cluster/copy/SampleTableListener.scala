@@ -1,13 +1,15 @@
 package com.criteo.dev.cluster.copy
 
-import com.criteo.dev.cluster.Node
+import com.criteo.dev.cluster.{Node, SshHiveAction}
 
 /**
   * Any special handling needed for copy table.  For exmaple, copy over meta files, etc.
   *
   * A file copier is provided, with source and destination nodes.
   */
-trait CopyTableListener {
+trait SampleTableListener {
 
-  def onCopy(tableInfo: TableInfo, copyFileAction: CopyFileAction, source: Node, target: Node)
+  def onBeforeSample(tableInfo: TableInfo,
+                     sampleTableInfo: TableInfo,
+                     source: Node)
 }

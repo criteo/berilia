@@ -15,7 +15,7 @@ class FullCopyTableAction(conf: Map[String, String], source: Node, target: Node)
 
   def copy(tableInfo: TableInfo): Unit = {
     val database = tableInfo.database
-    val table = tableInfo.table
+    val table = tableInfo.ddl.table
     val location = tableInfo.ddl.location.get
     val partitions = tableInfo.partitions
 

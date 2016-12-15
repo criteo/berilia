@@ -100,6 +100,13 @@
         <description>This copies over pail.meta file.  It is only a sample and you may provide your own for your own data formats.</description>
     </property> -->
 
+
+    <!--<property>
+    <name>source.sample.listeners</name>
+      <value>com.criteo.dev.cluster.copy.GlupSampleListener</value>
+      <description>This alters the sample table (if a glup table) to also write data in glup format to the final destination.</description>
+    </property> -->
+
     <property>
         <name>source.copy.sample.threshold</name>
         <value>50000000000</value>

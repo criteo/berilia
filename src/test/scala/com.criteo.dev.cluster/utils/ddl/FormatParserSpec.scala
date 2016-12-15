@@ -4,23 +4,30 @@ import org.scalatest.{FlatSpec, Matchers}
 
 class FormatParserSpec extends FlatSpec with Matchers with FormatParser {
   it should "parse SerDe row format" in {
-    val res = parse(format,
+    val res = parse(rowFormat,
       """
         |ROW FORMAT SERDE
         | 'org.apache'
         |WITH SERDEPROPERTIES(
         | 'a'='b'
         |)
+      """.stripMargin)
+    res.get shouldEqual SerDe("org.apache", Map("a" -> "b"))
+  }
+
+  it should "parse Stored as" in {
+    val res = parse(storageFormat,
+      """
         |STORED AS INPUTFORMAT
         | 'org.apache.input'
         |OUTPUTFORMAT
         | 'org.apache.output'
       """.stripMargin)
-    res.get shouldEqual SerDe("org.apache", Map("a" -> "b"), IOFormat("org.apache.input", "org.apache.output"))
+    res.get shouldEqual IOFormat("org.apache.input", "org.apache.output")
   }
 
   it should "parse Delimited row format" in {
-    val res = parse(format,
+    val res = parse(rowFormat,
       """
         |ROW FORMAT DELIMITED
         |FIELDS TERMINATED BY '\t'
@@ -29,7 +36,6 @@ class FormatParserSpec extends FlatSpec with Matchers with FormatParser {
         |MAP KEYS TERMINATED BY ','
         |LINES TERMINATED BY 'c'
         |NULL DEFINED AS ' '
-        |STORED AS TEXTFILE
       """.stripMargin
     )
     res.get shouldEqual Delimited(
@@ -38,13 +44,12 @@ class FormatParserSpec extends FlatSpec with Matchers with FormatParser {
       Some("\\n"),
       Some(","),
       Some("c"),
-      Some(" "),
-      TEXTFILE
+      Some(" ")
     )
   }
 
   it should "parse stored by format" in {
-    val res = parse(format,
+    val res = parse(rowFormat,
       """
         |STORED BY 'org.storage'
         |WITH SERDEPROPERTIES(

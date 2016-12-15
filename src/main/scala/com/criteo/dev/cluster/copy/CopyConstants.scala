@@ -13,6 +13,8 @@ object CopyConstants {
 
   def copyListeners = "source.copy.listeners"
 
+  def sampleListeners = "source.sample.listeners"
+
   def sampleThreshold = "source.copy.sample.threshold"
 
   def sampleDb = "source.sample.database"

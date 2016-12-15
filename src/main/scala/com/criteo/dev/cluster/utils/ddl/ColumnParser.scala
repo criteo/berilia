@@ -46,7 +46,7 @@ case class Column(
                    `type`: String, // TODO: better typed 'types'
                    comment: Option[String]
                  ) {
-  def format = "`" + name + "`"
+  def format = "`" + name + "`" +
     s" ${`type`}${comment.map(" COMMENT '" + _ + "'").getOrElse("")}"
 }
 
@@ -54,7 +54,7 @@ case class SortableColumn(
                            name: String,
                            order: SortOrder
                          ) {
-  def format = s"$name ${order.toString}"
+  def format = "`" + name + "` " + order.toString
 }
 
 case class ClusteredBy(
@@ -63,10 +63,9 @@ case class ClusteredBy(
                         numBuckets: Int
                       ) {
   def format =
-    s"""CLUSTERED BY ${columns.mkString("(", ",", ")")}
+    s"""CLUSTERED BY ${columns.map("`" + _ + "`").mkString("(", ",", ")")}
         |  SORTED BY ${sortedBy.map(_.format).mkString("(", ",", ")")}
-        |  INTO $numBuckets BUCKETS
-    """.stripMargin
+        |  INTO $numBuckets BUCKETS""".stripMargin
 }
 
 case class SkewedBy(
@@ -75,10 +74,9 @@ case class SkewedBy(
                      asDirectories: Boolean
                    ) {
   def format =
-    s"""SKEWED BY ${columns.mkString("(", ",", ")")}
+    s"""SKEWED BY ${columns.map("`" + _ + "`").mkString("(", ",", ")")}
        | ON ($on)
-       | ${if (asDirectories) "STORED AS DIRECTORIES" else ""}
-     """.stripMargin
+       | ${if (asDirectories) "STORED AS DIRECTORIES" else ""}""".stripMargin
 }
 
 sealed trait SortOrder

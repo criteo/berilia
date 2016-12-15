@@ -42,9 +42,10 @@ class GetMetadataAction(conf : Map[String, String], node : Node, throttle: Boole
         //4.  Get partition locations as well
         val getPartitionAction = new GetPartitionMetadataAction(conf, node)
         val partitions = getPartitionAction(db, table, partitionSpecList)
-        TableInfo(db, table, createTable, partitions)
+        TableInfo(db, createTable, partitions)
       }
-      case _ => throw new IllegalArgumentException(s"${CopyConstants.sourceTables}: $dbTablePartSpec")
+      case _ => throw new IllegalArgumentException(s"Cannot parse ${CopyConstants.sourceTables}: $dbTablePartSpec.  " +
+        "Make sure it is of form $db.$table $partition, where $partition is optional and of form (part1='val1', part2='val2').")
     }
   }
 }

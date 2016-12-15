@@ -2,8 +2,7 @@ package com.criteo.dev.cluster.copy
 
 import com.criteo.dev.cluster.utils.ddl.CreateTable
 
-case class TableInfo(database: String,
-                     table: String,
+case class TableInfo(database: String, //optional in the ddl
                      ddl : CreateTable,
                      partitions: Array[PartitionInfo])
 

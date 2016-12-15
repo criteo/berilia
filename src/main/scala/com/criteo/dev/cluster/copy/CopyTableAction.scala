@@ -12,7 +12,10 @@ class CopyTableAction(conf: Map[String, String], source: Node, target: Node) {
 
   def copy(tableInfo: TableInfo): Unit = {
 
-    val sampleProbConf = CopyUtilities.getOverridableConf(conf, tableInfo.database, tableInfo.table, CopyConstants.sampleProb)
+    val sampleProbConf = CopyUtilities.getOverridableConf(conf,
+      tableInfo.database,
+      tableInfo.ddl.table,
+      CopyConstants.sampleProb)
     val sampleProb = sampleProbConf.toDouble
     require(sampleProb > 0 && sampleProb <= 1, "Sample probability must be between 0 (exclusive) and 1 (inclusive)")
 
@@ -40,7 +43,7 @@ class CopyTableAction(conf: Map[String, String], source: Node, target: Node) {
         val clazz = this.getClass.getClassLoader.loadClass(l)
         val listener = clazz.newInstance().asInstanceOf[CopyTableListener]
         val copyFileAction = CopyFileActionFactory.getCopyFileAction(conf, source, target)
-        listener.onCopy(tableInfo, copyFileAction)
+        listener.onCopy(tableInfo, copyFileAction, source, target)
       })
     }
   }

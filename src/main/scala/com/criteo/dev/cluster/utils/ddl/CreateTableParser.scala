@@ -13,11 +13,13 @@ trait CreateTableParser extends BaseParser with ColumnParser with FormatParser {
       partitionedBy.? ~
       clusteredBy.? ~
       skewedBy.? ~
-      format.? ~
+      rowFormat.? ~
+      storageFormat.? ~
       location.? ~
       tblProps.? ~
       selectAs.? ^^ {
-      case temp ~ ext ~ ifNotExists ~ db ~ table ~ columns ~ comment ~ partitions ~ cluster ~ skew ~ format ~ location ~ tblProps ~ selectAs =>
+      case temp ~ ext ~ ifNotExists ~ db ~ table ~ columns ~ comment ~ partitions ~ cluster ~ skew ~ rowFormat ~
+        storageFormat ~ location ~ tblProps ~ selectAs =>
         CreateTable(
           isTemporary = temp.isDefined,
           isExternal = ext.isDefined,
@@ -29,7 +31,8 @@ trait CreateTableParser extends BaseParser with ColumnParser with FormatParser {
           partitionedBy = partitions.getOrElse(List.empty),
           clusteredBy = cluster,
           skewedBy = skew,
-          format = format,
+          rowFormat = rowFormat,
+          storageFormat = storageFormat,
           location = location,
           tblProperties = tblProps.getOrElse(Map.empty),
           selectAs = selectAs
