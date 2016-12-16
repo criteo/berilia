@@ -9,9 +9,11 @@ import com.criteo.dev.cluster.{Node, SshHiveAction}
   */
 class GlupSampleListener extends SampleTableListener {
 
-  def inputFormat = "com.criteo.hadoop.hive.ql.io.GlupInputFormat"
-  def outputFormat = "com.criteo.hadoop.hive.ql.io.GlupOutputFormat"
-  //def outputFormat = "org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat"
+  def originalInput = "com.criteo.hadoop.hive.ql.io.GlupInputFormat"
+  def finalInput = "org.apache.hadoop.mapred.TextInputFormat"
+
+  def originalOutput = "org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat"
+  def finalOutput = "com.criteo.hadoop.hive.ql.io.GlupOutputFormat"
 
   override def onBeforeSample(tableInfo: TableInfo,
                      sampleTableInfo: TableInfo,
@@ -19,12 +21,12 @@ class GlupSampleListener extends SampleTableListener {
 
     sampleTableInfo.ddl.storageFormat match {
       case (Some(io : IOFormat)) => {
-        if (io.input.contains(inputFormat)) {
+        if (io.input.contains(originalInput) && io.output.contains(originalOutput)) {
           val alterTableAction = new SshHiveAction(source)
           alterTableAction.add(s"use ${sampleTableInfo.database}")
           val alterTableStmt = new StringBuilder(s"alter table ${sampleTableInfo.ddl.table} " +
-            s"set fileformat inputformat '$inputFormat' " +
-            s"outputformat '$outputFormat'")
+            s"set fileformat inputformat '$finalInput' " +
+            s"outputformat '$finalOutput'")
           sampleTableInfo.ddl.rowFormat match {
             case Some(s: SerDe) => {
               alterTableStmt.append(s" serde ")
