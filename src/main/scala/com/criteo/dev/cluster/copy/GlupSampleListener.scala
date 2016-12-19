@@ -10,7 +10,7 @@ import com.criteo.dev.cluster.{Node, SshHiveAction}
 class GlupSampleListener extends SampleTableListener {
 
   def originalInput = "com.criteo.hadoop.hive.ql.io.GlupInputFormat"
-  def finalInput = "org.apache.hadoop.mapred.TextInputFormat"
+  def finalInput = "com.criteo.hadoop.hive.ql.io.GlupInputFormat"
 
   def originalOutput = "org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat"
   def finalOutput = "com.criteo.hadoop.hive.ql.io.GlupOutputFormat"
