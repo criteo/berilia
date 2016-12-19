@@ -94,7 +94,7 @@ class RetryableCreate(conf: Map[String, String], imageId: String) extends Retrya
     val expireTime = DateTime.now(DateTimeZone.UTC) + AwsConstants.extensionTime
     val expireTimeString = AwsUtilities.dtToString(expireTime)
 
-    val template = mComputeService.templateBuilder.hardwareId(instanceType).
+    var template = mComputeService.templateBuilder.hardwareId(instanceType).
       imageId(s"$region/$imageId").build
     template.getOptions.as(classOf[AWSEC2TemplateOptions])
       .keyPair(keyPair)
@@ -107,6 +107,21 @@ class RetryableCreate(conf: Map[String, String], imageId: String) extends Retrya
       .userMetadata(AwsConstants.expireTime, expireTimeString)
       .userMetadata(AwsConstants.createTime, AwsUtilities.getCurrentTime())
 
+    val volumeConf = AwsConstants.getFull(AwsConstants.volumeSpec)
+    val volumeSpec = conf.get(AwsConstants.getFull(AwsConstants.volumeSpec))
+    if (volumeSpec.isDefined) {
+      volumeSpec.get.split(',').foreach(v => {
+        val regex = """([A-Za-z0-9\/]*)=([0-9]*)""".r
+        volumeSpec.get.trim match {
+          case regex(volName, volSize) => {
+            template.getOptions.as(classOf[AWSEC2TemplateOptions])
+                .mapNewVolumeToDeviceName(volName, Integer.valueOf(volSize), true)
+          }
+          case _ => throw new IllegalArgumentException(s"Error parsing $volumeConf, please specify in " +
+            s"comma-separated list of elements volume=size")
+        }
+      })
+    }
 
     val result: java.util.Set[_ <: NodeMetadata] = mComputeService.createNodesInGroup(
       AwsConstants.groupTag, 1, template)

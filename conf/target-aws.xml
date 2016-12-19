@@ -18,6 +18,11 @@
         <description>Instance type to use in dev cluster.</description>
     </property>
     <property>
+        <name>target.aws.volume.spec</name>
+        <value>/dev/sda1=50</value>
+        <description>Comma-separated list of $device=$size</description>
+    </property>
+    <property>
         <name>target.aws.user</name>
         <value>ubuntu</value>
         <description>

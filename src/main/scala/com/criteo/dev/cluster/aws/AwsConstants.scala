@@ -39,6 +39,7 @@ object AwsConstants {
 
   def instanceType = "instance.type"
 
+  def volumeSpec = "volume.spec"
 
   def getFull(arg: String): String = s"${AwsConstants.awsKeyPrefix}.$arg"
 
@@ -47,7 +48,6 @@ object AwsConstants {
   def getUserFull: String = getFull(GeneralConstants.user)
 
   def getKeyFileFull: String = getFull(GeneralConstants.keyFile)
-
 
   def region = "region"
 
