@@ -1,7 +1,8 @@
 package com.criteo.dev.cluster.copy
 
 import com.criteo.dev.cluster.aws.{AwsConstants, AwsUtilities}
-import com.criteo.dev.cluster.{GeneralConstants, GeneralUtilities, NodeFactory, SshAction}
+import com.criteo.dev.cluster._
+import com.criteo.dev.cluster.utils.ddl.Column
 
 import scala.util.Random
 
@@ -12,7 +13,7 @@ object CopyUtilities {
 
   //For configuration stuff
 
-  def getOverridableConf(conf: Map[String, String], database: String, table: String, prop: String) : String = {
+  def getOverridableConf(conf: Map[String, String], database: String, table: String, prop: String): String = {
     val propConf = conf.get(s"$database.$table.$prop")
     if (propConf.isEmpty) {
       GeneralUtilities.getConfStrict(conf, s"default.$prop", GeneralConstants.sourceProps)
@@ -39,30 +40,6 @@ object CopyUtilities {
   def deleteTmpTgt(conf: Map[String, String]) =
     SshAction(NodeFactory.getTarget(conf), "rm -rf " + CopyConstants.tmpTgt, ignoreFailure = true)
 
-  /**
-    * A little delicate and assumes a certain 'create table' format, like
-    * ...
-    * 'DESCRIPTOR'
-    *   'property'
-    * ...
-    *
-    * TODO- replace with metadata client calls if appropriate.
-    */
-  def property(descriptor: String) (ddl: String) : String = {
-    val lines = ddl.split("\n")
-    val index = lines.map(s => s.trim()).indexOf(descriptor)
-    lines(index + 1).replaceAll("'", "").trim()
-  }
-
-  def location = property("LOCATION") _
-  def inputFormat = property("STORED AS INPUTFORMAT") _
-
-
-  def partitioned(ddl : String): Boolean = {
-    val ddlLines = ddl.split("\n").map(s => s.trim())
-    ddlLines.exists(s => s.trim().startsWith("PARTITIONED BY"))
-  }
-
   def toRelative(srcLocation: String) : String = {
     //Strips the hdfs://<namenode-url> part of the path.
     srcLocation.replaceAll("^(hdfs:\\/\\/)[^\\/]*", "")
@@ -81,6 +58,11 @@ object CopyUtilities {
     }
   }
 
+
+  //----
+  // Partition utility methods
+  //----
+
   /**
     * Convert from part spec string, ie (day='2015-05-05', hour='20')
     * to modeled partition spec.
@@ -97,26 +79,35 @@ object CopyUtilities {
 
   /**
     * @param partSpecs array of the the partition specs (column, value) of this partition.
-    * @return partition spec string, ie (day='2015-05-05', hour='20') for each partition.
+    * @return partition spec string, ie (day='2015-05-05', hour=20) for each partition.
     */
-  def partitionSpecString(partSpecs : PartSpec): String = {
-    val partSpecStrings = partSpecs.specs.map(
-      p => {
-        s"${p.column}='${p.value}'"
-      })
-    partSpecStrings.mkString(", ")
+  def partitionSpecString(partSpecs : PartSpec, partCols: List[Column]): String = {
+    partSpecStrings(partSpecs, partCols, ", ")
   }
 
   /**
     * @param partSpecs array of the the partition specs (column, value) of this partition.
     * @return partition spec filter, ie (day='2015-05-05' and hour='20')
     */
-  def partitionSpecFilter(partSpecs : PartSpec): String = {
-    val partSpecStrings = partSpecs.specs.map(
-      p => {
-        s"${p.column}='${p.value}'"
-      })
-    partSpecStrings.mkString(" and ")
+  def partitionSpecFilter(partSpecs : PartSpec, partCols: List[Column]): String = {
+    partSpecStrings(partSpecs, partCols, " and ")
+  }
+
+  private def getPartCol(cols: List[Column], partColName: String) : Column = {
+    val results = cols.filter(_.name.equalsIgnoreCase(partColName))
+    require (results.length == 1, s"Invalid column: $partColName")
+    results(0)
+  }
+
+  private def partSpecStrings(partSpecs: PartSpec, partCols: List[Column], sep: String): String = {
+    val partSpecStrings = partSpecs.specs.map(p => {
+      val col = getPartCol(partCols, p.column)
+      col.`type` match {
+        case s if s matches "(?i)string" => s"${p.column}='${p.value}'"  //hive uses single-quote for string literals.
+        case _ => s"${p.column}=${p.value}"
+      }
+    })
+    partSpecStrings.mkString(sep)
   }
 
   /**
@@ -134,6 +125,20 @@ object CopyUtilities {
   def getTempTableName(tableName: String) : String = {
     val rand = Random.nextInt(10000).toString
     s"${tableName}_${CopyConstants.tempTableHint}_$rand"
+  }
+
+
+  def getPartPath(sourceFile: String, sourceBase: String, includeBase: Boolean) : String = {
+    val base = if (includeBase) {
+      //include the sourceBase as well, to have a containing directory under the $tmpDir.
+      //ex, if sourceBase == ../table
+      // => partPath = /table/part...
+      // => tmp      = $tmpDir/table/part...
+      CopyUtilities.getParent(sourceBase)
+    } else {
+      sourceBase
+    }
+    sourceFile.substring(base.length() + 1)
   }
 
   /**

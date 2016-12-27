@@ -32,10 +32,10 @@ object CopyAllAction {
         val ti = getMetadataAction(dbTable)
 
         val copyTableAction = new CopyTableAction(conf, source, target)
-        copyTableAction.copy(ti)
+        val tt = copyTableAction.copy(ti)
 
         val createMetadataAction = CreateMetadataActionFactory.getCopyFileAction(conf, target)
-        createMetadataAction(ti)
+        createMetadataAction(tt)
       })
 
     }

@@ -10,7 +10,7 @@ class SampleCopyTableAction(conf: Map[String, String], source: Node, target: Nod
 
   private val logger = LoggerFactory.getLogger(classOf[SampleCopyTableAction])
 
-  def copy(tableInfo: TableInfo): Unit = {
+  def copy(tableInfo: TableInfo): TableInfo = {
     val location = tableInfo.ddl.location.get
     val partitions = tableInfo.partitions
 
@@ -29,7 +29,7 @@ class SampleCopyTableAction(conf: Map[String, String], source: Node, target: Nod
       sampleDb + "." + sampleTable)
 
     val targetLocation = CopyUtilities.toRelative(CopyUtilities.getCommonLocation(location, partitions))
-    copyToDest(sampleDb, sampleTable, targetLocation)
+    val res = copyToDest(tableInfo, sampleDb, sampleTable, targetLocation)
 
     //finished copying, delete the temp table.
     val deleteTempTableAction = new SshHiveAction(source)
@@ -37,11 +37,16 @@ class SampleCopyTableAction(conf: Map[String, String], source: Node, target: Nod
     require(tableToDelete.contains(CopyConstants.tempTableHint)) //paranoid check not to delete the wrong table.
     deleteTempTableAction.add(s"drop table $tableToDelete")
     deleteTempTableAction.run()
+
+    return res
   }
 
 
-  //copy over the sample data to S3 using distcp.
-  private def copyToDest(sampleDb: String, sampleTable: String, targetLocation: String): Unit = {
+  //copy over the sample data to the dev cluster
+  private def copyToDest(sourceTable: TableInfo,
+                         sampleDb: String,
+                         sampleTable: String,
+                         targetLocation: String): TableInfo = {
     val getTempMetadata = new GetMetadataAction(conf, source, throttle = false)
     val tempTableInfo = getTempMetadata(s"$sampleDb.$sampleTable")
     val tempLocation = tempTableInfo.ddl.location.get
@@ -53,20 +58,40 @@ class SampleCopyTableAction(conf: Map[String, String], source: Node, target: Nod
 
     val copyFileAction = CopyFileActionFactory.getCopyFileAction(conf, source, target)
     copyFileAction(tempLocations, tempLocationCommon, targetLocation)
+
+    //here we have unfortunately lost the original source table folder structure (after sampling it).
+    //so the target table will be slightly different than the original source, and instead be like the sample result.
+    val destTablePath = CopyUtilities.toRelative(sourceTable.ddl.location.get)
+    val destParts = tempTableInfo.partitions.map(p => {
+      p.copy(
+        location = destTablePath + CopyUtilities.getPartPath(p.location, tempTableInfo.ddl.location.get, includeBase = false))
+    })
+    sourceTable.copy(partitions = destParts)
   }
 
   //create table with sampled data
   private def createSampleTable(sourceTableInfo: TableInfo, sampleDb: String, sampleTable: String): String = {
+    val descDbAction = new SshHiveAction(source)
+    descDbAction.add(s"describe database $sampleDb")
+    val result = descDbAction.run
+
+    //keep the same relative paths
     val sampleTableInfo: TableInfo = sourceTableInfo.copy(
       database = sampleDb,
-      ddl = sourceTableInfo.ddl.copy(database = Some(sampleDb), table = sampleTable, location = None))
+      ddl = sourceTableInfo.ddl.copy(
+        database = Some(sampleDb),
+        table = sampleTable,
+        isExternal = false,
+        location = None))
 
+    //create sample table
     val createAction = new SshHiveAction(source)
     createAction.add(s"use $sampleDb")
     val ddl = sampleTableInfo.ddl
     createAction.add(ddl.format)
     createAction.run
 
+    //fire listeners.
     fireBeforeSample(conf, sourceTableInfo, sampleTableInfo)
 
     val insertAction = new SshHiveAction(source)
@@ -94,7 +119,8 @@ class SampleCopyTableAction(conf: Map[String, String], source: Node, target: Nod
 
       //partition filters
       if (sourceTableInfo.partitions.length > 0) {
-        val partFilters = sourceTableInfo.partitions.map(p => s"(${CopyUtilities.partitionSpecFilter(p.partSpec)})")
+        val partFilters = sourceTableInfo.partitions.map(p => s"(${CopyUtilities.partitionSpecFilter(p.partSpec,
+          sourceTableInfo.ddl.partitionedBy)})")
         val partFilter = partFilters.mkString("(", " or ", ")")
         query.append(partFilter)
       }

@@ -32,7 +32,7 @@ class SaveS3MetadataAction(conf: Map[String, String], target: Node) extends Crea
     val partitionDdls =
       tableInfo.partitions.map(p => {
             s"alter table $table add if not exists " +
-            s"partition (${CopyUtilities.partitionSpecString(p.partSpec)}) " +
+            s"partition (${CopyUtilities.partitionSpecString(p.partSpec, tableInfo.ddl.partitionedBy)}) " +
             s"location '${toS3Location(conf, p.location)}';"
         })
 

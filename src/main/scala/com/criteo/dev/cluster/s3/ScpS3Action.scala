@@ -51,7 +51,7 @@ class ScpS3Action(conf: Map[String, String],
   }
 
   def getSrcTmpLocation(sourceFile: String, sourceBase: String) : String = {
-    val partPath = getPartPath(sourceFile, sourceBase)
+    val partPath = CopyUtilities.getPartPath(sourceFile, sourceBase, includeBase = true)
     s"${CopyConstants.tmpSrc}/$partPath"
   }
 
@@ -61,16 +61,7 @@ class ScpS3Action(conf: Map[String, String],
   }
 
   def getTgtTmpLocation(sourceFile: String, sourceBase: String) : String = {
-    val partPath = getPartPath(sourceFile, sourceBase)
+    val partPath = CopyUtilities.getPartPath(sourceFile, sourceBase, includeBase = true)
     s"${CopyConstants.tmpTgt}/$partPath"
-  }
-
-  def getPartPath(sourceFile: String, sourceBase: String) : String = {
-    //include the sourceBase as well, to have a containing directory under the $tmpDir.
-    //ex, if sourceBase == ../table
-    // => partPath = /table/part...
-    // => tmp      = $tmpDir/table/part...
-    val sourceBaseParent = CopyUtilities.getParent(sourceBase)
-    sourceFile.substring(sourceBaseParent.length() + 1)
   }
 }

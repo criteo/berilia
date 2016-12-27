@@ -10,7 +10,11 @@ class CopyTableAction(conf: Map[String, String], source: Node, target: Node) {
 
   private val logger = LoggerFactory.getLogger(classOf[CopyTableAction])
 
-  def copy(tableInfo: TableInfo): Unit = {
+  /**
+    * @param tableInfo source table info
+    * @return target table info
+    */
+  def copy(tableInfo: TableInfo): TableInfo = {
 
     val sampleProbConf = CopyUtilities.getOverridableConf(conf,
       tableInfo.database,
@@ -22,7 +26,7 @@ class CopyTableAction(conf: Map[String, String], source: Node, target: Node) {
     val partitions = tableInfo.partitions
     val partLocations = partitions.map(_.location)
 
-    if (sampleProb == 1 || underThreshold(partLocations)) {
+    val res : TableInfo = if (sampleProb == 1 || underThreshold(partLocations)) {
       //sampling disabled for table, or size to copy less than configured sampling threshold, skip sampling.
       val fullCopy = new FullCopyTableAction(conf, source, target)
       fullCopy.copy(tableInfo)
@@ -34,6 +38,7 @@ class CopyTableAction(conf: Map[String, String], source: Node, target: Node) {
 
     // Special handling
     fireEvents(conf, tableInfo)
+    return res
   }
 
   def fireEvents(conf: Map[String, String], tableInfo: TableInfo) = {

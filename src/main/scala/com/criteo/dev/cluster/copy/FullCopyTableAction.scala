@@ -13,7 +13,7 @@ class FullCopyTableAction(conf: Map[String, String], source: Node, target: Node)
 
   private val logger = LoggerFactory.getLogger(classOf[FullCopyTableAction])
 
-  def copy(tableInfo: TableInfo): Unit = {
+  def copy(tableInfo: TableInfo): TableInfo = {
     val database = tableInfo.database
     val table = tableInfo.ddl.table
     val location = tableInfo.ddl.location.get
@@ -33,7 +33,7 @@ class FullCopyTableAction(conf: Map[String, String], source: Node, target: Node)
 
     val copyFileAction = CopyFileActionFactory.getCopyFileAction(conf, source, target)
     copyFileAction(sourceLocations, sourceCommon, CopyUtilities.toRelative(sourceCommon))
-
+    tableInfo
   }
 
 //  def getCommonLocation(partLocation: Array[String]): String = {
