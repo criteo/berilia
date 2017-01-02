@@ -23,6 +23,12 @@ object CopyConstants {
 
   def sourceS3Scheme = "source.s3.hdfs.scheme"
 
+  def sourceCopyScheme = "source.copy.scheme"
+
+  val tunnelScheme = "tunnel"
+
+  val bucketScheme = "bucket"
+
   def tmpDataDirName = "tmpData"
 
   /** Temporary dir on the src machine **/

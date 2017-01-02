@@ -64,7 +64,7 @@ class SampleCopyTableAction(conf: Map[String, String], source: Node, target: Nod
     val destTablePath = CopyUtilities.toRelative(sourceTable.ddl.location.get)
     val destParts = tempTableInfo.partitions.map(p => {
       p.copy(
-        location = destTablePath + CopyUtilities.getPartPath(p.location, tempTableInfo.ddl.location.get, includeBase = false))
+        location = s"$destTablePath/${CopyUtilities.getPartPath(p.location, tempTableInfo.ddl.location.get, includeBase = false)}")
     })
     sourceTable.copy(partitions = destParts)
   }

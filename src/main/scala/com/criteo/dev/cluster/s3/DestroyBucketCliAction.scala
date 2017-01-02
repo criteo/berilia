@@ -19,13 +19,16 @@ import org.slf4j.LoggerFactory
 
   override def applyInternal(args: List[String], conf: Map[String, String]): Unit = {
     val bucketId = args(0)
+    destroy(conf, bucketId)
+  }
+
+  def destroy(conf: Map[String, String], bucketId: String) = {
     logger.info(s"Deleting bucket $bucketId")
 
     require(bucketId.startsWith(BucketUtilities.getS3BucketPrefix(conf)), "Only allowed to delete buckets created by dev-cluster program.")
 
     val blobStore = BucketUtilities.getBlobStore(conf)
     blobStore.deleteContainer(bucketId)
-
     logger.info(s"Deleted bucket $bucketId")
   }
 }

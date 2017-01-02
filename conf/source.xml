@@ -112,7 +112,7 @@
 
     <property>
         <name>source.copy.sample.threshold</name>
-        <value>50000000000</value>
+        <value>5000000000</value>
         <description>
             Threshold for aggregate size of data marked for copy in a given table above which to begin sampling.
             There is some overhead in generating the sample, but it is quicker to move it to the final destination.
@@ -127,6 +127,18 @@
         <description>
             For using distcp to S3 on the source, this is the HDFS scheme used.
             For example, older versions of Hadoop supported only s3 or s3n.
+        </description>
+    </property>
+
+    <property>
+        <name>source.copy.scheme</name>
+        <value>tunnel</value>
+        <description>
+            What algorithm to copy from source to dev cluster.  Note that one could just use distcp, but there might be
+            security limitations on both clusters preventing this from happening.
+
+            "tunnel" copies to local machine and then the dev cluster. (recommended for local docker dev cluster)
+            "bucket" copies first to a temp bucket secured with provided AWS credentials in target-aws.xml, and then to dev cluster.
         </description>
     </property>
 </configuration>

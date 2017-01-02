@@ -34,8 +34,6 @@ class ScpS3Action(conf: Map[String, String],
       }
     })
 
-
-
     val getCommands = sourceFileFullPaths.flatMap(f => {
       val tmpLocationParent = getSrcTmpLocationParent(f, sourceBase)
       s"mkdir -p $tmpLocationParent" ::
@@ -56,9 +54,10 @@ class ScpS3Action(conf: Map[String, String],
       val tmpLocation = getSrcTmpLocation(f, sourceBase)
 
       val targetLocation = {
+        val tgtLocation = s"$targetBase/${CopyUtilities.getPartPath(f, sourceBase, includeBase=false)}"
         target.nodeType match {
-          case NodeType.S3 => BucketUtilities.toS3Location(conf, target.ip, f, source.nodeType, includeCredentials = true)
-          case _ => f
+          case NodeType.S3 => BucketUtilities.toS3Location(conf, target.ip, tgtLocation, source.nodeType, includeCredentials = true)
+          case _ => tgtLocation
         }
       }
       val targetLocationParent = CopyUtilities.getParent(targetLocation)

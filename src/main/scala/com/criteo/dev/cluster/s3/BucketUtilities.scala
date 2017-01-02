@@ -13,6 +13,8 @@ import org.jclouds.blobstore.options.ListContainerOptions
 import org.jclouds.blobstore.{BlobStore, BlobStoreContext}
 import org.jclouds.io.Payload
 import org.jclouds.s3.S3Client
+import org.jclouds.s3.domain.CannedAccessPolicy
+import org.jclouds.s3.options.PutBucketOptions
 import org.joda.time.DateTime
 import org.scala_tools.time.Imports._
 import org.slf4j.LoggerFactory
@@ -32,6 +34,18 @@ object BucketUtilities {
   def getS3Client(conf: Map[String, String]) : S3Client = {
     val blobStoreContext = getBlobStoreContext(conf)
     blobStoreContext.unwrapApi(classOf[S3Client])
+  }
+
+  def createBucket(conf: Map[String, String], bucketName: String) : BucketMeta = {
+    val region = AwsUtilities.getAwsProp(conf, AwsConstants.region)
+    val s3Client = BucketUtilities.getS3Client(conf)
+    var putBucketOptions = new PutBucketOptions
+    putBucketOptions.setHeaderTag(AwsConstants.groupTag)
+    putBucketOptions = putBucketOptions.withBucketAcl(CannedAccessPolicy.PRIVATE)
+    s3Client.putBucketInRegion(region, bucketName, putBucketOptions)
+
+    logger.info(s"Created bucket $bucketName")
+    BucketMeta(bucketName)
   }
 
   def getBlobStore(conf: Map[String, String]) : BlobStore = {

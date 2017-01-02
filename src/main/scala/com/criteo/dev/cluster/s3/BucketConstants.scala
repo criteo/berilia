@@ -12,4 +12,6 @@ object BucketConstants {
   def bucketLogDir = "copy-log"
   def bucketTimestampFormat = "yyyy-MMM-dd-HH-mm-ss"
   def dataType = "datatype"
+
+  def tempBucketPrefix = "temp-copy"
 }

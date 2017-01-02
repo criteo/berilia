@@ -23,9 +23,8 @@ import scala.util.Random
 
   override def applyInternal(args: List[String], conf: Map[String, String]): BucketMeta = {
 
-    val s3Client = BucketUtilities.getS3Client(conf)
+    //generate bucket name
     val awsBucketPrefix = BucketUtilities.getS3BucketPrefix(conf)
-
     val bucketName = {
       if (args.length == 1) {
         val name = args(0)
@@ -35,16 +34,7 @@ import scala.util.Random
         val randomInt = random.nextInt(10000)
         s"$awsBucketPrefix-${randomInt}"
       }
-
     }
-    val region = AwsUtilities.getAwsProp(conf, AwsConstants.region)
-
-    var putBucketOptions = new PutBucketOptions
-    putBucketOptions.setHeaderTag(AwsConstants.groupTag)
-    putBucketOptions = putBucketOptions.withBucketAcl(CannedAccessPolicy.PRIVATE)
-    s3Client.putBucketInRegion(region, bucketName, putBucketOptions)
-
-    logger.info(s"Created bucket $bucketName")
-    BucketMeta(bucketName)
+    BucketUtilities.createBucket(conf, bucketName)
   }
 }
