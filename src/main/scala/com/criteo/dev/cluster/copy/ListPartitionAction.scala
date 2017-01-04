@@ -41,7 +41,7 @@ class ListPartitionAction(conf: Map[String, String], node: Node, throttle: Boole
   def getAbsoluteParts(database: String, table: String, resultList: Array[String]) : Array[String] = {
     val limit = {
       val limitConf = CopyUtilities.getOverridableConf(conf, database, table, CopyConstants.absolutePartCount)
-      Integer.min(limitConf.toInt, resultList.length)
+      Math.min(limitConf.toInt, resultList.length)
     }
     // -1 configured limit, means no limit
     if (throttle && limit > 0) {
