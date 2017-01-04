@@ -25,6 +25,8 @@ object AwsConstants {
   //we give each instance a readable host name, configured in cluster's /etc/hosts.
   def roleTag = "image.role"
 
+  def userTagPrefix = "user.tag."
+
 
   //node configuration keys
   def awsKeyPrefix = "target.aws"

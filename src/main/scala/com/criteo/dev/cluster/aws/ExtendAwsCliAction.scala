@@ -40,24 +40,20 @@ import scala.collection.JavaConverters._
     */
   def extend(conf: Map[String, String], cluster: JcloudCluster,
              reset: Boolean = false) = {
-
-    val region = AwsUtilities.getAwsProp(conf, AwsConstants.region)
-    val tagApi = AwsUtilities.getEc2Api(conf).getTagApiForRegion(region).get()
-
     val master = cluster.master
     val masterMetadata = master.getUserMetadata
-    val masterId = AwsUtilities.stripRegion(conf, master.getId)
+    var currentExpireTime = masterMetadata.get(AwsConstants.expireTime)
 
-    logger.info(s"Updating expiration time for master $masterId")
-    extendTimeMetadata(masterMetadata, reset)
-    tagApi.applyToResources(masterMetadata, List(masterId).asJava)
-  }
-
-  def extendTimeMetadata(metadata: java.util.Map[String, String], reset : Boolean) = {
-    var currentExpireTime = metadata.get(AwsConstants.expireTime)
     if (reset || (currentExpireTime == null)) {
       currentExpireTime = AwsUtilities.getCurrentTime()
     }
+
+    val newExpireTime = extendTimeMetadata(masterMetadata, currentExpireTime)
+    AwsUtilities.setTag(conf, cluster, AwsConstants.expireTime, Some(newExpireTime))
+  }
+
+  def extendTimeMetadata(metadata: java.util.Map[String, String], currentExpireTime: String) : String = {
+
     logger.info(s"Current expiration time is : $currentExpireTime (UTC)")
     val newExpireTime = AwsUtilities.updateExpireTime(currentExpireTime)
 
@@ -66,7 +62,7 @@ import scala.collection.JavaConverters._
        throw new IllegalArgumentException(s"Cannot update time to $newExpireTime (UTC)" +
          s", as it is must be less than: ${AwsUtilities.dtToString(limitTime)} (UTC)")
     }
-    metadata.put(AwsConstants.expireTime, newExpireTime)
     logger.info(s"Updating node to new expiration time : $newExpireTime (UTC)")
+    newExpireTime
   }
 }

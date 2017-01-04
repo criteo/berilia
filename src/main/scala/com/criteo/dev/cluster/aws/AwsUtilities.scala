@@ -1,5 +1,6 @@
 package com.criteo.dev.cluster.aws
 
+import java.util
 import java.util.Properties
 
 import com.criteo.dev.cluster.aws.AwsUtilities.NodeRole.NodeRole
@@ -14,6 +15,7 @@ import org.jclouds.compute.domain.{ComputeMetadata, NodeMetadata}
 import org.jclouds.compute.{ComputeService, ComputeServiceContext}
 import org.jclouds.ec2.EC2Api
 import org.jclouds.ec2.domain.Image
+import org.jclouds.ec2.features.TagApi
 import org.jclouds.{Constants, ContextBuilder}
 import org.joda.time.DateTime
 import org.scala_tools.time.Imports._
@@ -181,7 +183,8 @@ object AwsUtilities {
     * Somewhat hacky, instead of passing address everywhere, we pass it through a configuration
     * even if it provided programatically and not read from the user config.
     *
-    * That way, we have less code, and just have one code path that reads from configuration
+    * That way, we have less code, and just have one code path that reads from configuration.
+    * Anyway it's hidden through Node Factory API's
     *
     */
   def getConfWithIp(conf: Map[String, String], ipAddress: String) : Map[String, String] = {
@@ -221,6 +224,22 @@ object AwsUtilities {
     AwsCluster(master, slaves)
   }
 
+  def setTag(conf: Map[String, String], cluster: JcloudCluster, tagName: String, tagValue: Option[String]) = {
+    val region = AwsUtilities.getAwsProp(conf, AwsConstants.region)
+    val tagApi = AwsUtilities.getEc2Api(conf).getTagApiForRegion(region).get()
+    val masterId = AwsUtilities.stripRegion(conf, cluster.master.getId)
+    val meta = cluster.master.getUserMetadata
+    tagValue match {
+      case None => {
+        tagApi.deleteFromResources(List(tagName).asJava, List(masterId).asJava)
+      }
+      case Some(v) => {
+        meta.put(tagName, v)
+        tagApi.applyToResources(meta, List(masterId).asJava)
+      }
+    }
+
+  }
 
   //-----
   //AWS instance timestamp.  All timestamps stored in UTC.
@@ -268,6 +287,15 @@ object AwsUtilities {
     val id = AwsUtilities.stripRegion(conf, cluster.master.getId())
     println(s"Cluster [$id], size = ${cluster.size} node(s)")
 
+    //print tags
+    val meta = cluster.master.getUserMetadata.toMap
+    val tags = meta.filter{case (k,v) => k.startsWith(AwsConstants.userTagPrefix)}
+    if (tags.size > 0) {
+      println("Tags")
+    }
+    tags.foreach{case(k,v) => println(s"\t${k.stripPrefix(AwsConstants.userTagPrefix)} = $v")}
+
+    //print cluster
     print("Master ")
     println(AwsUtilities.nodeInformation(conf, cluster.master))
 

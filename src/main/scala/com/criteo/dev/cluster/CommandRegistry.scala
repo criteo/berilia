@@ -39,7 +39,10 @@ object CommandRegistry {
       PurgeAwsCliAction,
       CopyAwsCliAction,
       AttachBucketAwsCliAction,
-      CopyBucketAwsAction
+      CopyBucketAwsAction,
+      TagAwsCliAction,
+      UntagAwsCliAction,
+      QueryTagAwsCliAction
     ),
     Some(GeneralConstants.awsType))
 
