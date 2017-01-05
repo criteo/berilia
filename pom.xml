@@ -271,31 +271,6 @@
         </executions>
       </plugin>
 
-      <plugin>
-        <artifactId>maven-assembly-plugin</artifactId>
-        <version>2.6</version>
-
-        <configuration>
-
-          <descriptors>
-            <descriptor>src/main/assembly/bin.xml</descriptor>
-          </descriptors>
-
-          <!--Needed to resolve user id too large issue (MASSEMBLY-728)-->
-          <tarLongFileMode>posix</tarLongFileMode>
-        </configuration>
-
-        <executions>
-          <execution>
-            <id>make-assembly</id>
-            <phase>package</phase>
-            <goals>
-              <goal>single</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-
       <!-- Release -->
       <plugin>
 	<groupId>org.sonatype.plugins</groupId>
@@ -311,7 +286,45 @@
     </plugins>
   </build>
 
+
   <profiles>
+
+     <!-- Assembly -->
+     <profile>
+     <id>assembly</id>
+     <activation>
+       <property>
+         <name>!skipAssembly</name>
+       </property>
+     </activation>
+     <build>
+       <plugins>
+        <plugin>
+         <artifactId>maven-assembly-plugin</artifactId>
+         <version>2.6</version>
+         <configuration>
+           <descriptors>
+             <descriptor>src/main/assembly/bin.xml</descriptor>
+           </descriptors>
+
+           <!--Needed to resolve user id too large issue (MASSEMBLY-728)-->
+           <tarLongFileMode>posix</tarLongFileMode>
+            </configuration>
+            <executions>
+              <execution>
+                <id>make-assembly</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>single</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+         </plugins>
+        </build>
+      </profile>
+
+    <!-- Deploy -->
     <profile>
       <id>ossrh</id>
       <activation>

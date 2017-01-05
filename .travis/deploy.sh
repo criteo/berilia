@@ -1,1 +1,1 @@
-mvn deploy --settings .travis/settings.xml -DskipTests=true -DperformDeploy=true -B
+mvn deploy --settings .travis/settings.xml -DskipAssembly -DskipTests=true -DperformDeploy=true -B
