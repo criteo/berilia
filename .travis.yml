@@ -1,11 +1,11 @@
 language: scala
 scala:
 - 2.10.4
-script: 
+script:
 - mvn clean install -DskipTests
 env:
   global:
-    secure: OyR8A6+xVkPhNwtRcwZ5srHCh8t60LV8JFLaZqrjBhM1u5voLvAu8IP8pnjKggF3TBSFDTm2XTWqeNuf9o3bkq4kLK4suz8qRxx/GQJAeMU6AHGwdAYF3VBMuBQfUIKr2zKA4nV2DRZ0QZ21zlRUPR65Od6Q+VtEHp4h8QogLVHfvGf8//CmOHt6WLIT8KB+3r40BtfRtMwL8vI52BiiFqoqhfZK01rtODhHIVSDvjiVIFlN7ak3VPAAfI2LmPWSExLW4r48RCSF8Fcbp3yl5UKGQp9OPNKn08HNYXVc++UTgQfO+PnQl6qo6kbu0S4jS9/uxQ1ZnaXNVEh72XDjAgpimZWRfNSDfZyAgLvrllGbvjzK63gulaYqh6q53tsSXodfhT8yaySi/66sr/Z6LtEHsNCmuYHMFWUZtTKixyMaNj1zgF5z69e8mt7SNxWo3a3lNNM8fMdU6lwRFgfXSeZ3f2d0ozRlexyXVYPb/jTlyNdSAmUS2RAJCRoZghC4iH8wvOta1iyBi5a9h+oCF+kHLROGJrm5Njz14MH8AIXxJT3Tk+uNaKudJdVN+/AkzSzOQ09WCrFFDCeQhrG75IX4qha5DguBozOZUBqazsHgs7CQ6MMaOlxss7ssUgOU9d1572n378LI2AM3U/DN6TbFOUPOWQmuNILtPGHseb0=
+  - secure: JUV04cHhRdPlav5EGno0/akJ0FL8c8RKQ7dmhbSpsgqJdRUQ7tOJ1uSIDDYVJLqeCVKAOPKvMrPp10DWKYeeSU+cIP+iL7iBGxfyIRQRfhHQd3XYKf9x/ZCZ8EN/3lZ8oI7Gq1ah5VCX9LhIjdEJPbt+aVgNN1p4WCskkyWhLdtqzcMD5FH0ROp1sCnUQDUkugjPlGlSl9+4dfK9yfLb0pmoXVMb90DVGFSBiyAVMl/QFM07xYH4xK1Eln+084etaYKTbjlF/l281WEkW0OIQNrB6oIdkEHxLiddkbS6c+fVebXgI9t5jipcO1qaddUWjKkf12koXXukFuII3jbHvVS8wk5o/3DTKYfGHFdJBJhd5gOK9QPZU8XrHOPxLj/i1USk3r+fQLhBNLHDadJBOxN6souHVE9D6ASfhQas47ceGYeOWkg5e6rWxvD25uAyZt6BihYD160Xu7pelo73fF0LX34Xf5ql/s8TobvxaqoZNTf/c5BhWsjbYDF8TFCmb+m6yK5cXYQJOgUKtX5MeboHhFfc4BPYl7f2bwA8OasMBx8aOnQ/JCxV7Ag0+YAF/zKHOS3KAW8p4hj1XH1SjXcpeCC7eCbYATRAGGEZsSOm6e61FiUS0Sz3OE29G+BdeUdSpl2HSUp8QDUsvwHKIQVE8X0idkFlAvVptsVE9II=
 deploy:
   provider: script
   script: "./.travis/deploy.sh"
@@ -14,6 +14,6 @@ deploy:
   on:
     branch: master
 before_deploy:
-- openssl aes-256-cbc -K $encrypted_3ea10cc6a703_key -iv $encrypted_3ea10cc6a703_iv
+- openssl aes-256-cbc -K $encrypted_9c67a9b5e4ea_key -iv $encrypted_9c67a9b5e4ea_iv
   -in .travis/keys.tar.enc -out .travis/keys.tar -d
 - tar xvf .travis/keys.tars
