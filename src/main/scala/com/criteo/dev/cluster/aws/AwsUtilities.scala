@@ -200,10 +200,7 @@ object AwsUtilities {
       publicIp = ipAddress(nm),
       privateIp = privateIp(nm),
       status = getStatus(nm.getStatus),
-      shortHostName = nm.getUserMetadata.get(AwsConstants.hostName),
-      createTime = nm.getUserMetadata.get(AwsConstants.createTime),
-      expireTime = nm.getUserMetadata.get(AwsConstants.expireTime),
-      user = nm.getUserMetadata.get(AwsConstants.userTagKey)
+      shortHostName = nm.getUserMetadata.get(AwsConstants.hostName)
     )
   }
 
@@ -221,7 +218,12 @@ object AwsUtilities {
   def getAwsCluster(conf: Map[String, String], cluster: JcloudCluster) : AwsCluster = {
     val master = getAwsNodeMeta(conf, cluster.master)
     val slaves = cluster.slaves.map(s => getAwsNodeMeta(conf, s)).toSet
-    AwsCluster(master, slaves)
+
+    val createTime = cluster.master.getUserMetadata.get(AwsConstants.createTime)
+    val expireTime = cluster.master.getUserMetadata.get(AwsConstants.expireTime)
+    val user = cluster.master.getUserMetadata.get(AwsConstants.userTagKey)
+    val tags = getTags(cluster.master)
+    AwsCluster(master, slaves, createTime, expireTime, tags, user)
   }
 
   def setTag(conf: Map[String, String], cluster: JcloudCluster, tagName: String, tagValue: Option[String]) = {
@@ -238,7 +240,12 @@ object AwsUtilities {
         tagApi.applyToResources(meta, List(masterId).asJava)
       }
     }
+  }
 
+  def getTags(awsNode: NodeMetadata) : Map[String, String] = {
+    val meta = awsNode.getUserMetadata.toMap
+    val tags = meta.filter{case (k,v) => k.startsWith(AwsConstants.userTagPrefix)}
+    tags.map{case(k,v) => (k.stripPrefix(AwsConstants.userTagPrefix), v)}
   }
 
   //-----
@@ -288,18 +295,17 @@ object AwsUtilities {
     println(s"Cluster [$id], size = ${cluster.size} node(s)")
 
     //print tags
-    val meta = cluster.master.getUserMetadata.toMap
     if (includeOwner) {
-      val owner = meta.get(AwsConstants.userTagKey)
-      if (owner.isDefined) {
-        println(s"Owned by : ${meta.get(AwsConstants.userTagKey).get}")
+      val owner = cluster.master.getUserMetadata.get(AwsConstants.userTagKey)
+      if (owner != null) {
+        println(s"Owned by: $owner")
       }
     }
-    val tags = meta.filter{case (k,v) => k.startsWith(AwsConstants.userTagPrefix)}
+    val tags = getTags(cluster.master)
     if (tags.size > 0) {
       println("Tags")
     }
-    tags.foreach{case(k,v) => println(s"\t${k.stripPrefix(AwsConstants.userTagPrefix)} = $v")}
+    tags.foreach{case(k,v) => println(s"\t$k = $v")}
 
     //print cluster
     print("Master ")

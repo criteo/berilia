@@ -5,9 +5,18 @@ import com.criteo.dev.cluster.Public
 /**
   * User-facing class to model AWS nodes and clusters.
   */
-@Public case class AwsNodeMeta (id: String, publicIp: String, privateIp: String, status: AwsNodeState, shortHostName: String, createTime: String, expireTime: String, user: String)
+@Public case class AwsNodeMeta (id: String,
+                                publicIp: String,
+                                privateIp: String,
+                                status: AwsNodeState,
+                                shortHostName: String)
 
-@Public case class AwsCluster (master: AwsNodeMeta, slaves: Set[AwsNodeMeta])
+@Public case class AwsCluster (master: AwsNodeMeta,
+                               slaves: Set[AwsNodeMeta],
+                               createTime: String,
+                               expireTime: String,
+                               tags: Map[String, String],
+                               user: String)
 
 
 //Represents state of an AWS Node

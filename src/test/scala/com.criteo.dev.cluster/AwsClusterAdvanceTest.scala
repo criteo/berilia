@@ -30,7 +30,7 @@ class AwsClusterAdvanceTest extends FunSuite with BeforeAndAfter {
 
     assertResult(2)(cluster.slaves.size)
     assertResult(AwsRunning)(cluster.master.status)
-    assertResult(currentUser)(cluster.master.user)
+    assertResult(currentUser)(cluster.user)
 
     //create database, table, and 2 partitions.
     val master = NodeFactory.getAwsNode(conf, cluster.master)

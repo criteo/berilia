@@ -29,7 +29,7 @@ class AwsClusterTest extends FunSuite with BeforeAndAfter {
 
     assertResult(2) (cluster.slaves.size)
     assertResult(AwsRunning) (cluster.master.status)
-    assertResult(currentUser) (cluster.master.user)
+    assertResult(currentUser) (cluster.user)
 
     //List and make sure it is returned
     val clusters = ListAwsCliAction(List(), conf)
@@ -37,18 +37,18 @@ class AwsClusterTest extends FunSuite with BeforeAndAfter {
 
     assertResult(2) (fetchedCluster.slaves.size)
     assertResult(AwsRunning) (fetchedCluster.master.status)
-    assertResult(currentUser) (fetchedCluster.master.user)
+    assertResult(currentUser) (fetchedCluster.user)
   }
 
   test("Extend cluster time, should error after the second time") {
     var clusters = ListAwsCliAction(List(), conf)
     var cluster = getCluster(clusterId, clusters)
-    val originalTime = AwsUtilities.stringToDt(cluster.master.expireTime)
+    val originalTime = AwsUtilities.stringToDt(cluster.expireTime)
 
     ExtendAwsCliAction(List(clusterId), conf)
     clusters = ListAwsCliAction(List(), conf)
     cluster = getCluster(clusterId, clusters)
-    val extendedTime = AwsUtilities.stringToDt(cluster.master.expireTime)
+    val extendedTime = AwsUtilities.stringToDt(cluster.expireTime)
 
     assert(extendedTime.isAfter(originalTime), "Extension did not extend the time")
 
