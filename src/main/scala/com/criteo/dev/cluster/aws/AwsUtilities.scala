@@ -283,12 +283,18 @@ object AwsUtilities {
     }
   }
 
-  def printClusterInfo(conf: Map[String, String], cluster: JcloudCluster) = {
+  def printClusterInfo(conf: Map[String, String], cluster: JcloudCluster, includeOwner: Boolean = false) = {
     val id = AwsUtilities.stripRegion(conf, cluster.master.getId())
     println(s"Cluster [$id], size = ${cluster.size} node(s)")
 
     //print tags
     val meta = cluster.master.getUserMetadata.toMap
+    if (includeOwner) {
+      val owner = meta.get(AwsConstants.userTagKey)
+      if (owner.isDefined) {
+        println(s"Owned by : ${meta.get(AwsConstants.userTagKey).get}")
+      }
+    }
     val tags = meta.filter{case (k,v) => k.startsWith(AwsConstants.userTagPrefix)}
     if (tags.size > 0) {
       println("Tags")

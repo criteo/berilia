@@ -30,6 +30,7 @@ object CommandRegistry {
       CreateAwsCliAction,
       DestroyAwsCliAction,
       ListAwsCliAction,
+      ListAllAwsCliAction,
       StartAwsCliAction,
       StopAwsCliAction,
       ConfigureAwsCliAction,
