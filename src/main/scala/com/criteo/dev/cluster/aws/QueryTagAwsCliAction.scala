@@ -5,14 +5,14 @@ import com.criteo.dev.cluster.CliAction
 /**
   * Query AWS clusters for a certain tag.
   */
-object QueryTagAwsCliAction extends CliAction[Unit] {
+object QueryTagAwsCliAction extends CliAction[List[AwsCluster]] {
   override def command: String = "query-tag-aws"
 
   override def usageArgs: List[Any] = List("tag.name", "tag.value")
 
   override def help: String = "Query AWS clusters for a certain tag."
 
-  override def applyInternal(args: List[String], conf: Map[String, String]): Unit = {
+  override def applyInternal(args: List[String], conf: Map[String, String]): List[AwsCluster] = {
     val tagName = args(0)
     val tagValue = args(1)
 
@@ -24,5 +24,6 @@ object QueryTagAwsCliAction extends CliAction[Unit] {
     })
 
     matches.foreach(m => AwsUtilities.printClusterInfo(conf, m))
+    matches.map(c => AwsUtilities.getAwsCluster(conf, c)).toList
   }
 }
