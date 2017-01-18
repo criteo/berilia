@@ -7,7 +7,7 @@
     <packaging>jar</packaging>
     <name>Berilia</name>
     <url>https://github.com/criteo/berilia</url>
-    <description>Tool suite for creating and managing development clusters.</description>
+    <description>Tool suite for creating and managing Hadoop development clusters.</description>
     <inceptionYear>2017</inceptionYear>
     <licenses>
         <license>
@@ -16,6 +16,21 @@
             <distribution>repo</distribution>
         </license>
     </licenses>
+    <scm>
+        <connection>https://github.com/criteo/berilia</connection>
+        <developerConnection>https://github.com/criteo/berilia</developerConnection>
+        <url>https://github.com/criteo/berilia</url>
+    </scm>
+    <developers>
+        <developer>
+            <id>sz.ho</id>
+            <name>Szehon Ho</name>
+            <email>sz.ho@criteo.com</email>
+            <url>https://github.com/szehonCriteo</url>
+            <organization>Criteo</organization>
+            <organizationUrl>http://www.criteo.com</organizationUrl>
+        </developer>
+    </developers>
     <properties>
         <main.class>com.criteo.dev.cluster.DevClusterLauncher</main.class>
         <commons.io.version>2.5</commons.io.version>
@@ -124,39 +139,6 @@
             <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
         </repository>
     </distributionManagement>
-    <reporting>
-        <!-- Skip dependency-management report and accelerate dependencies report -->
-        <excludeDefaults>true</excludeDefaults>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-project-info-reports-plugin</artifactId>
-                <configuration>
-                    <dependencyDetailsEnabled>false</dependencyDetailsEnabled>
-                    <dependencyLocationsEnabled>false</dependencyLocationsEnabled>
-                </configuration>
-                <reportSets>
-                    <reportSet>
-                        <reports>
-                            <report>index</report>
-                            <report>plugin-management</report>
-                            <report>distribution-management</report>
-                            <report>dependency-info</report>
-                            <report>scm</report>
-                            <report>mailing-list</report>
-                            <report>issue-tracking</report>
-                            <report>cim</report>
-                            <report>plugins</report>
-                            <report>license</report>
-                            <report>project-team</report>
-                            <report>summary</report>
-                            <report>dependencies</report>
-                        </reports>
-                    </reportSet>
-                </reportSets>
-            </plugin>
-        </plugins>
-    </reporting>
     <build>
         <sourceDirectory>src/main/scala</sourceDirectory>
         <testSourceDirectory>src/test/scala</testSourceDirectory>
@@ -218,11 +200,16 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
                 <version>2.2.1</version>
+                <configuration>
+                    <excludes>
+                        <exclude>**/logback.xml</exclude>
+                    </excludes>
+                </configuration>
                 <executions>
                     <execution>
                         <id>attach-sources</id>
                         <goals>
-                            <goal>jar-no-fork</goal>
+                            <goal>jar</goal>
                         </goals>
                     </execution>
                 </executions>
@@ -231,7 +218,14 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>2.9.1</version>
+                <configuration>
+                    <doclet>BADoclet</doclet>
+                    <docletPath>${basedir}</docletPath>
+                    <additionalparam>-b4atarget B4AWrapper_${inAppVersion}.xml</additionalparam>
+                    <failOnError>false</failOnError>
+                    <outputDirectory>${basedir}</outputDirectory>
+                    <detectOfflineLinks>false</detectOfflineLinks>
+                </configuration>
                 <executions>
                     <execution>
                         <id>attach-javadocs</id>
@@ -308,7 +302,7 @@
                 <plugins>
                     <plugin>
                         <artifactId>maven-assembly-plugin</artifactId>
-                        <version>2.6</version>
+                        <version>3.0.0</version>
                         <configuration>
                             <descriptors>
                                 <descriptor>src/main/assembly/bin.xml</descriptor>
