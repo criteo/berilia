@@ -26,7 +26,7 @@ class DockerCopyFileAction(conf: Map[String, String],
 
     DockerCpAction(
       s"$localTmpDir/${CopyConstants.tmpDataDirName}",
-      conf.get(DockerConstants.localContainerId).get,  //internal flag
+      conf.get(DockerConstants.localContainerId).get,  //hack, should be in node type..
       CopyConstants.tmpTgtParent)
     GeneralUtilities.cleanupTempDir
   }

@@ -22,7 +22,9 @@ import org.slf4j.LoggerFactory
     //add some conf arguments expected by the DockerCopyFileAction command, as this is the argument used by 'docker cp'
     val target = NodeFactory.getDockerNode(conf, runningDockerMeta(0))
     val source = NodeFactory.getSourceFromConf(conf)
-    CopyAllAction(conf, source, target)
+
+    //TODO- hack, the docker id should go into "target" Node object, but currently Node does not have sub-classes
+    CopyAllAction(conf + (DockerConstants.localContainerId -> runningDockerMeta(0).id), source, target)
 
     DockerUtilities.printClusterDockerContainerInfo(conf, dockerMeta)
   }
