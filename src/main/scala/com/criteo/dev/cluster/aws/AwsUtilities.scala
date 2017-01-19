@@ -122,6 +122,18 @@ object AwsUtilities {
     computeMetadata.getUserMetadata().get(AwsConstants.userTagKey)
   }
 
+  def getCluster(conf: Map[String, String], instanceId: String) : JcloudCluster = {
+    val computeService = getComputeService(conf)
+    //in theory, jclouds should retry this as it is a GET request, but we can use the 'retryAwsAction'
+    //if this does not prove the case
+    val javaSet = computeService.listNodesDetailsMatching(allUserPredicate)
+    val clusters = getClustersFromNodeMetas(conf, javaSet.toSet)
+    val matches = clusters.filter(_.master.getId().equals(AwsUtilities.getFullId(conf, instanceId)))
+    require(matches.size == 1, s"No instances found matching $instanceId")
+    val result = matches.last
+    result
+  }
+
 
   def getAllClusters(conf: Map[String, String]) : Iterable[JcloudCluster] = {
     val computeService = getComputeService(conf)

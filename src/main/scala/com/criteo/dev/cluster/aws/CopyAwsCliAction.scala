@@ -21,7 +21,8 @@ import org.slf4j.LoggerFactory
   override def applyInternal(args: List[String], conf: Map[String, String]): Unit = {
     //find the ip
     val instanceId = args(0)
-    val cluster = AwsUtilities.getUserCluster(conf, instanceId)
+
+    val cluster = AwsUtilities.getCluster(conf, instanceId)
     val master = cluster.master
     require(master.getStatus().equals(Status.RUNNING), "No clusters found in RUNNING state matching criteria.")
     val target = NodeFactory.getAwsNode(conf, master)
