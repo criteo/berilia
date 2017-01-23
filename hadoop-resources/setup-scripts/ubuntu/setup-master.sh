@@ -112,10 +112,6 @@ sudo mv create-metastore.sql /usr/lib/hive/scripts/metastore/upgrade/mysql/creat
 echo "Installing spark..."
 sudo apt-get -y install spark-core spark-history-server spark-python
 
-#configure hive on spark
-cd /usr/lib/hive/lib
-sudo ln -s /usr/lib/spark/lib/spark-assembly.jar spark-assembly.jar
-
 #we disabled start earlier of the services.
 sudo service mysql start
 
