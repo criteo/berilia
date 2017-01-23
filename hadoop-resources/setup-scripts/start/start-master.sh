@@ -29,3 +29,7 @@ sudo service hadoop-mapreduce-historyserver restart
 #Start Hive metastore
 sudo service mysql restart
 sudo service hive-metastore restart
+
+#Spark history server
+sudo hdfs dfs -mkdir -p hdfs:///user/spark/applicationHistory
+sudo hdfs dfs -chmod 777 hdfs:/user/spark/applicationHistory

@@ -69,4 +69,39 @@
     <description>IP address (or fully-qualified domain name) and port of the metastore host</description>
   </property>
 
+
+  <!-- The following properties are to be uncommented when using Hive on spark (Hive with Spark as execution engine)
+  <property>
+    <name>hive.execution.engine</name>
+    <value>spark</value>
+  </property>
+
+  <property>
+    <name>hive.enable.spark.execution.engine</name>
+    <value>true</value>
+  </property>
+
+  <property>
+    <name>spark.eventLog.enabled</name>
+    <value>true</value>
+  </property>
+
+  <property>
+    <name>spark.eventLog.dir</name>
+    <value>hdfs:///user/spark/applicationHistory</value>
+  </property>
+
+  <property>
+    <name>spark.serializer</name>
+    <value>org.apache.spark.serializer.KryoSerializer</value>
+  </property>
+
+  <property>
+    <name>spark.master</name>
+    <value>yarn</value>
+  </property>
+
+  -->
+
+
 </configuration>
