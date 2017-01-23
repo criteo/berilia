@@ -122,6 +122,8 @@ Files: [./conf/target-aws.xml] (./conf/target-aws.xml) and [./conf/target-common
   * Destroy instances by 'destroy-aws' command after they are not needed anymore.
 * The scope of nodes that are accessed these AWS command is limited to nodes owned by you in the specified AWS region (to improve performance).
   * Be careful, you may have had created instances in a regions that are not listed by the tool if it is pointing to another region.
+* The cluster comes with an already configured hadoop and hive environment, as well as a spark installation. This allows the user to specify Spark as execution engine for Hive.
+To do so, the properties related to Spark in the `hadoop-resources/hadoop-conf/cluster-default/hive/conf/hive-site.xml` configuration should be uncommented.
 
 
 ##### Operation List

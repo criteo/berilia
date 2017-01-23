@@ -108,6 +108,10 @@ echo "GRANT ALL PRIVILEGES ON metastore.* TO 'hive'@localhost;" | sudo tee --app
 echo "FLUSH PRIVILEGES;" | sudo tee --append create-metastore.sql
 sudo mv create-metastore.sql /usr/lib/hive/scripts/metastore/upgrade/mysql/create-metastore.sql
 
+#install spark
+echo "Installing spark..."
+sudo apt-get -y install spark-core spark-history-server spark-python
+
 #we disabled start earlier of the services.
 sudo service mysql start
 
