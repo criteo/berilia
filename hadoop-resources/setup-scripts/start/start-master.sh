@@ -31,6 +31,6 @@ sudo service mysql restart
 sudo service hive-metastore restart
 
 #Spark history server
-sudo hdfs dfs -mkdir -p hdfs:///user/spark/applicationHistory
+sudo -u hdfs hdfs dfs -mkdir -p hdfs:///user/spark/applicationHistory
 sudo -u hdfs hadoop fs -chown -R spark:spark /user/spark
-sudo hdfs dfs -chmod 1777 hdfs:/user/spark/applicationHistory
+sudo -u hdfs hdfs dfs -chmod 1777 hdfs:/user/spark/applicationHistory
