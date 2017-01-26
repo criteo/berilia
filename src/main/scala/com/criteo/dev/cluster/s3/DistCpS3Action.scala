@@ -52,7 +52,7 @@ class DistCpS3Action(conf: Map[String, String],
   def processSource(sourceFiles: Array[String], sourceBase: String) : Array[String] = {
     val processedSources = sourceFiles.map(sf => {
       val stripped = sf.stripPrefix(sourceBase)
-      val regex = "[^\\/]*".r
+      val regex = """/[^//]*""".r
       regex.findFirstIn(stripped).get
     })
     processedSources.distinct.map(u => s"$sourceBase$u")
