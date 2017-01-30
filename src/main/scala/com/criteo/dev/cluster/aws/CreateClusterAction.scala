@@ -112,7 +112,7 @@ class RetryableCreate(conf: Map[String, String], imageId: String) extends Retrya
     if (volumeSpec.isDefined) {
       volumeSpec.get.split(',').foreach(v => {
         val regex = """([A-Za-z0-9\/]*)=([0-9]*)""".r
-        volumeSpec.get.trim match {
+        v.trim match {
           case regex(volName, volSize) => {
             template.getOptions.as(classOf[AWSEC2TemplateOptions])
                 .mapNewVolumeToDeviceName(volName, Integer.valueOf(volSize), true)
