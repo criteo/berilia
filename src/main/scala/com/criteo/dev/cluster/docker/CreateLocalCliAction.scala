@@ -65,7 +65,6 @@ import scala.sys.process.Process
 
     val accessId = GeneralUtilities.getNonEmptyConf(conf, AwsConstants.getFull(AwsConstants.accessId))
     val accessKey = GeneralUtilities.getNonEmptyConf(conf, AwsConstants.getFull(AwsConstants.accessKey))
-
     if (accessId.isDefined && accessKey.isDefined) {
       logger.info("AWS credentials defined, allowing direct HDFS access to S3 Buckets from this container.")
       copyConfAction.addArg(DockerConstants.accessKeyArg, accessId.get)
@@ -73,6 +72,9 @@ import scala.sys.process.Process
     } else {
       logger.info("No AWS credentials defined, not allowing direct HDFS access to S3 Buckets from this container.")
     }
+
+    val dataDir = GeneralUtilities.getDataDir(List())
+    copyConfAction.addArg(DockerConstants.dataDirArg, dataDir)
     copyConfAction.run
 
 

@@ -31,9 +31,38 @@
         </description>
     </property>
 
+
+    <!-- Performance properties:
+    Example of multi-volume node configuration.
+    If target.aws.auto.volumes enabled, it will automatically balance data nodes across these volumes
+    -->
+    <property>
+        <name>target.aws.auto.volumes</name>
+        <value>true</value>
+        <description>
+            If true and target.aws.volume.spec is set to a list of volumes in addition to root volume,
+            then extra volumes will be automatically mounted on the instance, and configured to be balanced
+            on each data node.
+        </description>
+    </property>
+    <profile>
+        <id>fiveVolumes</id>
+        <default>false</default>
+        <property>
+            <name>target.aws.instance.type</name>
+            <value>d2.4xlarge</value>
+        </property>
+        <property>
+            <name>target.aws.volume.spec</name>
+            <value>/dev/sda1=50, /dev/sdb=1000, /dev/sdc=1000, /dev/sdd=1000, /dev/sde=1000, /dev/sdf=1000</value>
+            <description>Comma-separated list of $device=$size</description>
+        </property>
+    </profile>
+
+
     <!--REGION-SPECIFIC PROPERTIES-->
 
-    <!-- AWS resources (AMI, security group, subnet, keypair, instance) are all artifacts of a data center.
+    <!-- AWS resources (AMI, security group, subnet, keypair, instance) are all artifacts of a particular data center.
        Hence if using multiple AWS data centers, it would be a good idea to use different profiles for the following. -->
     <property>
         <name>target.aws.region</name>
@@ -71,7 +100,6 @@
             Public Ubuntu 14.04 public image of eu-west data center.
         </description>
     </property>
-
 
     <!-- S3 Props -->
 

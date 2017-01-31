@@ -32,14 +32,24 @@ import org.slf4j.LoggerFactory
     ConfigureHostsAction(conf, List(cluster))
 
     //set up passwordless SSH from master to workers.
-    // Not necessary unless we use the cluster startup scripts.
+    // Not necessary unless we use Hadoop startup scripts to start services
     // PasswordlessSshAction(conf, cluster)
+
+    //auto mount disks if necessary.
+    val autoMount = conf.get(AwsConstants.getFull(AwsConstants.autoVolume))
+    val mounts = {
+      if (autoMount.isDefined && autoMount.get.equalsIgnoreCase("true")) {
+        ConfigureDiskAction(conf, cluster)
+      } else {
+        List()
+      }
+    }
 
     //Install CDH5.5 (do not start services)
     InstallHadoopAction(conf, cluster)
 
     //Copy over Hadoop-configurations
-    CopyConfAction(conf, cluster)
+    CopyConfAction(conf, cluster, mounts)
 
     //Copy over user-data (similar to mount in local cluster mode)
     if (args.length == 2) {

@@ -14,7 +14,7 @@ object CopyConfAction {
 
   private val logger = LoggerFactory.getLogger(CopyConfAction.getClass)
 
-  def apply(conf: Map[String, String], cluster: JcloudCluster) = {
+  def apply(conf: Map[String, String], cluster: JcloudCluster, mount: List[String]) = {
     logger.info(s"Copying Hadoop configuration to ${cluster.size} nodes in parallel.")
 
     val srcDir = {
@@ -63,6 +63,9 @@ object CopyConfAction {
         GeneralConstants.master + "/" + GeneralConstants.masterHostName + "/' {} +")
       confAction.add("sudo find /etc/hive/conf/ -name \"*.xml\" -type f -exec sed -i 's/$" +
         GeneralConstants.local + "/" + GeneralConstants.masterHostName + "/' {} +")
+
+      confAction.add("sudo find /etc/hadoop/conf/ -name \"*.xml\" -type f -exec sed -i 's;$" +
+        GeneralConstants.dataDir + ";" + GeneralUtilities.getDataDir(mount) + ";' {} +")
       confAction.run()
       ""  //Otherwise NPE is thrown
     }
@@ -93,6 +96,8 @@ object CopyConfAction {
         GeneralConstants.accessKey + "/" + keyId + "/' {} +")
       confAction.add("sudo find /etc/hadoop/conf/ -name \"*.xml\" -type f -exec sed -i 's/$" +
         GeneralConstants.secretKey + "/" + key + "/' {} +")
+      confAction.add("sudo find /etc/hadoop/conf/ -name \"*.xml\" -type f -exec sed -i 's;$" +
+        GeneralConstants.dataDir + ";" + GeneralUtilities.getDataDir(mount) + ";' {} +")
       confAction.run()
       ""  //Otherwise NPE is thrown
     })

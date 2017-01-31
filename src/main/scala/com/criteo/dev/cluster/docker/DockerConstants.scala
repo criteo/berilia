@@ -17,6 +17,8 @@ object DockerConstants {
 
   def secretKeyArg = "secretKeyArg"  //See GeneralConstants for the corresponding arg in the hadoop-conf file
 
+  def dataDirArg = "dataDirArg"  //See GeneralConstants for the corresponding arg in the hadoop-conf file
+
   def resource = "resource"
 
   def baseImage = "dev_cluster/base"

@@ -75,4 +75,10 @@
     <value>true</value>
   </property>
 
+
+  <property>
+    <name>dfs.datanode.data.dir</name>
+    <value>$dataDir</value>
+  </property>
+
 </configuration>

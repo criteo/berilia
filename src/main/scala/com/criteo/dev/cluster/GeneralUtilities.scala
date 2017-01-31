@@ -143,6 +143,14 @@ object GeneralUtilities {
     }
   }
 
+  def getDataDir(mounts: List[String]) : String = {
+    if (!mounts.isEmpty) {
+      mounts.map(m => s"""file://$m""").mkString(", ")
+    } else {
+      """file://${hadoop.tmp.dir}/dfs/data"""
+    }
+  }
+
   //----
   // Support the case of running against the API on a berilia install.
   //----

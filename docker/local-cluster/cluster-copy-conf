@@ -5,6 +5,7 @@ FROM dev_cluster/local
 ARG resource
 ARG accessKeyArg
 ARG secretKeyArg
+ARG dataDirArg
 
 ENV accessKeyEnv $accessKeyArg
 ENV secretKeyEnv $secretKeyArg
@@ -24,3 +25,5 @@ RUN sudo find /etc/hive/conf/ -name *.xml -type f -exec sed -i 's/$local/dev-hos
 #http://askubuntu.com/questions/76808/how-do-i-use-variables-in-a-sed-command
 RUN sudo find /etc/hadoop/conf/ -name *.xml -type f -exec sed -i 's/$accessKey/'"$accessKeyEnv"'/' {} +
 RUN sudo find /etc/hadoop/conf/ -name *.xml -type f -exec sed -i 's/$secretKey/'"$secretKeyEnv"'/' {} +
+
+RUN sudo find /etc/hadoop/conf/ -name *.xml -type f -exec sed -i 's;$dataDir;'"$dataDirArg"';' {} +

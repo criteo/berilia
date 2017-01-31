@@ -26,7 +26,10 @@ object GeneralConstants {
   def local = "local"
   def accessKey = "accessKey"
   def secretKey = "secretKey"
+  def dataDir = "dataDir"
 
+  //actual physical directory for data volumes on the nodes
+  def data = "data"
 
   //cluster type
   val localClusterType = "local-docker"

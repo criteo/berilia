@@ -60,6 +60,9 @@ sudo sed -i -e "s/trusty-cdh5/trusty-$CDH5_VERSION/g" /etc/apt/sources.list.d/cl
 sudo apt-get update
 sudo apt-get install -y hadoop-yarn-nodemanager hadoop-hdfs-datanode
 
+#Prepare disks (if configured in aws)
+if [ -d "/data" ]; then sudo chown -R hdfs /data; fi
+
 #Make YARN directories
 sudo mkdir -p /var/lib/hadoop-yarn/cache
 sudo chown yarn /var//lib/hadoop-yarn/cache
