@@ -25,7 +25,7 @@ class ListPartitionAction(conf: Map[String, String], node: Node, throttle: Boole
     }
 
     if (partSpec.isDefined && resultList.length == 0) {
-      throw new IllegalArgumentException(s"partspec returns no result: ${partSpec.get}")
+      throw new IllegalArgumentException(s"partspec returns no result: $database.$table ${partSpec.get}")
     }
 
     //Throttle number of partitions.
