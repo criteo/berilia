@@ -12,6 +12,7 @@ deploy:
   jdk: oraclejdk8
   skip_cleanup: true
   on:
+    tags: true
     branch: master
 before_deploy:
 - openssl aes-256-cbc -K $encrypted_9c67a9b5e4ea_key -iv $encrypted_9c67a9b5e4ea_iv
