@@ -2,6 +2,7 @@ package com.criteo.dev.cluster
 
 import com.criteo.dev.cluster.aws._
 import com.criteo.dev.cluster.docker._
+import com.criteo.dev.cluster.source.GetSourceSummaryCliAction
 import com.criteo.dev.cluster.s3._
 
 /**
@@ -66,7 +67,10 @@ object CommandRegistry {
     Some(GeneralConstants.s3Type))
 
 
-  private val miscCommands = new CliActionCategory("Miscellaneous", List[CliAction[_]] (HelpAction))
+  private val miscCommands = new CliActionCategory("Miscellaneous", List[CliAction[_]] (
+    HelpAction,
+    GetSourceSummaryCliAction
+  ))
 
   private val commands = List[CliActionCategory] (
     localCommands,
