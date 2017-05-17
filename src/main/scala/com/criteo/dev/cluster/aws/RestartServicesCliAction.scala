@@ -1,5 +1,6 @@
 package com.criteo.dev.cluster.aws
 
+import com.criteo.dev.cluster.config.GlobalConfig
 import com.criteo.dev.cluster.{CliAction, Public}
 import org.jclouds.compute.domain.NodeMetadata.Status
 
@@ -14,8 +15,9 @@ import org.jclouds.compute.domain.NodeMetadata.Status
 
   override def help: String = "Restart all Hadoop services on all nodes in given cluster."
 
-  override def applyInternal(args: List[String], conf: Map[String, String]): Unit = {
+  override def applyInternal(args: List[String], config: GlobalConfig): Unit = {
     val id = args(0)
+    val conf = config.backCompat
     val cluster = AwsUtilities.getUserCluster(conf, id)
     require (cluster.master.getStatus().equals(Status.RUNNING), "No clusters found in RUNNING state.")
     StartClusterAction(conf, List(cluster))

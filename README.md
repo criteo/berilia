@@ -306,41 +306,14 @@ All these berilia functionalities can be accessed as a Scala library, instead of
 
 # Configuration Guide
 
-## Configuration Profiles
+## Switch configuration files
 
-* Config files can define configuration groups via maven-style profiles that can be activated in command line
-via strings like "-P{profile1, profile2}" or "-P{profile1} -P{profile2}" specified somewhere after the command.
-* Profiles can be nested.  There is a concept of default profile, which is activated if on a specific level there is no
-specified profile.  A level is defined as all configs inside a config file, or inside a higher-level profile.
-* Profile may be specified as default, at which point their properties apply without specifying -P flag.
-* Profiles are defined as:
+Config files can be specified with the command line options:
 
-<pre>
-&lt;profile&gt;
-  &lt;id&gt;&lt;/id&gt;
-  &lt;default&gt;&lt;/default&gt;
-  &lt;property&gt;
-  &lt;/property&gt;
-  ...
-&lt;/profile&gt;
-</pre>
+* `--source=/path/to/source.conf` for source configurations
+* `--target=/path/to/target.conf` for target configurations
 
-Example
-<pre>
-  //create a profile in ./conf/source.xml with id "my-team-data" that defines property source.tables listing my team's sample Hive tables.
-  dev-cluster copy-aws i-48cd2ec7 -Pmy-team-data
-
-  //create a profile in ./conf/target-local.xml with id "my-product" that exposes the port and prepares env variables for my webapp I am developing on hadoop
-  dev-cluster create-local -Pmy-product
-
-  //create a profile in ./conf/target-aws.xml with id "my-region" that defines a set of AWS artifacts for that region (see Configuration AWS section)
-  dev-cluster create-aws 4 -Pmy-region
-
-  //create a profile in ./conf/target-common.xml with id "my-organization" that defines the Hadoop configuration to spawn the cluster with.
-  dev-cluster create-aws 4 -Pmy-organization
-
-  //or make these profiles as default and they always apply without -P flag
-</pre>
+By default, Berilia will search `source.conf` and `target.conf` in the working directory.
 
 ## Configuring AWS
 Working with AWS dev clusters require the following configuration.
@@ -368,7 +341,7 @@ Working with AWS dev clusters require the following configuration.
 
 * For some special file-formats, some special handling is needed after the data is copied.
   * For example, Pail-format tables require the Pail.meta file to be copied as well.
-* You may drop a jar under ./lib with custom listener(s) and specify the fully-qualified class-names in [./conf/source.xml] (./conf/source.xml) in "source.copy.listeners".
+* You may drop a jar under ./lib with custom listener(s) and specify the fully-qualified class-names in [./source.conf] (./source.conf) in "source.copy.listeners".
 
 
 ## Configuring Hadoop Configuration
@@ -376,7 +349,7 @@ Working with AWS dev clusters require the following configuration.
 * The tool provides a default configuration file set located at [./hadoop-resources/hadoop-conf/cluster-default] (./hadoop-resources/hadoop-conf/cluster-default) that is a minimum configuration for working Hadoop/Hive cluster.
 * You may choose to override with your own configuration files.
   * Make sure you copy the original configuration files and then refrain from modifying existing properties required for functioning of the cluster.
-  * Copy it under [./hadoop-resources/hadoop-conf] (./hadoop-resources//hadoop-conf), and provide the relative location in [./conf/target-common.xml] (./conf/target-common.xml) in "target.hadoop.conf.dir".
+  * Copy it under [./hadoop-resources/hadoop-conf] (./hadoop-resources//hadoop-conf), and provide the relative location in [./target.conf] (./target.conf) in "target.hadoop.conf.dir".
   * The Hadoop configuration files may be templated.  Existing templates are listed below:
 <pre>
 $master:    cluster master name
@@ -387,7 +360,7 @@ $accessKey: AWS access key (for S3 storage access)
 
 ## Configuring Hive Aux Jars
 
-* Add the jar(s) to the [./hadoop-resources/aux-jars] (./hadoop-resources/aux-jars) and specify the list of jar short-names in [./conf/target-common.xml] (./conf/target-common.xml) in property "target.hive.aux.jars"
+* Add the jar(s) to the [./hadoop-resources/aux-jars] (./hadoop-resources/aux-jars) and specify the list of jar short-names in [./target.conf] (./target.conf) in property "target.hive.aux.jars"
 * The tool will create clusters that has the jar, and automatically appends this jar path to the HIVE_AUX_JAR_PATH env variable (via generated hive-env.sh)
 
 
@@ -400,7 +373,7 @@ $accessKey: AWS access key (for S3 storage access)
 ## Configuring Gateway Docker Add-ons
 
 * Add custom docker files in the directory [./docker/contrib-gateway] (./docker/contrib-gateway),
-and specify the list of DockerFiles in [./gateway.xml] (./gateway.xml) in "gateway.docker.files".
+and specify the list of DockerFiles in [./source.conf] (./source.conf) in "gateway.docker.files".
 These will be run to finalize the gateway image.
   * Dockerfiles must begin with line "FROM dev_cluster/gateway".
 * You may also specify comma-separated list of ports that the gateway will expose under "gateway.docker.ports".
@@ -411,7 +384,7 @@ These will be run to finalize the gateway image.
 ## Configuring Local-Cluster Docker Add-ons
 
 * Add custom docker files in the directory [./docker/contrib-gateway] (./docker/contrib-gateway),
-and specify the list of DockerFiles in [./gateway.xml] (./gateway.xml) in "target.local.docker.files".
+and specify the list of DockerFiles in [./source.conf] (./source.conf) in "target.local.docker.files".
 These will be run to finalize the local-cluster image.
   * Dockerfiles must begin with line "FROM dev_cluster/local".
   * Note to set an env variable that will be set upon SSH into the cluster, do not use ENV command.
@@ -426,7 +399,7 @@ These will be run to finalize the local-cluster image.
 * Currently, only Ubuntu trusty (14.04) dev clusters/gateways are created.
 * Hadoop components installed include hadoop-hdfs, hadoop-yarn, and hive.
 * Scripts are located in [./hadoop-resources/setup-scripts/ubuntu] (./hadoop-resources/setup-scripts/ubuntu) and could be modified by hand to install new services.
-* CDH5 is supported, and any CDH5 version may be specified in [./conf/target-common.xml] (./conf/target-common.xml) under "target.hadoop.version"
+* CDH5 is supported, and any CDH5 version may be specified in [./conf/target.conf] (./conf/target.conf) under "target.hadoop.version"
 * TODO- make it easier to install new tools or customize different installation strategies like Chef, Bigtop.
 
 # How to Contribute

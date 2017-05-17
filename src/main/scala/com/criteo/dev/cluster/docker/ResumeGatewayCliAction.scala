@@ -1,5 +1,6 @@
 package com.criteo.dev.cluster.docker
 
+import com.criteo.dev.cluster.config.GlobalConfig
 import com.criteo.dev.cluster.{CliAction, Public}
 import org.slf4j.LoggerFactory
 
@@ -15,7 +16,7 @@ import org.slf4j.LoggerFactory
 
   override def help: String = "Resumes the docker gateway container, resuming from the state it was exited."
 
-  override def applyInternal(args: List[String], conf: Map[String, String]): Unit = {
+  override def applyInternal(args: List[String], config: GlobalConfig): Unit = {
     val id = args(0)
     val command = s"docker start -ai $id"
     logger.info(command)

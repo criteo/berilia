@@ -3,6 +3,7 @@ package com.criteo.dev.cluster.aws
 
 import com.criteo.dev.cluster._
 import com.criteo.dev.cluster.aws.AwsUtilities.NodeRole
+import com.criteo.dev.cluster.config.GlobalConfig
 import com.google.common.util.concurrent.Futures
 import org.jclouds.compute.ComputeService
 import org.jclouds.compute.domain.NodeMetadata.Status
@@ -28,8 +29,9 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
   private val logger = LoggerFactory.getLogger(StartAwsCliAction.getClass)
 
-  def applyInternal(args: List[String], conf: Map[String, String]): Unit = {
+  def applyInternal(args: List[String], config: GlobalConfig): Unit = {
     logger.info("Connecting to AWS to fetch nodes to start.")
+    val conf = config.backCompat
     var clusters = getClusters(args, conf)
     clusters = clusters.filter(u => u.master.getStatus().equals(Status.SUSPENDED))
     if (clusters.size == 0) {

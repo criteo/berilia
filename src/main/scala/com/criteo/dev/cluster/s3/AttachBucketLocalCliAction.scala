@@ -1,5 +1,6 @@
 package com.criteo.dev.cluster.s3
 
+import com.criteo.dev.cluster.config.GlobalConfig
 import com.criteo.dev.cluster.{CliAction, NodeFactory, Public}
 import com.criteo.dev.cluster.docker.{DockerConstants, DockerRunning, DockerUtilities}
 import org.slf4j.LoggerFactory
@@ -18,9 +19,10 @@ import org.slf4j.LoggerFactory
   override def help: String = "Attaches the given local docker cluster to Hive tables located in given S3 bucket.  " +
     "Any existing Hive metadata on cluster is not overriden, be aware to maintain consistency."
 
-  override def applyInternal(args: List[String], conf: Map[String, String]): Unit = {
+  override def applyInternal(args: List[String], config: GlobalConfig): Unit = {
     val bucketId = args(0)
     val dockerContainerId = args(1)
+    val conf = config.backCompat
 
     //check if docker container id matches a running docker instance.
     val dockerMeta = DockerUtilities.getDockerContainerMetadata(

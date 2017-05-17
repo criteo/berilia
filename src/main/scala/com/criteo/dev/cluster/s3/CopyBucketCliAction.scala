@@ -1,6 +1,7 @@
 package com.criteo.dev.cluster.s3
 
 import com.criteo.dev.cluster.aws.{AwsConstants, CopyAwsCliAction}
+import com.criteo.dev.cluster.config.GlobalConfig
 import com.criteo.dev.cluster.copy._
 import com.criteo.dev.cluster.{CliAction, GeneralConstants, NodeFactory, Public}
 import org.slf4j.LoggerFactory
@@ -19,9 +20,10 @@ object CopyBucketCliAction extends CliAction[Unit] {
 
   override def help: String = "Copies data from configured source to a bucket."
 
-  override def applyInternal(args: List[String], conf: Map[String, String]): Unit = {
+  override def applyInternal(args: List[String], config: GlobalConfig): Unit = {
     //find the ip
     val bucketId = args(0)
+    val conf = config.backCompat
     val s3Client = BucketUtilities.getS3Client(conf)
     require(s3Client.bucketExists(bucketId), s"Bucket $bucketId not found.")
     val target = NodeFactory.getS3Node(conf, bucketId)

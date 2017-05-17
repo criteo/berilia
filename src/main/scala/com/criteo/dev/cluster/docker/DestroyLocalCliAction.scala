@@ -1,5 +1,6 @@
 package com.criteo.dev.cluster.docker
 
+import com.criteo.dev.cluster.config.GlobalConfig
 import com.criteo.dev.cluster.{CliAction, DevClusterProcess, Public}
 import org.slf4j.LoggerFactory
 
@@ -18,7 +19,7 @@ import scala.sys.process.Process
   override def help: String = "Destroys a local cluster docker container. If instanceId specified, " +
     "only destroy that one container, else destroy all."
 
-  override def applyInternal(args: List[String], conf: Map[String, String]): Unit = {
+  override def applyInternal(args: List[String], config: GlobalConfig): Unit = {
 
     //instance id is optional
     val instanceId = if (args.length == 1) Some(args(0)) else None

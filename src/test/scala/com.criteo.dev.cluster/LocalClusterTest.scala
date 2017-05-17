@@ -1,14 +1,13 @@
 package com.criteo.dev.cluster
 
 import com.criteo.dev.cluster.docker._
+import com.criteo.dev.cluster.utils.test.LoadConfig
 import org.scalatest.{BeforeAndAfter, FunSuite}
 
 /**
   * This class spawns some local dev cluster and runs all the operations on them.
   */
-class LocalClusterTest extends FunSuite with BeforeAndAfter {
-
-  val conf = ConfigManager.load(List())
+class LocalClusterTest extends FunSuite with BeforeAndAfter with LoadConfig {
 
   def testDbName = "testdb"
   def testTableName = "testtable"
@@ -27,19 +26,19 @@ class LocalClusterTest extends FunSuite with BeforeAndAfter {
   test("Create a cluster, list it") {
 
     //Create a docker cluster
-    val dockerMeta = CreateLocalCliAction(List(), conf)
+    val dockerMeta = CreateLocalCliAction(List(), config)
     assertResult(DockerRunning) (dockerMeta.dockerState)
     dockerId = dockerMeta.id
 
     //List and make sure it is returned
-    val dockerMetas = ListDockerCliAction(List(), conf)
+    val dockerMetas = ListDockerCliAction(List(), config)
     getDockerMeta(dockerId, dockerMetas)
   }
 
   test("Create test database, table, partitions in Node, Run a query") {
 
     //List and get the created docker cluster
-    val dockerMetas = ListDockerCliAction(List(), conf)
+    val dockerMetas = ListDockerCliAction(List(), config)
     val dockerMeta = getDockerMeta(dockerId, dockerMetas)
 
     //Run some Hive commands on the docker cluster.
@@ -90,15 +89,15 @@ class LocalClusterTest extends FunSuite with BeforeAndAfter {
   test("Stop and restart cluster") {
 
     //Stop docker cluster and verify
-    StopLocalCliAction(List(dockerId), conf)
-    var dockerMetas = ListDockerCliAction(List(), conf)
+    StopLocalCliAction(List(dockerId), config)
+    var dockerMetas = ListDockerCliAction(List(), config)
     var dockerMeta = getDockerMeta(dockerId, dockerMetas)
     assertResult(DockerStopped) (dockerMeta.dockerState)
 
 
     //Restart docker cluster and verify
-    StartLocalCliAction(List(dockerId), conf)
-    dockerMetas = ListDockerCliAction(List(), conf)
+    StartLocalCliAction(List(dockerId), config)
+    dockerMetas = ListDockerCliAction(List(), config)
     dockerMeta = getDockerMeta(dockerId, dockerMetas)
     assertResult(DockerRunning) (dockerMeta.dockerState)
 
@@ -112,7 +111,7 @@ class LocalClusterTest extends FunSuite with BeforeAndAfter {
   test("Copy data to another cluster, Run Tests, Destroy It") {
 
     //create a 'target' docker cluster
-    val newDockerMeta = CreateLocalCliAction(List(), conf)
+    val newDockerMeta = CreateLocalCliAction(List(), config)
     assertResult(DockerRunning) (newDockerMeta.dockerState)
     val newDockerId = newDockerMeta.id
 
@@ -125,7 +124,7 @@ class LocalClusterTest extends FunSuite with BeforeAndAfter {
       ("default.partition.count" -> "2")
 
     //copy the data to the 'target' cluster
-    CopyLocalCliAction(List(newDockerId), newSourceConf)
+    CopyLocalCliAction(List(newDockerId), config.copy(backCompat = newSourceConf))
 
     //verify.  As we only copied 2 partitions out of 4, it should be half the data
     val dockerNode = NodeFactory.getDockerNode(conf, newDockerMeta)
@@ -134,22 +133,22 @@ class LocalClusterTest extends FunSuite with BeforeAndAfter {
 
     //try copy without source tables or files.  Should fail
     val invalidNewSourceConf = newSourceConf - "source.tables"
-    assertThrows[IllegalArgumentException] (CopyLocalCliAction(List(newDockerId), invalidNewSourceConf),
+    assertThrows[IllegalArgumentException] (CopyLocalCliAction(List(newDockerId), config.copy(backCompat = invalidNewSourceConf)),
       "Exception expected as source.tables and source.files is not defined.")
 
     //Destroy the 'target' docker cluster
-    DestroyLocalCliAction(List(newDockerId), conf)
+    DestroyLocalCliAction(List(newDockerId), config)
   }
 
   //There is a very miniscule chance (0.00.....001)^100 that this test does not generate data and fails.
   //Sorry about that, it comes with sampling probability.
   test("Test sampling.") {
 
-    val dockerMetas = ListDockerCliAction(List(), conf)
+    val dockerMetas = ListDockerCliAction(List(), config)
     val dockerMeta = getDockerMeta(dockerId, dockerMetas)
     val dockerNode = NodeFactory.getDockerNode(conf, dockerMeta)
 
-      val newDockerMeta = CreateLocalCliAction(List(), conf)
+      val newDockerMeta = CreateLocalCliAction(List(), config)
 
     val newDockerNode = NodeFactory.getDockerNode(conf, newDockerMeta)
 
@@ -190,7 +189,7 @@ class LocalClusterTest extends FunSuite with BeforeAndAfter {
       (s"$testDbName.$testTableName3.sample.prob" -> "0.9999999999999999") +
       (s"$testDbName.$testTableName4.sample.prob" -> "1.0")
 
-    CopyLocalCliAction(List(newDockerMeta.id), newSourceConf)
+    CopyLocalCliAction(List(newDockerMeta.id), config.copy(backCompat = newSourceConf))
 
     //Run Hive Query, verify count is correct
     var results = SshHiveAction(newDockerNode, List(s"select count(*) from $testDbName.$testTableName2"))
@@ -202,14 +201,14 @@ class LocalClusterTest extends FunSuite with BeforeAndAfter {
     results = SshHiveAction(newDockerNode, List(s"select count(*) from $testDbName.$testTableName4"))
     assert(results.stripLineEnd.toInt > 0)
 
-    DestroyLocalCliAction(List(newDockerMeta.id), conf)
+    DestroyLocalCliAction(List(newDockerMeta.id), config)
   }
 
 
   test("Destroy the local cluster") {
     //Destroy the local cluster and verify
-    DestroyLocalCliAction(List(dockerId), conf)
-    val dockerMetas = ListDockerCliAction(List(), conf)
+    DestroyLocalCliAction(List(dockerId), config)
+    val dockerMetas = ListDockerCliAction(List(), config)
     assertNoDocker(dockerId, dockerMetas)
   }
 

@@ -2,6 +2,7 @@ package com.criteo.dev.cluster
 
 import com.criteo.dev.cluster.docker._
 import com.criteo.dev.cluster.s3._
+import com.criteo.dev.cluster.utils.test.LoadConfig
 import org.scalatest.{BeforeAndAfter, FunSuite}
 
 /**
@@ -9,9 +10,8 @@ import org.scalatest.{BeforeAndAfter, FunSuite}
   *
   * So it is not enabled in the actual suite.
   */
-class S3Test extends FunSuite with BeforeAndAfter {
+class S3Test extends FunSuite with BeforeAndAfter with LoadConfig {
 
-  val conf = ConfigManager.load(List())
   val currentUser = System.getenv("USER")
   val tempBucketHint = "temp-bucket"
   val testBucketHint = "test-bucket"
@@ -24,23 +24,23 @@ class S3Test extends FunSuite with BeforeAndAfter {
   def testDirName = "testDir"
 
   test("Create some buckets, list them, leave one") {
-    DestroyBucketCliAction(List(testBucketName), conf)
-    DestroyBucketCliAction(List(tempBucketName), conf)
+    DestroyBucketCliAction(List(testBucketName), config)
+    DestroyBucketCliAction(List(tempBucketName), config)
 
-    val randomBucketMeta = CreateBucketCliAction(List(), conf)
-    val tempBucketMeta = CreateBucketCliAction(List(tempBucketHint), conf)
-    val testBucketMeta = CreateBucketCliAction(List(testBucketHint), conf)
+    val randomBucketMeta = CreateBucketCliAction(List(), config)
+    val tempBucketMeta = CreateBucketCliAction(List(tempBucketHint), config)
+    val testBucketMeta = CreateBucketCliAction(List(testBucketHint), config)
     assertResult(tempBucketName) (tempBucketMeta.name)
     assertResult(testBucketName) (testBucketMeta.name)
 
-    val bucketMetas = ListBucketCliAction(List(), conf)
+    val bucketMetas = ListBucketCliAction(List(), config)
     getBucket(tempBucketMeta.name, bucketMetas)
     getBucket(testBucketMeta.name, bucketMetas)
     getBucket(randomBucketMeta.name, bucketMetas)
 
-    DestroyBucketCliAction(List(tempBucketName), conf)
-    DestroyBucketCliAction(List(randomBucketMeta.name), conf)
-    val newBucketMetas = ListBucketCliAction(List(), conf)
+    DestroyBucketCliAction(List(tempBucketName), config)
+    DestroyBucketCliAction(List(randomBucketMeta.name), config)
+    val newBucketMetas = ListBucketCliAction(List(), config)
     getBucket(testBucketName, newBucketMetas)
     assertNoBucket(tempBucketName, newBucketMetas)
     assertNoBucket(randomBucketMeta.name, newBucketMetas)
@@ -49,7 +49,7 @@ class S3Test extends FunSuite with BeforeAndAfter {
 
   test("Copy some data into the bucket") {
     //Create a docker cluster
-    val dockerMeta = CreateLocalCliAction(List(), conf)
+    val dockerMeta = CreateLocalCliAction(List(), config)
 
     val dockerNode = NodeFactory.getDockerNode(conf, dockerMeta)
 
@@ -89,17 +89,17 @@ class S3Test extends FunSuite with BeforeAndAfter {
       ("source.tables" -> s"$testDbName.$testTableName") +
       ("source.key.file" -> DockerConstants.dockerPrivateKey)
     ("distcp.top.partition.count" -> "2")
-    CopyBucketCliAction(List(testBucketName), copyTableConf)
+    CopyBucketCliAction(List(testBucketName), config.copy(backCompat = copyTableConf))
 
     val copyFileConf = conf + ("source.user" -> conf.get("target.local.cluster.user").get) +
       ("source.address" -> DockerUtilities.getSshHost(conf)) +
       ("source.port" -> DockerUtilities.getSshPort(dockerMeta.id)) +
       ("source.files" -> s"/tmp/$testDirName/$testFileName") +
       ("source.key.file" -> DockerConstants.dockerPrivateKey)
-    CopyBucketCliAction(List(testBucketName), copyFileConf)
+    CopyBucketCliAction(List(testBucketName), config.copy(backCompat = copyFileConf))
 
     //this should have copied 4 partitions over (2 top-level ones)
-    val bucketMeta = DescribeBucketCliAction(List(testBucketName), conf)
+    val bucketMeta = DescribeBucketCliAction(List(testBucketName), config)
     assertResult(2)(bucketMeta.dataBlocks.size)
     assertResult(DataType.hive)(bucketMeta.dataBlocks(0).dataType)
     assertResult(currentUser)(bucketMeta.dataBlocks(0).writer)
@@ -119,9 +119,9 @@ class S3Test extends FunSuite with BeforeAndAfter {
 
 
   test("Create a new docker cluster and point data to it.") {
-    val dockerMeta = CreateLocalCliAction(List(), conf)
+    val dockerMeta = CreateLocalCliAction(List(), config)
     val dockerNode = NodeFactory.getDockerNode(conf, dockerMeta)
-    AttachBucketLocalCliAction(List(testBucketName, dockerMeta.id), conf)
+    AttachBucketLocalCliAction(List(testBucketName, dockerMeta.id), config)
     val resultPartitions = SshHiveAction(dockerNode, List(s"show partitions $testDbName.$testTableName"))
     val partitions = resultPartitions.split("\n")
     assert(partitions.length == 4)
@@ -141,8 +141,8 @@ class S3Test extends FunSuite with BeforeAndAfter {
     assert(hdfsLine.contains("a"))
     assert(hdfsLine.contains("b"))
 
-    DestroyLocalCliAction(List(dockerMeta.id), conf)
-    DestroyBucketCliAction(List(testBucketName), conf)
+    DestroyLocalCliAction(List(dockerMeta.id), config)
+    DestroyBucketCliAction(List(testBucketName), config)
   }
 
   def getBucket(bucketId: String, bucketMetas: Set[BucketMeta]) = {

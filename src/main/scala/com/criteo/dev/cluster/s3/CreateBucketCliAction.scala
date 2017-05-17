@@ -2,6 +2,7 @@ package com.criteo.dev.cluster.s3
 
 import com.criteo.dev.cluster.{CliAction, Public}
 import com.criteo.dev.cluster.aws.{AwsConstants, AwsUtilities}
+import com.criteo.dev.cluster.config.GlobalConfig
 import org.jclouds.s3.domain.CannedAccessPolicy
 import org.jclouds.s3.options.PutBucketOptions
 import org.slf4j.LoggerFactory
@@ -21,8 +22,9 @@ import scala.util.Random
 
   override def help: String = "Creates a bucket in S3"
 
-  override def applyInternal(args: List[String], conf: Map[String, String]): BucketMeta = {
+  override def applyInternal(args: List[String], config: GlobalConfig): BucketMeta = {
 
+    val conf = config.backCompat
     //generate bucket name
     val awsBucketPrefix = BucketUtilities.getS3BucketPrefix(conf)
     val bucketName = {

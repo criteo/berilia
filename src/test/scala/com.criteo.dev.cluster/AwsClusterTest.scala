@@ -1,6 +1,7 @@
 package com.criteo.dev.cluster
 
 import com.criteo.dev.cluster.aws._
+import com.criteo.dev.cluster.utils.test.LoadConfig
 import org.scalatest.{BeforeAndAfter, FunSuite}
 
 /**
@@ -8,9 +9,7 @@ import org.scalatest.{BeforeAndAfter, FunSuite}
   *
   * So it is not enabled in the actual suite.
   */
-class AwsClusterTest extends FunSuite with BeforeAndAfter {
-  val conf = ConfigManager.load(List())
-
+class AwsClusterTest extends FunSuite with BeforeAndAfter with LoadConfig {
   def testDbName = "testdb"
   def testTableName = "testtable"
   def testFileName = "testfile"
@@ -24,7 +23,7 @@ class AwsClusterTest extends FunSuite with BeforeAndAfter {
   test("Create a cluster, list it") {
 
     //Create a docker cluster
-    val cluster = CreateAwsCliAction(List("3"), conf)
+    val cluster = CreateAwsCliAction(List("3"), config)
     clusterId = cluster.master.id
 
     assertResult(2) (cluster.slaves.size)
@@ -32,7 +31,7 @@ class AwsClusterTest extends FunSuite with BeforeAndAfter {
     assertResult(currentUser) (cluster.user)
 
     //List and make sure it is returned
-    val clusters = ListAwsCliAction(List(), conf)
+    val clusters = ListAwsCliAction(List(), config)
     val fetchedCluster = getCluster(clusterId, clusters)
 
     assertResult(2) (fetchedCluster.slaves.size)
@@ -41,25 +40,25 @@ class AwsClusterTest extends FunSuite with BeforeAndAfter {
   }
 
   test("Extend cluster time, should error after the second time") {
-    var clusters = ListAwsCliAction(List(), conf)
+    var clusters = ListAwsCliAction(List(), config)
     var cluster = getCluster(clusterId, clusters)
     val originalTime = AwsUtilities.stringToDt(cluster.expireTime)
 
-    ExtendAwsCliAction(List(clusterId), conf)
-    clusters = ListAwsCliAction(List(), conf)
+    ExtendAwsCliAction(List(clusterId), config)
+    clusters = ListAwsCliAction(List(), config)
     cluster = getCluster(clusterId, clusters)
     val extendedTime = AwsUtilities.stringToDt(cluster.expireTime)
 
     assert(extendedTime.isAfter(originalTime), "Extension did not extend the time")
 
-    assertThrows[IllegalArgumentException] (ExtendAwsCliAction(List(clusterId), conf),
+    assertThrows[IllegalArgumentException] (ExtendAwsCliAction(List(clusterId), config),
       "Exception expected as cannot extend the expire time twice.")
   }
 
   test("Create test database, table, partitions in Node, Run a query") {
 
     //List and get the created AWS cluster
-    val awsClusters = ListAwsCliAction(List(), conf)
+    val awsClusters = ListAwsCliAction(List(), config)
     val clusterMeta = getCluster(clusterId, awsClusters)
 
     //Run some Hive commands on the AWS cluster master.
@@ -109,11 +108,11 @@ class AwsClusterTest extends FunSuite with BeforeAndAfter {
   test("Copy data to another cluster, Run Tests, Destroy It") {
 
     //create a 'target' docker cluster
-    val newCluster = CreateAwsCliAction(List("2"), conf)
+    val newCluster = CreateAwsCliAction(List("2"), config)
     assertResult(AwsRunning) (newCluster.master.status)
     val newClusterId = newCluster.master.id
 
-    var clusters = ListAwsCliAction(List(), conf)
+    var clusters = ListAwsCliAction(List(), config)
     val sourceCluster = getCluster(clusterId, clusters)
 
     //create the source configuration to specify what to copy from the original cluster
@@ -125,7 +124,7 @@ class AwsClusterTest extends FunSuite with BeforeAndAfter {
       ("default.partition.count" -> "2")
 
     //copy the data to the 'target' cluster
-    CopyAwsCliAction(List(newClusterId), oldSourceConf)
+    CopyAwsCliAction(List(newClusterId), config.copy(backCompat = oldSourceConf))
 
     //verify.  As we only copied 2 partitions out of 4, it should be half the data
     val awsNode = NodeFactory.getAwsNode(conf, newCluster.master)
@@ -134,30 +133,30 @@ class AwsClusterTest extends FunSuite with BeforeAndAfter {
 
     //try copy without source tables or files.  Should fail
     val invalidNewSourceConf = oldSourceConf - "source.tables"
-    assertThrows[IllegalArgumentException] (CopyAwsCliAction(List(clusterId), invalidNewSourceConf),
+    assertThrows[IllegalArgumentException] (CopyAwsCliAction(List(clusterId), config.copy(backCompat = invalidNewSourceConf)),
       "Exception expected as source.tables and source.files is not defined.")
 
     //Destroy the 'target' docker cluster
-    DestroyAwsCliAction(List(newClusterId), conf)
-    clusters = ListAwsCliAction(List(), conf)
+    DestroyAwsCliAction(List(newClusterId), config)
+    clusters = ListAwsCliAction(List(), config)
     assertNoCluster(newClusterId, clusters)
   }
 
   test("Stop and restart cluster") {
 
     //Stop docker cluster and verify
-    StopAwsCliAction(List(clusterId), conf)
-    var clusterMetas = ListAwsCliAction(List(), conf)
+    StopAwsCliAction(List(clusterId), config)
+    var clusterMetas = ListAwsCliAction(List(), config)
     var clusterMeta = getCluster(clusterId, clusterMetas)
     assertResult(AwsSuspended) (clusterMeta.master.status)
 
     //try to extend, should not be possible to do.
-    assertThrows[IllegalArgumentException] (ExtendAwsCliAction(List(clusterId), conf),
+    assertThrows[IllegalArgumentException] (ExtendAwsCliAction(List(clusterId), config),
       "Exception expected as cannot extend a stopped node.")
 
     //Restart aws cluster and verify
-    StartAwsCliAction(List(clusterId), conf)
-    clusterMetas = ListAwsCliAction(List(), conf)
+    StartAwsCliAction(List(clusterId), config)
+    clusterMetas = ListAwsCliAction(List(), config)
     clusterMeta = getCluster(clusterId, clusterMetas)
     assertResult(AwsRunning) (clusterMeta.master.status)
 
@@ -170,8 +169,8 @@ class AwsClusterTest extends FunSuite with BeforeAndAfter {
 
   test("Destroy the local cluster") {
     //Destroy the local cluster and verify
-    DestroyAwsCliAction(List(clusterId), conf)
-    val clusters = ListAwsCliAction(List(), conf)
+    DestroyAwsCliAction(List(clusterId), config)
+    val clusters = ListAwsCliAction(List(), config)
     assertNoCluster(clusterId, clusters)
   }
 

@@ -1,6 +1,7 @@
 package com.criteo.dev.cluster.aws
 
 
+import com.criteo.dev.cluster.config.GlobalConfig
 import org.slf4j.Logger
 import com.criteo.dev.cluster.{CliAction, Public}
 import org.jclouds.compute.domain.NodeMetadata
@@ -20,8 +21,9 @@ object ListAwsCliAction extends CliAction[List[AwsCluster]] {
 
   private val logger = LoggerFactory.getLogger(ListAwsCliAction.getClass)
 
-  def applyInternal(args: List[String], conf: Map[String, String]): List[AwsCluster] = {
+  def applyInternal(args: List[String], config: GlobalConfig): List[AwsCluster] = {
     logger.info(s"Listing clusters with group ${AwsConstants.groupTag} owned by current user: ${System.getenv("USER")}")
+    val conf = config.backCompat
     AwsUtilities.retryAwsAction(new RetryableList(logger, conf))
   }
 }

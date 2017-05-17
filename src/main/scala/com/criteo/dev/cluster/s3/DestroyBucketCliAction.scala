@@ -2,6 +2,7 @@ package com.criteo.dev.cluster.s3
 
 import com.criteo.dev.cluster.{CliAction, Public}
 import com.criteo.dev.cluster.aws.AwsUtilities
+import com.criteo.dev.cluster.config.GlobalConfig
 import org.slf4j.LoggerFactory
 
 /**
@@ -17,8 +18,9 @@ import org.slf4j.LoggerFactory
 
   override def help: String = "Deletes a bucket in S3"
 
-  override def applyInternal(args: List[String], conf: Map[String, String]): Unit = {
+  override def applyInternal(args: List[String], config: GlobalConfig): Unit = {
     val bucketId = args(0)
+    val conf = config.backCompat
     destroy(conf, bucketId)
   }
 

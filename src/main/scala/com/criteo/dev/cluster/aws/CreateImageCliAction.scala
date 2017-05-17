@@ -1,6 +1,7 @@
 package com.criteo.dev.cluster.aws
 
 import com.criteo.dev.cluster.aws.AwsUtilities.NodeRole
+import com.criteo.dev.cluster.config.GlobalConfig
 import com.criteo.dev.cluster.s3.BucketUtilities
 import com.criteo.dev.cluster.{CliAction, GeneralConstants, GeneralUtilities}
 import org.jclouds.compute.domain.NodeMetadata
@@ -35,7 +36,8 @@ object CreateImageCliAction extends CliAction[Unit] {
     "it will be faster to run create-aws than create-complete-aws.  Note that all install/config overrides are run as part of " +
     "image creation, so image needs to be regenerated if any change is made."
 
-  override def applyInternal(args: List[String], conf: Map[String, String]): Unit = {
+  override def applyInternal(args: List[String], config: GlobalConfig): Unit = {
+    val conf = config.backCompat
     val baseImage = GeneralUtilities.getConfStrict(conf, AwsConstants.baseImageId, GeneralConstants.targetAwsProps)
 
     //create AWS instance(s) from OS base image.

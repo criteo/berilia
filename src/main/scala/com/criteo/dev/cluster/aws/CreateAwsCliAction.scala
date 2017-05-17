@@ -1,6 +1,7 @@
 package com.criteo.dev.cluster.aws
 
 import com.criteo.dev.cluster._
+import com.criteo.dev.cluster.config.GlobalConfig
 import org.slf4j.LoggerFactory
 
 
@@ -19,8 +20,9 @@ import org.slf4j.LoggerFactory
     "install scripts and custom overrides."
 
 
-  def applyInternal(args: List[String], conf: Map[String, String]) : AwsCluster = {
+  def applyInternal(args: List[String], config: GlobalConfig) : AwsCluster = {
     val nodes = Integer.valueOf(args(0))
+    val conf = config.backCompat
 
     require(nodes > 0, "Invalid number of nodes")
     val baseImage = GeneralUtilities.getConfStrict(conf, AwsConstants.baseImageId, GeneralConstants.targetAwsProps)

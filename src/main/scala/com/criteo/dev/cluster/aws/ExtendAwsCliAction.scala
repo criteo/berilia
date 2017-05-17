@@ -1,5 +1,6 @@
 package com.criteo.dev.cluster.aws
 
+import com.criteo.dev.cluster.config.GlobalConfig
 import com.criteo.dev.cluster.{CliAction, Public}
 import org.jclouds.compute.domain.NodeMetadata.Status
 import org.scala_tools.time.Imports._
@@ -20,9 +21,9 @@ import scala.collection.JavaConverters._
 
   private val logger = LoggerFactory.getLogger(ExtendAwsCliAction.getClass)
 
-  override def applyInternal(args: List[String], conf: Map[String, String]): Unit = {
+  override def applyInternal(args: List[String], config: GlobalConfig): Unit = {
     logger.info(s"Updating node.  Searching in group ${AwsConstants.groupTag} owned by current user: ${System.getenv("USER")}")
-
+    val conf = config.backCompat
     val instanceId = args(0)
     val cluster = AwsUtilities.getUserCluster(conf, instanceId)
     if (!cluster.master.getStatus().equals(Status.RUNNING)) {
