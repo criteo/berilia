@@ -1,5 +1,6 @@
 package com.criteo.dev.cluster.docker
 
+import com.criteo.dev.cluster.config.GlobalConfig
 import com.criteo.dev.cluster.{CliAction, DevClusterProcess, Public}
 import org.slf4j.LoggerFactory
 
@@ -18,7 +19,7 @@ import scala.sys.process.Process
   override def help: String = "Stops a local cluster docker container. If instanceId specified, " +
     "only stop that one container, else stops them all."
 
-  override def applyInternal(args: List[String], conf: Map[String, String]): Unit = {
+  override def applyInternal(args: List[String], config: GlobalConfig): Unit = {
 
     //instance id is optional
     val instanceId = if (args.length == 2) Some(args(1)) else None

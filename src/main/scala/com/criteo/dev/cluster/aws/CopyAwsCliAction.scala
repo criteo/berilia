@@ -1,6 +1,7 @@
 package com.criteo.dev.cluster.aws
 
 import com.criteo.dev.cluster._
+import com.criteo.dev.cluster.config.GlobalConfig
 import com.criteo.dev.cluster.copy.{CreateMetadataHiveAction$, _}
 import org.jclouds.compute.domain.NodeMetadata.Status
 import org.slf4j.LoggerFactory
@@ -18,10 +19,10 @@ import org.slf4j.LoggerFactory
 
   override def help: String = "Copies sample data from gateway to AWS cluster identified by cluster.id"
 
-  override def applyInternal(args: List[String], conf: Map[String, String]): Unit = {
+  override def applyInternal(args: List[String], config: GlobalConfig): Unit = {
     //find the ip
     val instanceId = args(0)
-
+    val conf = config.backCompat
     val cluster = AwsUtilities.getCluster(conf, instanceId)
     val master = cluster.master
     require(master.getStatus().equals(Status.RUNNING), "No clusters found in RUNNING state matching criteria.")

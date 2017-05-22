@@ -1,5 +1,6 @@
 package com.criteo.dev.cluster.aws
 
+import com.criteo.dev.cluster.config.GlobalConfig
 import com.criteo.dev.cluster.{CliAction, GeneralUtilities, Public}
 import org.jclouds.compute.ComputeService
 import org.jclouds.compute.domain.NodeMetadata.Status
@@ -25,8 +26,9 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
   private val logger = LoggerFactory.getLogger(DestroyAwsCliAction.getClass)
 
-  def applyInternal(args: List[String], conf: Map[String, String]): Unit = {
+  def applyInternal(args: List[String], config: GlobalConfig): Unit = {
     logger.info("Connecting to AWS to fetch nodes to destroy.")
+    val conf = config.backCompat
     var results = {
       if (args.length == 1) {
         //instance id is optional

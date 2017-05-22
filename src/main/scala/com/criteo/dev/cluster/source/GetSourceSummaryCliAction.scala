@@ -1,5 +1,6 @@
 package com.criteo.dev.cluster.source
 
+import com.criteo.dev.cluster.config.GlobalConfig
 import com.criteo.dev.cluster.{CliAction, NodeFactory}
 import org.slf4j.LoggerFactory
 
@@ -12,10 +13,11 @@ object GetSourceSummaryCliAction extends CliAction[List[Either[InvalidTable, Tab
 
   override def help: String = "Get summary of source tables"
 
-  override def applyInternal(args: List[String], conf: Map[String, String]): List[Either[InvalidTable, TableHDFSInfo]] = {
+  override def applyInternal(args: List[String], config: GlobalConfig): List[Either[InvalidTable, TableHDFSInfo]] = {
+    val conf = config.backCompat
     logger.info("Getting the summary of source tables")
     val source = NodeFactory.getSourceFromConf(conf)
-    val getSourceSummary = GetSourceSummaryAction(conf, source)
+    val getSourceSummary = GetSourceSummaryAction(config, source)
     val summary = getSourceSummary()
     printSummary(summary)
     summary

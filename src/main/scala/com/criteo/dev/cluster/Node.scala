@@ -27,7 +27,6 @@ object NodeFactory {
     new Node(ip, user, keyFile, port, NodeType.User)
   }
 
-
   //Target configs are injected by the code based on target type.
   def getTargetFromConf(conf: Map[String, String]): Node = {
     val target = GeneralUtilities.getConfStrict(conf,

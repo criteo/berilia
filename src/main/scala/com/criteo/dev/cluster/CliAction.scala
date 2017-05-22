@@ -1,5 +1,7 @@
 package com.criteo.dev.cluster
 
+import com.criteo.dev.cluster.config.GlobalConfig
+
 /**
   * Generalizes node actions for the command line.
   */
@@ -38,13 +40,13 @@ abstract class CliAction[+T] {
     }
   }
 
-  def apply(args: List[String], conf: Map[String, String]) : T = {
+  def apply(args: List[String], config: GlobalConfig) : T = {
     verify(args)
-    val finalConf = CommandRegistry.fillSystemConfs(conf, this)
-    applyInternal(args, finalConf)
+    val finalConf = CommandRegistry.fillSystemConfs(config.backCompat, this)
+    applyInternal(args, config.copy(backCompat = finalConf))
   }
 
-  def applyInternal(args: List[String], conf: Map[String, String]) : T
+  def applyInternal(args: List[String], conf: GlobalConfig) : T
 }
 
 

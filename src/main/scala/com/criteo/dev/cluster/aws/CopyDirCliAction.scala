@@ -1,6 +1,7 @@
 package com.criteo.dev.cluster.aws
 
 import com.criteo.dev.cluster._
+import com.criteo.dev.cluster.config.GlobalConfig
 
 /**
   * Copy directory from local to AWS cluster (ex, for user libraries)
@@ -12,8 +13,9 @@ import com.criteo.dev.cluster._
 
   override def help: String = "Copies a local directory to AWS cluster"
 
-  override def applyInternal(args: List[String], conf: Map[String, String]): Unit = {
+  override def applyInternal(args: List[String], config: GlobalConfig): Unit = {
     val instanceId = args(0)
+    val conf = config.backCompat
     val cluster = AwsUtilities.getUserCluster(conf, instanceId)
     val toCopy = args(1)
     copyDir(NodeFactory.getAwsNode(conf, cluster.master), toCopy)

@@ -1,5 +1,6 @@
 package com.criteo.dev.cluster.aws
 
+import com.criteo.dev.cluster.config.GlobalConfig
 import com.criteo.dev.cluster.{CliAction, Public}
 import org.jclouds.compute.domain.NodeMetadata
 import org.jclouds.compute.domain.NodeMetadata.Status
@@ -22,8 +23,9 @@ object PurgeAwsCliAction extends CliAction[Unit] {
 
   private val logger = LoggerFactory.getLogger(PurgeAwsCliAction.getClass)
 
-  override def applyInternal(args: List[String], conf: Map[String, String]): Unit = {
+  override def applyInternal(args: List[String], config: GlobalConfig): Unit = {
     val currentTime = DateTime.now(DateTimeZone.UTC)
+    val conf = config.backCompat
 
     logger.info(s"Running purge, current time is ${AwsUtilities.dtToString(currentTime)} (UTC)")
     val results = AwsUtilities.getAllClusters(conf).filter(c => c.master.getStatus.equals(Status.RUNNING))

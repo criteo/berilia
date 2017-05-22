@@ -1,6 +1,7 @@
 package com.criteo.dev.cluster.docker
 
 
+import com.criteo.dev.cluster.config.GlobalConfig
 import com.criteo.dev.cluster.{CliAction, Public}
 import org.slf4j.LoggerFactory
 
@@ -18,7 +19,8 @@ import org.slf4j.LoggerFactory
 
   override def help: String = "Lists all running and stopped local dev-cluster docker containers."
 
-  override def applyInternal(args: List[String], conf: Map[String, String]): Array[DockerMeta] = {
+  override def applyInternal(args: List[String], config: GlobalConfig): Array[DockerMeta] = {
+    val conf = config.backCompat
     val dockerMetas =  DockerUtilities.getDockerContainerMetadata(
       DockerConstants.localClusterContainerLabel)
     DockerUtilities.printClusterDockerContainerInfo(conf, dockerMetas)

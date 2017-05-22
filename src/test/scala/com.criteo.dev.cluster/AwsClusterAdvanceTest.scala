@@ -1,7 +1,8 @@
 package com.criteo.dev.cluster
 
 import com.criteo.dev.cluster.aws._
-import com.criteo.dev.cluster.docker.{DestroyGatewayCliAction, CreateGatewayCliAction, DockerMeta, ListDockerCliAction}
+import com.criteo.dev.cluster.docker.{CreateGatewayCliAction, DestroyGatewayCliAction}
+import com.criteo.dev.cluster.utils.test.LoadConfig
 import org.scalatest.{BeforeAndAfter, FunSuite}
 
 /**
@@ -11,9 +12,8 @@ import org.scalatest.{BeforeAndAfter, FunSuite}
   *
   * So it is not enabled in the actual suite.
   */
-class AwsClusterAdvanceTest extends FunSuite with BeforeAndAfter {
+class AwsClusterAdvanceTest extends FunSuite with BeforeAndAfter with LoadConfig {
 
-  val conf = ConfigManager.load(List())
 
   def testDbName = "testdb"
   def testTableName = "testtable"
@@ -25,7 +25,7 @@ class AwsClusterAdvanceTest extends FunSuite with BeforeAndAfter {
   test("Create a cluster, populate cluster") {
 
     //Create a docker cluster
-    val cluster = CreateAwsCliAction(List("3"), conf)
+    val cluster = CreateAwsCliAction(List("3"), config)
     clusterId = cluster.master.id
 
     assertResult(2)(cluster.slaves.size)
@@ -51,11 +51,11 @@ class AwsClusterAdvanceTest extends FunSuite with BeforeAndAfter {
 
 
   test("Reconfigure a cluster and test the query.") {
-    var clusters = ListAwsCliAction(List(), conf)
+    var clusters = ListAwsCliAction(List(), config)
     val cluster = getCluster(clusterId, clusters)
     val master = NodeFactory.getAwsNode(conf, cluster.master)
-    ConfigureAwsCliAction(List(clusterId), conf)
-    RestartServicesCliAction(List(clusterId), conf)
+    ConfigureAwsCliAction(List(clusterId), config)
+    RestartServicesCliAction(List(clusterId), config)
 
     //Run Hive Query, verify count is correct
     val results = SshHiveAction(master, List(s"select count(*) from $testDbName.$testTableName"))
@@ -63,10 +63,10 @@ class AwsClusterAdvanceTest extends FunSuite with BeforeAndAfter {
   }
 
   test("Create a gateway") {
-    CreateGatewayCliAction(List(clusterId), conf)
+    CreateGatewayCliAction(List(clusterId), config)
     //TODO- Docker Gateway is in interactive mode as part of the CLI, so doesn't actually run as part of the program.
     //No way to unit test for now.. should we add a background mode like local-cluster?
-    DestroyGatewayCliAction(List(), conf)
+    DestroyGatewayCliAction(List(), config)
   }
 
   def getCluster(clusterId: String, clusters: List[AwsCluster]) : AwsCluster = {

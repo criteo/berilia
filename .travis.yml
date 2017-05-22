@@ -1,8 +1,10 @@
 language: scala
 scala:
-- 2.10.4
+  - 2.11.8
+jdk:
+  - oraclejdk8
 script:
-- mvn clean install -DskipTests
+  - mvn clean install -DskipTests
 env:
   global:
   - secure: JUV04cHhRdPlav5EGno0/akJ0FL8c8RKQ7dmhbSpsgqJdRUQ7tOJ1uSIDDYVJLqeCVKAOPKvMrPp10DWKYeeSU+cIP+iL7iBGxfyIRQRfhHQd3XYKf9x/ZCZ8EN/3lZ8oI7Gq1ah5VCX9LhIjdEJPbt+aVgNN1p4WCskkyWhLdtqzcMD5FH0ROp1sCnUQDUkugjPlGlSl9+4dfK9yfLb0pmoXVMb90DVGFSBiyAVMl/QFM07xYH4xK1Eln+084etaYKTbjlF/l281WEkW0OIQNrB6oIdkEHxLiddkbS6c+fVebXgI9t5jipcO1qaddUWjKkf12koXXukFuII3jbHvVS8wk5o/3DTKYfGHFdJBJhd5gOK9QPZU8XrHOPxLj/i1USk3r+fQLhBNLHDadJBOxN6souHVE9D6ASfhQas47ceGYeOWkg5e6rWxvD25uAyZt6BihYD160Xu7pelo73fF0LX34Xf5ql/s8TobvxaqoZNTf/c5BhWsjbYDF8TFCmb+m6yK5cXYQJOgUKtX5MeboHhFfc4BPYl7f2bwA8OasMBx8aOnQ/JCxV7Ag0+YAF/zKHOS3KAW8p4hj1XH1SjXcpeCC7eCbYATRAGGEZsSOm6e61FiUS0Sz3OE29G+BdeUdSpl2HSUp8QDUsvwHKIQVE8X0idkFlAvVptsVE9II=

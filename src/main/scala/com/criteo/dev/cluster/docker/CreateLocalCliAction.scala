@@ -3,6 +3,7 @@ package com.criteo.dev.cluster.docker
 import com.criteo.dev.cluster._
 import com.criteo.dev.cluster.aws.{AwsConstants, AwsUtilities}
 import com.criteo.dev.cluster.aws.AwsUtilities.NodeRole
+import com.criteo.dev.cluster.config.GlobalConfig
 import org.slf4j.LoggerFactory
 
 import scala.collection.JavaConversions._
@@ -21,8 +22,9 @@ import scala.sys.process.Process
   override def help: String = "Creates a cluster using a local docker container and starts Hadoop services on it.  " +
     "If mount.dir is provided, directory will be mounted under /mount."
 
-  override def applyInternal(args: List[String], conf: Map[String, String]): DockerMeta = {
+  override def applyInternal(args: List[String], config: GlobalConfig): DockerMeta = {
    // prereqs(conf)
+    val conf = config.backCompat
 
     build(conf)
     start(args, conf)

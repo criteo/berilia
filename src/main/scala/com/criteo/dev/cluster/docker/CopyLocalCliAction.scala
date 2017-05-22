@@ -1,17 +1,17 @@
 package com.criteo.dev.cluster.docker
 
-import com.criteo.dev.cluster.{CliAction, GeneralUtilities, NodeFactory, Public}
+import com.criteo.dev.cluster.config.GlobalConfig
 import com.criteo.dev.cluster.copy._
-import org.slf4j.LoggerFactory
+import com.criteo.dev.cluster.{CliAction, NodeFactory, Public}
 
 /**
   * Copies data into docker container.
   */
 @Public object CopyLocalCliAction extends CliAction[Unit] {
 
-  def applyInternal(args: List[String], conf: Map[String, String]) : Unit = {
+  def applyInternal(args: List[String], config: GlobalConfig) : Unit = {
     val dockerContainerId = args(0)
-
+    val conf = config.backCompat
     //check if docker container id matches a running docker instance.
     val dockerMeta = DockerUtilities.getDockerContainerMetadata(
       DockerConstants.localClusterContainerLabel,

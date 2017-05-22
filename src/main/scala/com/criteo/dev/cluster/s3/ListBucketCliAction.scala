@@ -2,6 +2,7 @@ package com.criteo.dev.cluster.s3
 
 import com.criteo.dev.cluster.{CliAction, Public}
 import com.criteo.dev.cluster.aws.AwsUtilities
+import com.criteo.dev.cluster.config.GlobalConfig
 
 import scala.collection.JavaConverters._
 
@@ -15,7 +16,8 @@ import scala.collection.JavaConverters._
 
   override def help: String = "List all buckets"
 
-  override def applyInternal(args: List[String], conf: Map[String, String]): Set[BucketMeta] = {
+  override def applyInternal(args: List[String], config: GlobalConfig): Set[BucketMeta] = {
+    val conf = config.backCompat
     val s3Client = BucketUtilities.getS3Client(conf)
     val buckets = s3Client.listOwnedBuckets().asScala
 

@@ -2,6 +2,7 @@ package com.criteo.dev.cluster.s3
 
 import com.criteo.dev.cluster.{CliAction, Public}
 import com.criteo.dev.cluster.aws.AwsUtilities
+import com.criteo.dev.cluster.config.GlobalConfig
 import org.slf4j.LoggerFactory
 
 /**
@@ -16,9 +17,10 @@ import org.slf4j.LoggerFactory
 
   private val logger = LoggerFactory.getLogger(CreateBucketCliAction.getClass)
 
-  override def applyInternal(args: List[String], conf: Map[String, String]): BucketDataMeta = {
+  override def applyInternal(args: List[String], config: GlobalConfig): BucketDataMeta = {
     val bucketId = args(0)
     logger.info(s"Describing bucket $bucketId")
+    val conf = config.backCompat
 
     require(bucketId.startsWith(BucketUtilities.getS3BucketPrefix(conf)), "Only allowed to access buckets created by dev-cluster program.")
 

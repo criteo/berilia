@@ -1,6 +1,7 @@
 package com.criteo.dev.cluster.s3
 
 import com.criteo.dev.cluster.aws.AwsUtilities
+import com.criteo.dev.cluster.config.GlobalConfig
 import com.criteo.dev.cluster.docker.{DockerConstants, DockerUtilities}
 import com.criteo.dev.cluster.{CliAction, NodeFactory, Public, SshAction}
 import org.jclouds.blobstore.options.ListContainerOptions
@@ -19,10 +20,10 @@ import scala.collection.JavaConverters._
   override def help: String = "Copies all data from given S3 bucket to the local AWS cluster."
 
 
-  override def applyInternal(args: List[String], conf: Map[String, String]): Unit = {
+  override def applyInternal(args: List[String], config: GlobalConfig): Unit = {
     val bucketId = args(0)
     val instanceId = args(1)
-
+    val conf = config.backCompat
     //check if docker container id matches a running docker instance.
     val cluster = AwsUtilities.getUserCluster(conf, instanceId)
     val master = cluster.master

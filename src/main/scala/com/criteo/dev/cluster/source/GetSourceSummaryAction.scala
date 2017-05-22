@@ -1,19 +1,20 @@
 package com.criteo.dev.cluster.source
 
 import com.criteo.dev.cluster.Node
+import com.criteo.dev.cluster.config.GlobalConfig
 import com.criteo.dev.cluster.copy.GetMetadataAction
 
 import scala.util.{Failure, Success, Try}
 
-case class GetSourceSummaryAction(conf: Map[String, String], node: Node) {
+case class GetSourceSummaryAction(config: GlobalConfig, node: Node) {
   /**
     * Get the summary with HDFS file info of the source tables
     *
     * @return The table information related to HDFS
     */
   def apply(): List[Either[InvalidTable, TableHDFSInfo]] = {
+    val conf = config.backCompat
     val getMetadata = new GetMetadataAction(conf, node)
-    val getFileSizes = GetFileSizeAction(conf, node)
 
     val (validTables, invalidTables) = conf("source.tables")
       .split(";")
@@ -29,7 +30,7 @@ case class GetSourceSummaryAction(conf: Map[String, String], node: Node) {
           List((m, m.ddl.location.get))
       }
     tableAndLocations
-      .zip(getFileSizes(tableAndLocations.map(_._2)))
+      .zip(HDFSUtils.getFileSize(tableAndLocations.map(_._2), node))
       .groupBy { case ((m, _), _) => m }
       .foldLeft(List.empty[TableHDFSInfo]) { case (acc, (table, results)) =>
         TableHDFSInfo(

@@ -1,8 +1,9 @@
 package com.criteo.dev.cluster
 
-import com.criteo.dev.cluster.aws._
-import com.criteo.dev.cluster.docker._
-import org.slf4j.LoggerFactory
+import java.io.{File, FileNotFoundException}
+import java.net.URL
+
+import com.criteo.dev.cluster.config.{ConfigLoader, GlobalConfig}
 
 /**
   * Main entry point to various actions on the AWS-hosted development clusters for the current user.
@@ -36,12 +37,14 @@ object DevClusterLauncher {
     } else {
       try {
         val argList = args.toList.drop(1)
-        val profiles = getProfiles(argList)
-        val realArgs = argList.filterNot(profilePred)
-        val conf = ConfigManager.load(profiles)
+        val realArgs = argList.filterNot(_.startsWith("--"))
+        val conf = ConfigLoader(
+          getFileURL(args, "source", "source.conf"),
+          getFileURL(args, "target", "target.conf")
+        ).value
         command.get.apply(realArgs, conf)
       } catch {
-        case e:Exception => {
+        case e: Exception => {
           e.printStackTrace()
           System.exit(1)
         }
@@ -50,8 +53,20 @@ object DevClusterLauncher {
     System.exit(0)
   }
 
+  def getFileURL(args: Array[String], argName: String, fallback: String): URL =
+    args
+      .find(_.startsWith(s"--$argName"))
+      .flatMap(_.split("=").drop(1).headOption)
+      .orElse(Some(fallback))
+      .map { path =>
+        val file = new File(path)
+        if (file.exists)
+          file.toURI.toURL
+        else
+          throw new FileNotFoundException(s"$path does not exist")
+      }.get
 
-  def printHelp() : Unit = {
+  def printHelp(): Unit = {
     println("This tool provides utilities for creating and managing AWS dev instances, " +
       "and utilities such as copying data from gateway, and configuring gateway on local " +
       "machine to the cluster.  Use the following commands.\n")
@@ -64,21 +79,7 @@ object DevClusterLauncher {
           c.printHelp
           println()
         })
-    })
-  }
-
-  def profilePred = (s: String) => s.startsWith("-P")
-
-  /**
-    * Inspired by maven profiles.
-    *
-    *  Return profiles given by flag -P$profile.  Also handles comma separated profiles list like
-    * -P$p1,$p2.
-    */
-  def getProfiles(args: List[String]): List[String] = {
-    val profileArgs = args.filter(profilePred)
-    val strippedProfiles = profileArgs.map(_.stripPrefix("-P"))
-    strippedProfiles.flatMap(_.split(","))
+      })
   }
 }
 
@@ -90,7 +91,7 @@ object HelpAction extends CliAction[Unit] {
 
   override def help: String = "Gets help"
 
-  override def applyInternal(args: List[String], conf: Map[String, String]): Unit = {
+  override def applyInternal(args: List[String], config: GlobalConfig): Unit = {
     DevClusterLauncher.printHelp
   }
 }
