@@ -8,8 +8,8 @@ import configs.syntax._
 
 object ConfigLoader {
   def apply(source: URL, target: URL): Result[GlobalConfig] = apply(
-    ConfigFactory.parseURL(source),
-    ConfigFactory.parseURL(target)
+    ConfigFactory.parseURL(source).resolve(),
+    ConfigFactory.parseURL(target).resolve()
   )
 
   def apply(source: Config, target: Config): Result[GlobalConfig] = (
