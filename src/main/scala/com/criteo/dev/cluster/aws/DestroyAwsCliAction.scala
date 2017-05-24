@@ -18,31 +18,30 @@ import scala.concurrent.ExecutionContext.Implicits.global
   override def command : String = "destroy-aws"
 
   override def usageArgs =
-    List(Option("cluster.id"))
+    List("cluster.id", Option("force"))
 
   override def help : String =
     "Destroys AWS cluster with given cluster.id." +
-      "  If no cluster.id is given, destroy all clusters for this user."
+      "  Second option must be force if trying to destroy a cluster for another user."
 
   private val logger = LoggerFactory.getLogger(DestroyAwsCliAction.getClass)
 
   def applyInternal(args: List[String], config: GlobalConfig): Unit = {
     logger.info("Connecting to AWS to fetch nodes to destroy.")
     val conf = config.backCompat
-    var results = {
-      if (args.length == 1) {
-        //instance id is optional
-        val instanceId = args(0)
-        Set(AwsUtilities.getUserCluster(conf, instanceId))
+    val instanceId = args(0)
+    var result = {
+      if (args.length == 2 && (args(1)).toLowerCase().equals("force")) {
+        AwsUtilities.getCluster(conf, instanceId)
       } else {
-        AwsUtilities.getUserClusters(conf)
+        AwsUtilities.getUserCluster(conf, instanceId)
       }
     }
-    results = results.filter(u => !u.master.getStatus().equals(Status.TERMINATED))
-    if (results.size == 0) {
-      logger.info("No clusters found matching criteria.")
+    if (result == null || result.master.getStatus().equals(Status.TERMINATED)) {
+      logger.info("No clusters found matching criteria, or force not specified for deleting cluster of other users.")
+      return
     }
-    destroy(conf, results)
+    destroy(conf, List(result))
   }
 
   def destroy(conf: Map[String, String], clusters: Iterable[JcloudCluster]) = {
