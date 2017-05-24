@@ -21,6 +21,8 @@ object CopyConstants {
 
   def sampleProb = "sample.prob"
 
+  def sampleSize = "sample.size"
+
   def sourceS3Scheme = "source.s3.hdfs.scheme"
 
   def sourceCopyScheme = "source.copy.scheme"

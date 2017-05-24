@@ -24,6 +24,7 @@ object SourceConfigParser {
   def table(config: Config): Result[TableConfig] = (
     config.get[String]("name") ~
     config.get[Option[Double]]("sample.prob") ~
+    config.get[Option[Long]]("sample.size") ~
     config.get[List[List[String]]]("partitions").orElse(Success(List.empty))
   )(TableConfig)
 

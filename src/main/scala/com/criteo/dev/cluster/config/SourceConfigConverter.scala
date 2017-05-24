@@ -21,8 +21,10 @@ object SourceConfigConverter {
       "gateway.docker.ports" -> config.gateway.dockerPorts.mkString(",")
     ) ++ {
       // table.sample.prob -> number
+      // table.sample.size -> number
       config.tables.collect {
-        case TableConfig(name, Some(sampleProb), _) => (s"$name.sample.prob", sampleProb.toString)
+        case TableConfig(name, _, Some(sampleSize), _) => (s"$name.sample.size", sampleSize.toString)
+        case TableConfig(name, Some(sampleProb), _, _) => (s"$name.sample.prob", sampleProb.toString)
       }
     } ++ config.gateway.conf.map { case (k, v) => (s"gateway.$k", v) }
   }

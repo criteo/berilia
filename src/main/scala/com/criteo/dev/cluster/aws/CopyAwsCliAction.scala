@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory
     val target = NodeFactory.getAwsNode(conf, master)
     val source = NodeFactory.getSourceFromConf(conf)
 
-    CopyAllAction(conf, source, target)
+    CopyAllAction(config, conf, source, target)
 
     logger.info(s"Successfully copied to cluster: ${cluster.master.getId}")
     AwsUtilities.printClusterInfo(conf, cluster)

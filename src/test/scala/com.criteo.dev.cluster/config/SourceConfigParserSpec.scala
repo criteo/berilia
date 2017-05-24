@@ -21,9 +21,11 @@ class SourceConfigParserSpec extends FlatSpec with Matchers {
       conf.productArity - 1 +
       conf.copyConfig.productArity - 1 +
       conf.gateway.productArity - 1 +
+      conf.gateway.conf.size - 1 +
       conf.tables.filter(_.sampleProb.isDefined).size +
-      conf.gateway.conf.size
+      conf.tables.filter(_.sampleSize.isDefined).size
     )
     res.size shouldEqual size
+    res.get("log.t2.sample.size") shouldBe Some("500")
   }
 }
