@@ -13,16 +13,19 @@ case class SourceConfig(
 
 /**
   * Table config
-  * @param name the name of the table
-  * @param sampleProb the sampling probability
-  * @param sampleSize the sampling size, which overrides the sample prob
-  * @param partitions the list of partitions
+  *
+  * @param name           the name of the table
+  * @param sampleProb     the sampling probability
+  * @param sampleSize     the sampling size, which overrides the sample prob
+  * @param partitions     the list of partitions
+  * @param partitionCount the number of partitions to be copied
   */
 case class TableConfig(
                         name: String,
                         sampleProb: Option[Double],
                         sampleSize: Option[Long],
-                        partitions: List[List[String]]
+                        partitions: List[List[String]],
+                        partitionCount: Option[Int]
                       )
 
 case class CopyConfig(
