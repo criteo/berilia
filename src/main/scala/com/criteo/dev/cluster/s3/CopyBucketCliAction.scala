@@ -30,6 +30,6 @@ object CopyBucketCliAction extends CliAction[Unit] {
     val source = NodeFactory.getSourceFromConf(conf)
 
     //parse source-tables.
-    CopyAllAction(conf, source, target)
+    CopyAllAction(config, conf, source, target)
   }
 }

@@ -1,7 +1,7 @@
 package com.criteo.dev.cluster.source
 
 import com.criteo.dev.cluster.Node
-import com.criteo.dev.cluster.config.GlobalConfig
+import com.criteo.dev.cluster.config.{GlobalConfig, TableConfig}
 import com.criteo.dev.cluster.copy.GetMetadataAction
 
 import scala.util.{Failure, Success, Try}
@@ -12,15 +12,15 @@ case class GetSourceSummaryAction(config: GlobalConfig, node: Node) {
     *
     * @return The table information related to HDFS
     */
-  def apply(): List[Either[InvalidTable, TableHDFSInfo]] = {
+  def apply(tables: List[TableConfig]): List[Either[InvalidTable, SourceTableInfo]] = {
     val conf = config.backCompat
     val getMetadata = new GetMetadataAction(conf, node)
 
-    val (validTables, invalidTables) = conf("source.tables")
-      .split(";")
-      .map(_.trim)
+    val tableSpecs = tables.map { table =>
+      (table.name :: table.partitions.map(_.mkString("(", ",", ")")).mkString(" ") :: Nil).mkString(" ")
+    }
+    val (validTables, invalidTables) = tableSpecs
       .map(tableSpec => (tableSpec, Try(getMetadata(tableSpec))))
-      .toList
       .partition(_._2.isSuccess)
     val tableAndLocations = validTables
       .flatMap { case (_, Success(m)) =>
@@ -32,16 +32,19 @@ case class GetSourceSummaryAction(config: GlobalConfig, node: Node) {
     tableAndLocations
       .zip(HDFSUtils.getFileSize(tableAndLocations.map(_._2), node))
       .groupBy { case ((m, _), _) => m }
-      .foldLeft(List.empty[TableHDFSInfo]) { case (acc, (table, results)) =>
-        TableHDFSInfo(
-          table.database,
-          table.ddl.table,
-          results.map(_._2).sum,
-          results.map(r => HDFSFileInfo(
-            r._1._2,
-            r._2
-          )),
-          table.partitions.size
+      .foldLeft(List.empty[SourceTableInfo]) { case (acc, (table, results)) =>
+        SourceTableInfo(
+          table,
+          TableHDFSInfo(
+            table.database,
+            table.ddl.table,
+            results.map(_._2).sum,
+            results.map(r => HDFSFileInfo(
+              r._1._2,
+              r._2
+            )),
+            table.partitions.size
+          )
         ) :: acc
       }
       .map(Right(_)) ++

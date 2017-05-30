@@ -1,12 +1,18 @@
 package com.criteo.dev.cluster.copy
 
 import com.criteo.dev.cluster._
+import com.criteo.dev.cluster.config.GlobalConfig
+import com.criteo.dev.cluster.source.SourceTableInfo
 import org.slf4j.LoggerFactory
 
 /**
   * Copy a Hive table.  Either directs to sampling or full copy of specified number of partitions.
+  * @param config The configuration
+  * @param conf The configuration in old format, used by CopyFileAction, should be deprecated
+  * @param source The source node
+  * @param target The target node
   */
-class CopyTableAction(conf: Map[String, String], source: Node, target: Node) {
+class CopyTableAction(config: GlobalConfig, conf: Map[String, String], source: Node, target: Node) {
 
   private val logger = LoggerFactory.getLogger(classOf[CopyTableAction])
 
@@ -14,31 +20,30 @@ class CopyTableAction(conf: Map[String, String], source: Node, target: Node) {
     * @param tableInfo source table info
     * @return target table info
     */
-  def copy(tableInfo: TableInfo): TableInfo = {
-
-    val sampleProbConf = CopyUtilities.getOverridableConf(conf,
-      tableInfo.database,
-      tableInfo.ddl.table,
-      CopyConstants.sampleProb)
-    val sampleProb = sampleProbConf.toDouble
-    require(sampleProb > 0 && sampleProb <= 1, "Sample probability must be between 0 (exclusive) and 1 (inclusive)")
-
-    val partitions = tableInfo.partitions
-    val partLocations = partitions.map(_.location)
-
-    val res : TableInfo = if (sampleProb == 1 || underThreshold(partLocations)) {
-      //sampling disabled for table, or size to copy less than configured sampling threshold, skip sampling.
-      val fullCopy = new FullCopyTableAction(conf, source, target)
-      fullCopy.copy(tableInfo)
-    } else {
-      //sample
-      val sampleCopy = new SampleCopyTableAction(conf, source, target, sampleProb)
-      sampleCopy.copy(tableInfo)
-    }
-
-    // Special handling
-    fireEvents(conf, tableInfo)
-    return res
+  def copy(sourceTableInfo: SourceTableInfo): TableInfo = {
+    val tableInfo = sourceTableInfo.tableInfo
+    val hdfsInfo = sourceTableInfo.hdfsInfo
+    val tableName = s"${tableInfo.database}.${tableInfo.name}"
+    config.source.tables
+      .find(_.name == tableName)
+      .map { t =>
+        t.sampleSize.map(_.toDouble / hdfsInfo.size).orElse(t.sampleProb).getOrElse(config.source.defaultSampleProb)
+      }
+      .map { sampleProb =>
+        val partitions = tableInfo.partitions
+        val partLocations = partitions.map(_.location)
+        val res: TableInfo = if (sampleProb >= 1 || underThreshold(partLocations)) {
+          logger.info(s"Copying $tableName without sampling ")
+          new FullCopyTableAction(conf, source, target).copy(tableInfo)
+        } else {
+          logger.info(s"Copying $tableName with sample prob $sampleProb")
+          new SampleCopyTableAction(conf, source, target, sampleProb).copy(tableInfo)
+        }
+        // Special handling
+        fireEvents(conf, tableInfo)
+        res
+      }
+      .get
   }
 
   def fireEvents(conf: Map[String, String], tableInfo: TableInfo) = {
@@ -54,7 +59,7 @@ class CopyTableAction(conf: Map[String, String], source: Node, target: Node) {
   }
 
 
-  def underThreshold(sourceFiles: Array[String]) : Boolean = {
+  def underThreshold(sourceFiles: Array[String]): Boolean = {
     val listAction = new SshMultiAction(source)
     sourceFiles.foreach(sf => {
       logger.info(s"Checking directory for need of sampling: $sf")
@@ -64,7 +69,7 @@ class CopyTableAction(conf: Map[String, String], source: Node, target: Node) {
     val sampleThresholdConf = GeneralUtilities.getConfStrict(conf, CopyConstants.sampleThreshold, GeneralConstants.sourceProps)
     val sampleThreshold = sampleThresholdConf.toLong
     val list = listAction.run(returnResult = true).split("\n")
-    val totalSize = list.foldLeft(0L) ((sum, l) => {
+    val totalSize = list.foldLeft(0L)((sum, l) => {
       val fileInfo = l.split("\\s+")
       if (fileInfo.length > 7) {
         val fileName = fileInfo(7)

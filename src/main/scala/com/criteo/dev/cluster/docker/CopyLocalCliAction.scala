@@ -24,7 +24,7 @@ import com.criteo.dev.cluster.{CliAction, NodeFactory, Public}
     val source = NodeFactory.getSourceFromConf(conf)
 
     //TODO- hack, the docker id should go into "target" Node object, but currently Node does not have sub-classes
-    CopyAllAction(conf + (DockerConstants.localContainerId -> runningDockerMeta(0).id), source, target)
+    CopyAllAction(config, conf + (DockerConstants.localContainerId -> runningDockerMeta(0).id), source, target)
 
     DockerUtilities.printClusterDockerContainerInfo(conf, dockerMeta)
   }

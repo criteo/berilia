@@ -11,9 +11,17 @@ case class SourceConfig(
                          gateway: GatewayConfig
                        )
 
+/**
+  * Table config
+  * @param name the name of the table
+  * @param sampleProb the sampling probability
+  * @param sampleSize the sampling size, which overrides the sample prob
+  * @param partitions the list of partitions
+  */
 case class TableConfig(
                         name: String,
                         sampleProb: Option[Double],
+                        sampleSize: Option[Long],
                         partitions: List[List[String]]
                       )
 
