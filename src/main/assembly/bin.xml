@@ -13,7 +13,6 @@
             <outputDirectory>/</outputDirectory>
             <includes>
                 <include>README*</include>
-                <include>conf/**</include>
             </includes>
         </fileSet>
 
