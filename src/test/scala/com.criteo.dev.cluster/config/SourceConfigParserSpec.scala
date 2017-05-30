@@ -8,7 +8,7 @@ class SourceConfigParserSpec extends FlatSpec with Matchers {
   "SourceConfigParser" should "parse a config into a SourceConfig" in {
     val res = SourceConfigParser(config)
     res.isSuccess shouldBe true
-    res.value.tables should have size (2)
+    res.value.tables should have size (3)
     res.value.gateway.conf shouldEqual Map(
       "dc1.conf" -> "client_dc1"
     )
@@ -23,7 +23,8 @@ class SourceConfigParserSpec extends FlatSpec with Matchers {
       conf.gateway.productArity - 1 +
       conf.gateway.conf.size - 1 +
       conf.tables.filter(_.sampleProb.isDefined).size +
-      conf.tables.filter(_.sampleSize.isDefined).size
+      conf.tables.filter(_.sampleSize.isDefined).size +
+      conf.tables.filter(_.partitionCount.isDefined).size
     )
     res.size shouldEqual size
     res.get("log.t2.sample.size") shouldBe Some("500")

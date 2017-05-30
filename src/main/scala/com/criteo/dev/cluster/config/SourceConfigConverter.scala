@@ -23,8 +23,13 @@ object SourceConfigConverter {
       // table.sample.prob -> number
       // table.sample.size -> number
       config.tables.collect {
-        case TableConfig(name, _, Some(sampleSize), _) => (s"$name.sample.size", sampleSize.toString)
-        case TableConfig(name, Some(sampleProb), _, _) => (s"$name.sample.prob", sampleProb.toString)
+        case TableConfig(name, _, Some(sampleSize), _, _) => (s"$name.sample.size", sampleSize.toString)
+        case TableConfig(name, Some(sampleProb), _, _, _) => (s"$name.sample.prob", sampleProb.toString)
+      }
+    } ++ {
+      // table.partition.count -> number
+      config.tables.collect {
+        case TableConfig(name, _, _, _, Some(partitionCount)) => (s"$name.partition.count", partitionCount.toString)
       }
     } ++ config.gateway.conf.map { case (k, v) => (s"gateway.$k", v) }
   }
