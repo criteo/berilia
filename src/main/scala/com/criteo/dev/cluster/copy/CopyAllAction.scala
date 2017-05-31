@@ -1,10 +1,12 @@
 package com.criteo.dev.cluster.copy
 
-import java.time.{Duration, Instant}
+import java.io.{File, PrintWriter}
+import java.time.format.DateTimeFormatter
+import java.time.{Duration, Instant, ZoneId}
 
-import com.criteo.dev.cluster.s3.{BucketUtilities, DataType, UploadS3Action}
 import com.criteo.dev.cluster._
-import com.criteo.dev.cluster.config.GlobalConfig
+import com.criteo.dev.cluster.config.{Checkpoint, CheckpointWriter, GlobalConfig}
+import com.criteo.dev.cluster.s3.{BucketUtilities, DataType, UploadS3Action}
 import com.criteo.dev.cluster.source.{GetSourceSummaryAction, InvalidTable, SourceTableInfo}
 import org.slf4j.LoggerFactory
 
@@ -16,6 +18,8 @@ import scala.util.{Failure, Success, Try}
 object CopyAllAction {
 
   private val logger = LoggerFactory.getLogger(CopyAllAction.getClass)
+  type CopySuccess = (SourceTableInfo, Duration)
+  type CopyFailure = (SourceTableInfo, Duration, Throwable)
 
   def apply(config: GlobalConfig, conf: Map[String, String], source: Node, target: Node) = {
     val sourceTables = GeneralUtilities.getNonEmptyConf(conf, CopyConstants.sourceTables)
@@ -24,12 +28,32 @@ object CopyAllAction {
     require((sourceTables.isDefined || sourceFiles.isDefined),
       "No source tables or files configured")
 
-    //copy source tables
+    //copy source tables from the checkpoint
     val begin = Instant.now
-    val (invalid, valid) = GetSourceSummaryAction(config, source)(config.source.tables).partition(_.isLeft)
+    val checkpoint = config.checkpoint match {
+      case Some(c) =>
+        logger.info(s"Copying from a checkpoint, todo: ${c.todo.size}, finished: ${c.finished.size}, failed: ${c.failed.size}")
+        c
+      case None =>
+        logger.info(s"Copying all")
+        Checkpoint(
+          begin,
+          begin,
+          todo = config.source.tables.map(_.name).toSet
+        )
+    }
+    val (invalid, valid) = GetSourceSummaryAction(config, source)(config.source.tables.filter(t => checkpoint.todo.contains(t.name))).partition(_.isLeft)
+    // update the checkpoint file after getting the source summary
+    val updatedCheckpoint = checkpoint.copy(
+      updated = Instant.now,
+      todo = valid.map(_.right.get.tableInfo.fullName).toSet,
+      failed = invalid.map(_.left.get.name).toSet
+    )
+    writeCheckpoint(updatedCheckpoint)
     val results = valid
       .map(_.right.get)
-      .map { sourceTableInfo =>
+      .foldLeft((updatedCheckpoint, List.empty[Either[CopySuccess, CopyFailure]])) { case ((c, results), sourceTableInfo) =>
+        val tableFullName = sourceTableInfo.tableInfo.fullName
         val start = Instant.now
         Try {
           val copyTableAction = new CopyTableAction(config, conf, source, target)
@@ -38,12 +62,22 @@ object CopyAllAction {
           createMetadataAction(tt)
         } match {
           case Success(_) =>
-            Left((sourceTableInfo, Duration.between(start, Instant.now)))
+            val cp = c.copy(
+              todo = c.todo - tableFullName,
+              finished = c.finished + tableFullName
+            )
+            writeCheckpoint(cp)
+            (cp, Left((sourceTableInfo, Duration.between(start, Instant.now))) :: results)
           case Failure(e) =>
-            Right((sourceTableInfo, Duration.between(start, Instant.now), e))
+            val cp = c.copy(
+              todo = c.todo - tableFullName,
+              failed = c.failed + tableFullName
+            )
+            writeCheckpoint(cp)
+            (cp, Right((sourceTableInfo, Duration.between(start, Instant.now), e)) :: results)
         }
       }
-    printCopyTableResult(begin, invalid.map(_.left.get), results)
+    printCopyTableResult(begin, invalid.map(_.left.get), results._2)
 
     //copy files
     if (sourceFiles.isDefined) {
@@ -64,10 +98,10 @@ object CopyAllAction {
   }
 
   def printCopyTableResult(
-                     start: Instant,
-                     invalidTables: List[InvalidTable],
-                     copyResult: List[Either[(SourceTableInfo, Duration), (SourceTableInfo, Duration, Throwable)]]
-                   ) = {
+                            start: Instant,
+                            invalidTables: List[InvalidTable],
+                            copyResult: List[Either[(SourceTableInfo, Duration), (SourceTableInfo, Duration, Throwable)]]
+                          ) = {
     invalidTables.foreach { i =>
       logger.info(s"Skipped copying ${i.input} ${i.message}")
     }
@@ -87,4 +121,22 @@ object CopyAllAction {
     )
     logger.info(s"Total time elapsed ${Duration.between(start, Instant.now).getSeconds} seconds")
   }
+
+  def writeCheckpoint(checkpoint: Checkpoint): Unit = {
+    val out = CheckpointWriter.render(checkpoint)
+    val path = s"./checkpoint_${dateFormatter.format(checkpoint.created)}.json"
+    val file = new File(path)
+    try {
+      logger.info(s"Writing checkpoint to $path")
+      val pw = new PrintWriter(file)
+      pw.print(out)
+      pw.close()
+      logger.info(s"checkpoint written to $path")
+    } catch {
+      case e: Throwable =>
+        logger.error(e.getMessage, e)
+    }
+  }
+
+  private val dateFormatter = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss").withZone(ZoneId.systemDefault())
 }

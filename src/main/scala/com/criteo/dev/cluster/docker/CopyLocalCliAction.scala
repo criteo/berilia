@@ -33,6 +33,6 @@ import com.criteo.dev.cluster.{CliAction, NodeFactory, Public}
 
   override def usageArgs: List[Any] = List("container.id")
 
-  override def help: String = "Copies sample data from gateway to node identified by container.id"
+  override def help: String = "Copies sample data from gateway to node identified by container.id, the copy progress can be restored with --checkpoint=<checkpoint file> option"
 
 }

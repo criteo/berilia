@@ -17,7 +17,7 @@ import org.slf4j.LoggerFactory
 
   override def usageArgs: List[Any] = List("cluster.id")
 
-  override def help: String = "Copies sample data from gateway to AWS cluster identified by cluster.id"
+  override def help: String = "Copies sample data from gateway to AWS cluster identified by cluster.id, the copy progress can be restored with --checkpoint=<checkpoint file> option"
 
   override def applyInternal(args: List[String], config: GlobalConfig): Unit = {
     //find the ip

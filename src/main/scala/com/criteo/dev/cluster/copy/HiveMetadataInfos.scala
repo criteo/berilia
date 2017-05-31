@@ -7,7 +7,9 @@ case class TableInfo(
                       name: String,
                       ddl: CreateTable,
                       partitions: Array[PartitionInfo]
-                    )
+                    ) {
+  def fullName = s"$database.$name"
+}
 
 case class PartitionInfo(location: String, partSpec: PartSpec)
 
