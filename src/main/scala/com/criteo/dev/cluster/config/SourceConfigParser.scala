@@ -14,6 +14,7 @@ object SourceConfigParser {
     config.get[String]("s3.hdfs.scheme") ~
     config.get[Double]("default.sample.prob") ~
     config.get[Int]("default.partition.count") ~
+    config.get[Option[Long]]("default.sample.size") ~
     config.get[String]("sample.database") ~
     gateway(config)
   )(SourceConfig)
