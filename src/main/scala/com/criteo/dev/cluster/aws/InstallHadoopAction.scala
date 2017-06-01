@@ -33,7 +33,7 @@ object InstallHadoopAction {
       //script will check if the specified hadoop version is valid.
       SshAction(masterNode, s"source setup.sh $hadoopVersion")
       SshAction(masterNode, "rm setup.sh")
-      CopyJarAction(conf, cluster.master, NodeRole.Master)
+      CopyHiveJarAction(conf, cluster.master, NodeRole.Master)
       "" //otherwise there is NPE
     }
 

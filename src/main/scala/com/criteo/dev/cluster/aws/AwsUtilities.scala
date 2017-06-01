@@ -162,6 +162,11 @@ object AwsUtilities {
 
   //Helper methods for NodeMeta.  TODO- use AwsNodeMeta modeled class instead of jclouds class internally.
 
+  def isSlave(nm: NodeMetadata) : Boolean = {
+    val masterId = nm.getUserMetadata.get(AwsConstants.master)
+    return masterId != null
+  }
+
   def ipAddress(nm : NodeMetadata) : String = {
     val publicAddresses = nm.getPublicAddresses
     if (publicAddresses.size() == 0) {
@@ -339,14 +344,13 @@ object AwsUtilities {
   def nodeInformation(conf: Map[String, String], u : NodeMetadata) : String = {
     val sb = new StringBuilder(s"Instance id: [${AwsUtilities.stripRegion(conf, u.getId())}], state: ${u.getStatus()}")
     val shortHostName = u.getUserMetadata.get(AwsConstants.hostName)
-    val isSlave = u.getUserMetadata.get(AwsConstants.master) != null
     if (shortHostName != null) {
       sb.append(s", hostName: [$shortHostName]")
     }
     if (u.getStatus() == Status.RUNNING) {
       val ip = ipAddress(u)
       sb.append(s", ip: [$ip]")
-      if (!isSlave) {
+      if (!isSlave(u)) {
         sb.append(s", created: ${u.getUserMetadata.get(AwsConstants.createTime)} (UTC)" +
           s", expires: ${u.getUserMetadata.get(AwsConstants.expireTime)} (UTC)")
       }
