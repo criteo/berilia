@@ -16,7 +16,7 @@ object RsyncAction {
     (o: String) => logger.info(o),
     (e: String) => logger.error(e))
 
-  def apply(srcPath: String, targetN: Node, targetPath: String) : Unit = {
+  def apply(srcPath: String, targetN: Node, targetPath: String, sudo: Boolean = false) : Unit = {
     var command = scala.collection.mutable.ListBuffer[String]()
     command += "rsync"
     command += "-rvvz"
@@ -37,6 +37,10 @@ object RsyncAction {
     }
     command += sshStr.toString
 
+    if (sudo) {
+      command += "--rsync-path=sudo rsync"
+    }
+
     command += srcPath
 
     val targetPathFull = new StringBuilder()
@@ -46,8 +50,6 @@ object RsyncAction {
     targetPathFull.append(s"$targetIp:")
     targetPathFull.append(targetPath)
     command += targetPathFull.toString
-
-    logger.info(command.mkString(" "))
 
     val p = DevClusterProcess.processSeq(command)
     GeneralUtilities.checkStatus(p.!(processLogger))

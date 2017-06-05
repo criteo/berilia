@@ -44,7 +44,8 @@ object CommandRegistry {
       CopyBucketAwsAction,
       TagAwsCliAction,
       UntagAwsCliAction,
-      QueryTagAwsCliAction
+      QueryTagAwsCliAction,
+      CopyJarAwsCliAction
     ),
     Some(GeneralConstants.awsType))
 

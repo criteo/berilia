@@ -11,9 +11,9 @@ import org.slf4j.LoggerFactory
   *
   * For now, only master node has Hive installed.
   */
-object CopyJarAction {
+object CopyHiveJarAction {
 
-  private val logger = LoggerFactory.getLogger(CopyJarAction.getClass)
+  private val logger = LoggerFactory.getLogger(CopyHiveJarAction.getClass)
 
   def apply(conf: Map[String, String], nodeMeta: NodeMetadata, nodeRole: NodeRole): Unit = {
 
