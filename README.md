@@ -66,9 +66,12 @@ Create and manage single-node Hadoop/Hive dev cluster on local Docker, with abil
 * Supported on Mac using Docker for Mac (newer) or Docker Toolbox (docker-machine).
 
 ##### Configuration
-Files: [./conf/target-local.xml] (./conf/target-local.xml) and [./conf/target-common.xml] (./conf/target-common.xml)
-* CDH Version, OS, Setup Scripts, Parameterized Hadoop Configuration Files (defaults provided)
-* Additional Docker configuration (optional: ports to expose, additional docker-files to install custom tools)
+Files: Samples provided in [./conf/source.conf] (./conf/target.conf]
+* In general, source is for data source (copy data to dev cluster)
+* In general, target is for dev cluster (here, put settings for AWS account, docker, etc)
+* dev-cluster will look in local directory for file named "source.conf" and "target.conf"
+* To run with other configuration for source, run --source=./path/to/conf/file.
+* To run with other configuration for target, run --target=./path/to/conf/file.
 
 ##### Notes
 * Local clusters run in background and use the resources of the local machine

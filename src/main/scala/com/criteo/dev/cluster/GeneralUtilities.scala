@@ -82,7 +82,7 @@ object GeneralUtilities {
   def getConfStrict(conf: Map[String, String], key: String, expectedFile: String) : String = {
     val result = conf.get(key)
     require (result.isDefined && !result.get.trim.isEmpty,
-      s"Please configure $key in file [$expectedFile] in /conf.")
+      s"Please configure $key in file [$expectedFile].")
     result.get
   }
 

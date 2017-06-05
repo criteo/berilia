@@ -57,7 +57,7 @@ object DockerUtilities {
   }
 
 
-  def getSshHost(conf: Map[String, String]) : String = {
+  def getSshHost : String = {
     val activeCmd = "docker-machine active"
     try {
       val active = DevClusterProcess.process(activeCmd).!!.stripLineEnd
@@ -81,19 +81,19 @@ object DockerUtilities {
     portMapping.split(":")(1)
   }
 
-  def getSshCommand(conf: Map[String, String], host: String, containerId : String) : String = {
+  def getSshCommand(host: String, containerId : String) : String = {
     val port = getSshPort(containerId)
     s"ssh -o StrictHostKeyChecking=no -i ${DockerConstants.dockerPrivateKey} root@$host -p $port"
   }
 
   def printClusterDockerContainerInfo(conf: Map[String, String], dockerMetas : Array[DockerMeta]) = {
-    val host = getSshHost(conf)
+    val host = getSshHost
     println
     dockerMetas.foreach(a => {
       println(s"Instance id: [${a.id}], State: [${a.dockerState}], Created: [${a.createDate}]")
 
       if (a.dockerState == DockerRunning) {
-        println("%-20s%s".format("SSH command:", getSshCommand(conf, host, a.id)))
+        println("%-20s%s".format("SSH command:", getSshCommand(host, a.id)))
         println("Ports:")
         printClusterPorts(a.id, host, a.portMetas)
       }
@@ -120,7 +120,7 @@ object DockerUtilities {
   }
 
   def printGatewayDockerContainerInfo(conf: Map[String, String], dockerMetas : Array[DockerMeta]) = {
-    val host = getSshHost(conf)
+    val host = getSshHost
     println
     dockerMetas.foreach(a => {
       println(s"Instance id: [${a.id}], State: [${a.dockerState}], Created: [${a.createDate}]")

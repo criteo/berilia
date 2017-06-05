@@ -1,6 +1,7 @@
 package com.criteo.dev.cluster.aws
 
 import com.criteo.dev.cluster._
+import com.criteo.dev.cluster.config.AWSConfig
 import org.slf4j.LoggerFactory
 
 import scala.collection.mutable
@@ -15,13 +16,13 @@ object ConfigureDiskAction {
 
   private val logger = LoggerFactory.getLogger(ConfigureDiskAction.getClass)
 
-  def apply(conf: Map[String, String], cluster: JcloudCluster) : List[String] = {
+  def apply(conf: AWSConfig, cluster: JcloudCluster) : List[String] = {
 
     logger.info(s"Mounting disks on ${cluster.size} host(s) in parallel")
 
     val nodes = cluster.slaves + cluster.master
     val allFutures = nodes.map(n => GeneralUtilities.getFuture {
-      configureDisk(conf, NodeFactory.getAwsNode(conf, n))
+      configureDisk(NodeFactory.getAwsNode(conf, n))
     })
     val aggFuture = Future.sequence(allFutures)
     val result: mutable.Set[List[String]] = Await.result(aggFuture, Duration.Inf)
@@ -31,7 +32,7 @@ object ConfigureDiskAction {
   /**
     * Lists all unmounted partitions and mounts them.
     */
-  def configureDisk(conf: Map[String, String], node: Node) : List[String] = {
+  def configureDisk(node: Node) : List[String] = {
     val result = SshAction(node, "lsblk", returnResult = true).stripLineEnd
     logger.info(s"Block information on ${node.ip}:")
     val lines = result.split("\n").map(_.trim)

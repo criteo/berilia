@@ -26,8 +26,8 @@ import org.slf4j.LoggerFactory
     val cluster = AwsUtilities.getCluster(conf, instanceId)
     val master = cluster.master
     require(master.getStatus().equals(Status.RUNNING), "No clusters found in RUNNING state matching criteria.")
-    val target = NodeFactory.getAwsNode(conf, master)
-    val source = NodeFactory.getSourceFromConf(conf)
+    val target = NodeFactory.getAwsNode(config.target.aws, master)
+    val source = NodeFactory.getSourceFromConf(config.source)
 
     CopyAllAction(config, conf, source, target)
 

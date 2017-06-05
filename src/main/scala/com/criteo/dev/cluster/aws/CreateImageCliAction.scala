@@ -44,10 +44,10 @@ object CreateImageCliAction extends CliAction[Unit] {
     val cluster = CreateClusterAction(conf, 2, baseImage, baseImage)
 
     //configure some hosts
-    ConfigureHostsAction(conf, List(cluster))
+    ConfigureHostsAction(config.target.aws, List(cluster))
 
     //Install CDH5.5
-    InstallHadoopAction(conf, cluster)
+    InstallHadoopAction(config.target, config.backCompat, cluster)
 
 
     val description = if (args.length > 1) {

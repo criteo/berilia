@@ -34,9 +34,9 @@ import scala.sys.process.Process
       DevClusterProcess.process  (command).!!
 
       //add other required confs needed by the setup action (target ip, port)
-      val dockerCluster = NodeFactory.getDockerNode(conf, d)
+      val dockerCluster = NodeFactory.getDockerNode(config.target.local, d)
       DockerUtilities.blockOnSsh(dockerCluster)
-      StartServiceAction(conf, dockerCluster, NodeRole.Master)
+      StartServiceAction(dockerCluster, NodeRole.Master)
 
       //print out new docker container info.
       val dockerMetas = DockerUtilities.getDockerContainerMetadata(

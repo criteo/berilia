@@ -1,6 +1,7 @@
 package com.criteo.dev.cluster.aws
 
 import com.criteo.dev.cluster._
+import com.criteo.dev.cluster.config.AWSConfig
 import org.slf4j.LoggerFactory
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -14,7 +15,15 @@ object CopyConfAction {
 
   private val logger = LoggerFactory.getLogger(CopyConfAction.getClass)
 
-  def apply(conf: Map[String, String], cluster: JcloudCluster, mount: List[String]) = {
+  /**
+    *
+    * @param awsConf
+    * @param conf for backward compatibility, to be removed
+    * @param cluster
+    * @param mount
+    * @return
+    */
+  def apply(awsConf: AWSConfig, conf: Map[String, String], cluster: JcloudCluster, mount: List[String]) = {
     logger.info(s"Copying Hadoop configuration to ${cluster.size} nodes in parallel.")
 
     val srcDir = {
@@ -27,7 +36,7 @@ object CopyConfAction {
     }
 
     val masterFuture = GeneralUtilities.getFuture {
-      val master = NodeFactory.getAwsNode(conf, cluster.master)
+      val master = NodeFactory.getAwsNode(awsConf, cluster.master)
       SshAction(master, "mkdir -p ./conf")
       ScpAction(
         sourceN=None,
@@ -71,7 +80,7 @@ object CopyConfAction {
     }
 
     val allFutures = Set(masterFuture) ++ cluster.slaves.map(s => GeneralUtilities.getFuture {
-      val slaveNode = NodeFactory.getAwsNode(conf, s)
+      val slaveNode = NodeFactory.getAwsNode(awsConf, s)
       SshAction(slaveNode, "mkdir -p ./conf")
       ScpAction(
         sourceN=None,

@@ -51,7 +51,7 @@ class S3Test extends FunSuite with BeforeAndAfter with LoadConfig {
     //Create a docker cluster
     val dockerMeta = CreateLocalCliAction(List(), config)
 
-    val dockerNode = NodeFactory.getDockerNode(conf, dockerMeta)
+    val dockerNode = NodeFactory.getDockerNode(config.target.local, dockerMeta)
 
     //create database, verify
     SshHiveAction(dockerNode, List(s"create database $testDbName"))
@@ -84,7 +84,7 @@ class S3Test extends FunSuite with BeforeAndAfter with LoadConfig {
       s"hdfs dfs -put $testFileName /tmp/$testDirName"))
 
     val copyTableConf = conf + ("source.user" -> conf.get("target.local.cluster.user").get) +
-      ("source.address" -> DockerUtilities.getSshHost(conf)) +
+      ("source.address" -> DockerUtilities.getSshHost) +
       ("source.port" -> DockerUtilities.getSshPort(dockerMeta.id)) +
       ("source.tables" -> s"$testDbName.$testTableName") +
       ("source.key.file" -> DockerConstants.dockerPrivateKey)
@@ -92,7 +92,7 @@ class S3Test extends FunSuite with BeforeAndAfter with LoadConfig {
     CopyBucketCliAction(List(testBucketName), config.copy(backCompat = copyTableConf))
 
     val copyFileConf = conf + ("source.user" -> conf.get("target.local.cluster.user").get) +
-      ("source.address" -> DockerUtilities.getSshHost(conf)) +
+      ("source.address" -> DockerUtilities.getSshHost) +
       ("source.port" -> DockerUtilities.getSshPort(dockerMeta.id)) +
       ("source.files" -> s"/tmp/$testDirName/$testFileName") +
       ("source.key.file" -> DockerConstants.dockerPrivateKey)
@@ -120,7 +120,7 @@ class S3Test extends FunSuite with BeforeAndAfter with LoadConfig {
 
   test("Create a new docker cluster and point data to it.") {
     val dockerMeta = CreateLocalCliAction(List(), config)
-    val dockerNode = NodeFactory.getDockerNode(conf, dockerMeta)
+    val dockerNode = NodeFactory.getDockerNode(config.target.local, dockerMeta)
     AttachBucketLocalCliAction(List(testBucketName, dockerMeta.id), config)
     val resultPartitions = SshHiveAction(dockerNode, List(s"show partitions $testDbName.$testTableName"))
     val partitions = resultPartitions.split("\n")

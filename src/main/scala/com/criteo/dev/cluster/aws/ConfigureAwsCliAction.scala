@@ -19,8 +19,8 @@ import com.criteo.dev.cluster.config.GlobalConfig
     val conf = config.backCompat
     val cluster = AwsUtilities.getUserCluster(conf, instanceId)
 
-    val mountDirs = getDataDirs(NodeFactory.getAwsNode(conf, cluster.master))
-    CopyConfAction(conf, cluster, mountDirs)
+    val mountDirs = getDataDirs(NodeFactory.getAwsNode(config.target.aws, cluster.master))
+    CopyConfAction(config.target.aws, conf, cluster, mountDirs)
 
     AwsUtilities.printClusterInfo(conf, cluster)
   }

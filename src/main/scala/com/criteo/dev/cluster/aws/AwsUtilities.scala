@@ -4,6 +4,7 @@ import java.util
 import java.util.Properties
 
 import com.criteo.dev.cluster.aws.AwsUtilities.NodeRole.NodeRole
+import com.criteo.dev.cluster.config.CommonConfig
 import com.criteo.dev.cluster.s3.BucketUtilities
 import com.criteo.dev.cluster.{GeneralConstants, GeneralUtilities}
 import com.google.common.base.Predicate
@@ -448,8 +449,8 @@ object AwsUtilities {
 
   //Generic setup stuff
 
-  def getOsSetupScript(conf: Map[String, String], nodeRole: NodeRole) = {
-    val osString = GeneralUtilities.getConfStrict(conf, GeneralConstants.os, GeneralConstants.targetCommonProps)
+  def getOsSetupScript(commonConfig: CommonConfig, nodeRole: NodeRole) = {
+    val osString = commonConfig.baseOS
     osString match {
       case GeneralConstants.ubuntu_trusty => {
         nodeRole match {
@@ -462,7 +463,7 @@ object AwsUtilities {
     }
   }
 
-  def getStartServiceScript(conf: Map[String, String], nodeRole: NodeRole) = {
+  def getStartServiceScript(nodeRole: NodeRole) = {
     nodeRole match {
       case NodeRole.Master => "start/start-master.sh"
       case NodeRole.Slave => "start/start-slave.sh"

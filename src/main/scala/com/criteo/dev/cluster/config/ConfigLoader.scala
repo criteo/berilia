@@ -2,10 +2,12 @@ package com.criteo.dev.cluster.config
 
 import java.net.URL
 
-import com.typesafe.config.{Config, ConfigFactory}
+import com.criteo.dev.cluster.Public
+import com.typesafe.config.{Config, ConfigFactory, ConfigParseOptions, ConfigResolveOptions}
 import configs.Result
 import configs.syntax._
 
+@Public
 object ConfigLoader {
   def apply(source: URL, target: URL): Result[GlobalConfig] = apply(
     ConfigFactory.parseURL(source).resolve(),
@@ -16,4 +18,6 @@ object ConfigLoader {
     SourceConfigParser(source) ~
     TargetConfigParser(target)
   )(GlobalConfig(_,_)).map(_.withBackCompat)
+
+
 }

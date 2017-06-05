@@ -12,8 +12,8 @@ object StartServiceAction {
 
   private val logger = LoggerFactory.getLogger(StartServiceAction.getClass)
 
-  def apply(conf: Map[String, String], node: Node, nodeRole: NodeRole): Unit = {
-    val startScript = AwsUtilities.getStartServiceScript(conf, nodeRole)
+  def apply(node: Node, nodeRole: NodeRole): Unit = {
+    val startScript = AwsUtilities.getStartServiceScript(nodeRole)
     logger.info(s"Running $startScript on node ${node.ip}")
     ScpAction(
       sourceN = None,

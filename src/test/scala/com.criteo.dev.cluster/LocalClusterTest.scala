@@ -42,7 +42,7 @@ class LocalClusterTest extends FunSuite with BeforeAndAfter with LoadConfig {
     val dockerMeta = getDockerMeta(dockerId, dockerMetas)
 
     //Run some Hive commands on the docker cluster.
-    val dockerNode = NodeFactory.getDockerNode(conf, dockerMeta)
+    val dockerNode = NodeFactory.getDockerNode(config.target.local, dockerMeta)
 
     //create database, verify
     SshHiveAction(dockerNode, List(s"create database $testDbName"))
@@ -102,7 +102,7 @@ class LocalClusterTest extends FunSuite with BeforeAndAfter with LoadConfig {
     assertResult(DockerRunning) (dockerMeta.dockerState)
 
     //Run the same query as in the last test.  Data should still be in the cluster.
-    val dockerNode = NodeFactory.getDockerNode(conf, dockerMeta)
+    val dockerNode = NodeFactory.getDockerNode(config.target.local, dockerMeta)
     val results = SshHiveAction(dockerNode, List(s"select count(*) from $testDbName.$testTableName"))
     assertResult("8") (results.stripLineEnd)
   }
@@ -117,7 +117,7 @@ class LocalClusterTest extends FunSuite with BeforeAndAfter with LoadConfig {
 
     //create the source configuration to specify what to copy from the original cluster
     val newSourceConf = conf + ("source.user" -> conf.get("target.local.cluster.user").get) +
-      ("source.address" -> DockerUtilities.getSshHost(conf)) +
+      ("source.address" -> DockerUtilities.getSshHost) +
       ("source.port" -> DockerUtilities.getSshPort(dockerId)) +
       ("source.tables" -> s"$testDbName.$testTableName") +
       ("source.key.file" -> DockerConstants.dockerPrivateKey)
@@ -127,7 +127,7 @@ class LocalClusterTest extends FunSuite with BeforeAndAfter with LoadConfig {
     CopyLocalCliAction(List(newDockerId), config.copy(backCompat = newSourceConf))
 
     //verify.  As we only copied 2 partitions out of 4, it should be half the data
-    val dockerNode = NodeFactory.getDockerNode(conf, newDockerMeta)
+    val dockerNode = NodeFactory.getDockerNode(config.target.local, newDockerMeta)
     val results = SshHiveAction(dockerNode, List(s"select count(*) from $testDbName.$testTableName"))
     assertResult("4") (results.stripLineEnd)
 
@@ -146,11 +146,11 @@ class LocalClusterTest extends FunSuite with BeforeAndAfter with LoadConfig {
 
     val dockerMetas = ListDockerCliAction(List(), config)
     val dockerMeta = getDockerMeta(dockerId, dockerMetas)
-    val dockerNode = NodeFactory.getDockerNode(conf, dockerMeta)
+    val dockerNode = NodeFactory.getDockerNode(config.target.local, dockerMeta)
 
       val newDockerMeta = CreateLocalCliAction(List(), config)
 
-    val newDockerNode = NodeFactory.getDockerNode(conf, newDockerMeta)
+    val newDockerNode = NodeFactory.getDockerNode(config.target.local, newDockerMeta)
 
     //create partition table with 4 partitions, and two unpartitioned tables, to test both case.
     SshHiveAction(dockerNode, List(s"create database if not exists dev_cluster_sample",
@@ -179,7 +179,7 @@ class LocalClusterTest extends FunSuite with BeforeAndAfter with LoadConfig {
     //create the source configuration to specify sample for some tables, and not for other tables,
     //to test both cases
     val newSourceConf = conf + ("source.user" -> conf.get("target.local.cluster.user").get) +
-      ("source.address" -> DockerUtilities.getSshHost(conf)) +
+      ("source.address" -> DockerUtilities.getSshHost) +
       ("source.port" -> DockerUtilities.getSshPort(dockerId)) +
       ("source.tables" -> s"$testDbName.$testTableName2, $testDbName.$testTableName3, $testDbName.$testTableName4") +
       ("source.key.file" -> DockerConstants.dockerPrivateKey) +

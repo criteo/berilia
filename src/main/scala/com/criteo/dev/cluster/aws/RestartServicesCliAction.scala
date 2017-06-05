@@ -20,6 +20,6 @@ import org.jclouds.compute.domain.NodeMetadata.Status
     val conf = config.backCompat
     val cluster = AwsUtilities.getUserCluster(conf, id)
     require (cluster.master.getStatus().equals(Status.RUNNING), "No clusters found in RUNNING state.")
-    StartClusterAction(conf, List(cluster))
+    StartClusterAction(config.target.aws, List(cluster))
   }
 }

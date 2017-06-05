@@ -1,13 +1,11 @@
 package com.criteo.dev.cluster.docker
 
 import com.criteo.dev.cluster._
-import com.criteo.dev.cluster.aws.{AwsConstants, AwsUtilities}
+import com.criteo.dev.cluster.aws.AwsConstants
 import com.criteo.dev.cluster.aws.AwsUtilities.NodeRole
-import com.criteo.dev.cluster.config.GlobalConfig
+import com.criteo.dev.cluster.config.{GlobalConfig, LocalConfig}
 import org.slf4j.LoggerFactory
 
-import scala.collection.JavaConversions._
-import scala.sys.process.Process
 
 /**
   * Create a local docker cluster.
@@ -27,13 +25,13 @@ import scala.sys.process.Process
     val conf = config.backCompat
 
     build(conf)
-    start(args, conf)
+    start(args, config.target.local, conf)
   }
 
-  def prereqs(conf: Map[String, String]) = {
+  def prereqs = {
     logger.info("Checking docker pre-reqs.")
     DevClusterProcess.process("docker ps").!!
-    DockerUtilities.getSshHost(conf)
+    DockerUtilities.getSshHost
   }
 
 
@@ -114,7 +112,7 @@ import scala.sys.process.Process
   }
 
 
-  def start(args: List[String], conf: Map[String, String]) : DockerMeta = {
+  def start(args: List[String], localConfig: LocalConfig, conf: Map[String, String]) : DockerMeta = {
     //get docker ip, mountDir, ports
 
     val mountDir = if (args.length == 1) Some(args(0)) else None
@@ -135,10 +133,10 @@ import scala.sys.process.Process
       DockerConstants.localClusterContainerLabel, containerId)
     require (dockerMetas.size == 1, "Only one docker container may match container id")
     val dockerMeta = dockerMetas.last
-    val dockerNode = NodeFactory.getDockerNode(conf, dockerMeta)
+    val dockerNode = NodeFactory.getDockerNode(localConfig, dockerMeta)
 
     DockerUtilities.blockOnSsh(dockerNode)
-    StartServiceAction(conf, dockerNode, NodeRole.Master)
+    StartServiceAction(dockerNode, NodeRole.Master)
 
     //print out new docker container info.
     DockerUtilities.printClusterDockerContainerInfo(conf, Array(dockerMeta))

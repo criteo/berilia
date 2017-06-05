@@ -1,5 +1,6 @@
 package com.criteo.dev.cluster.aws
 
+import com.criteo.dev.cluster.config.AWSConfig
 import com.criteo.dev.cluster.{GeneralConstants, GeneralUtilities, NodeFactory, SshMultiAction}
 import org.jclouds.compute.domain.NodeMetadata
 import org.slf4j.LoggerFactory
@@ -18,7 +19,7 @@ object ConfigureHostsAction {
 
   private val logger = LoggerFactory.getLogger(ConfigureHostsAction.getClass)
 
-  def apply(conf: Map[String, String], newClusters: Iterable[JcloudCluster]) = {
+  def apply(conf: AWSConfig, newClusters: Iterable[JcloudCluster]) = {
     val reconfigFutures = newClusters.map(c => GeneralUtilities.getFuture {
       fixHosts(conf, c)
     })
@@ -31,7 +32,7 @@ object ConfigureHostsAction {
   /**
     * Setup a pseudo-network to allow nodes of a cluster to know about each other.
     */
-  def fixHosts(conf: Map[String, String], cluster: JcloudCluster) = {
+  def fixHosts(conf: AWSConfig, cluster: JcloudCluster) = {
 
     logger.info(s"Configuring ${cluster.size} host(s) in parallel")
 
@@ -61,7 +62,7 @@ object ConfigureHostsAction {
     * @param target node to run action on
     * @param cluster cluster metadata (will enter data about the other nodes)
     */
-  def editEtcHosts(conf: Map[String, String], target: NodeMetadata, cluster: JcloudCluster) : Unit = {
+  def editEtcHosts(conf: AWSConfig, target: NodeMetadata, cluster: JcloudCluster) : Unit = {
     val node = NodeFactory.getAwsNode(conf, target)
     val sshAction = new SshMultiAction(node)
     sshAction.add("echo \"127.0.0.1   localhost localhost.localdomain\" | sudo tee --append /etc/hosts")

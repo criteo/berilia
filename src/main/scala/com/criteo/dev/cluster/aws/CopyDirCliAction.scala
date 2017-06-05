@@ -18,7 +18,7 @@ import com.criteo.dev.cluster.config.GlobalConfig
     val conf = config.backCompat
     val cluster = AwsUtilities.getUserCluster(conf, instanceId)
     val toCopy = args(1)
-    copyDir(NodeFactory.getAwsNode(conf, cluster.master), toCopy)
+    copyDir(NodeFactory.getAwsNode(config.target.aws, cluster.master), toCopy)
   }
 
   def copyDir(node: Node, dir: String) = {

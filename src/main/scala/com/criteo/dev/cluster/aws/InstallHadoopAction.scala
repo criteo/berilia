@@ -2,6 +2,7 @@ package com.criteo.dev.cluster.aws
 
 import com.criteo.dev.cluster.aws.AwsUtilities.NodeRole
 import com.criteo.dev.cluster._
+import com.criteo.dev.cluster.config.{AWSConfig, TargetConfig}
 import org.slf4j.LoggerFactory
 
 import scala.concurrent.Await
@@ -15,14 +16,13 @@ object InstallHadoopAction {
 
   private val logger = LoggerFactory.getLogger(InstallHadoopAction.getClass)
 
-  def apply(conf: Map[String, String], cluster: JcloudCluster) = {
+  def apply(config: TargetConfig, conf: Map[String, String], cluster: JcloudCluster) = {
     logger.info(s"Installing CDH on ${cluster.size} nodes in parallel.")
-    val hadoopVersion = GeneralUtilities.getConfStrict(conf,
-      GeneralConstants.hadoopVersion, GeneralConstants.targetCommonProps)
-    val masterNode = NodeFactory.getAwsNode(conf, cluster.master)
+    val hadoopVersion = config.common.hadoopVersion
+    val masterNode = NodeFactory.getAwsNode(config.aws, cluster.master)
 
     val installMaster = GeneralUtilities.getFuture {
-      val setupMaster = AwsUtilities.getOsSetupScript(conf, NodeRole.Master)
+      val setupMaster = AwsUtilities.getOsSetupScript(config.common, NodeRole.Master)
       logger.info(s"Running $setupMaster on master ${masterNode.ip}")
       ScpAction(
         sourceN = None,
@@ -33,14 +33,14 @@ object InstallHadoopAction {
       //script will check if the specified hadoop version is valid.
       SshAction(masterNode, s"source setup.sh $hadoopVersion")
       SshAction(masterNode, "rm setup.sh")
-      CopyHiveJarAction(conf, cluster.master, NodeRole.Master)
+      CopyHiveJarAction(config.aws, conf, cluster.master, NodeRole.Master)
       "" //otherwise there is NPE
     }
 
     val installSlaves = cluster.slaves.map(slaveMeta => {
       GeneralUtilities.getFuture {
-        val slaveNode = NodeFactory.getAwsNode(conf, slaveMeta)
-        val slaveSetup = AwsUtilities.getOsSetupScript(conf, NodeRole.Slave)
+        val slaveNode = NodeFactory.getAwsNode(config.aws, slaveMeta)
+        val slaveSetup = AwsUtilities.getOsSetupScript(config.common, NodeRole.Slave)
         logger.info(s"Running $slaveSetup on slave: ${slaveNode.ip}")
         ScpAction(
           sourceN = None,

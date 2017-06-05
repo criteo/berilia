@@ -57,12 +57,12 @@ import scala.concurrent.ExecutionContext.Implicits.global
     //Sometimes /etc/hosts gets regenerated on new instances, sometimes they do not.
     val startedClusters = clusters.map(_.master.getId).toSet
     val newClusters = getClusters(args, conf).filter(c => startedClusters.contains(c.master.getId))
-    ConfigureHostsAction(conf, newClusters)
+    ConfigureHostsAction(config.target.aws, newClusters)
 
     newClusters.foreach(c => ExtendAwsCliAction.extend(conf, c, reset=true))
 
     logger.info("Restarting services in parallel.")
-    StartClusterAction(conf, newClusters)
+    StartClusterAction(config.target.aws, newClusters)
 
     //print out all the infos.
     newClusters.foreach(c => AwsUtilities.printClusterInfo(conf, c))

@@ -17,7 +17,7 @@ class CopyViaBucketAction (conf: Map[String, String], source: Node, target: Node
 
     //create temp bucket
     val tempBucket = createTempBucket
-    val tempBucketNode = NodeFactory.getS3Node(conf, tempBucket.name)
+    val tempBucketNode = NodeFactory.getS3Node(tempBucket.name)
 
     //first copy
     new DistCpS3Action(conf, source, tempBucketNode).apply(sourceFiles, sourceBase, targetBase)

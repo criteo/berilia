@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory
 
     require(master.getStatus().equals(Status.RUNNING), "No clusters found in RUNNING state matching criteria.")
 
-    val node = NodeFactory.getAwsNode(conf, master)
+    val node = NodeFactory.getAwsNode(config.target.aws, master)
     RunS3DdlAction(node, bucketId, copiedLocally = false, conf)
 
     AwsUtilities.printClusterInfo(conf, cluster)

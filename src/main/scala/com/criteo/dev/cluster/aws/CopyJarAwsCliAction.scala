@@ -55,7 +55,7 @@ import sys.process._
     val nodesToCopy = cluster.slaves ++ Set(cluster.master)
     logger.info(s"Copying to ${nodesToCopy.size} nodes in parallel.")
     val copyFutures = nodesToCopy.map(u => GeneralUtilities.getFuture {
-      val targetN = NodeFactory.getAwsNode(conf.backCompat, u)
+      val targetN = NodeFactory.getAwsNode(conf.target.aws, u)
       val role = if (AwsUtilities.isSlave(u)) "Slave" else "Master"
       try {
         RsyncAction(

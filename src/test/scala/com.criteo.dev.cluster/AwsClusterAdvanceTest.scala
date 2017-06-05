@@ -33,7 +33,7 @@ class AwsClusterAdvanceTest extends FunSuite with BeforeAndAfter with LoadConfig
     assertResult(currentUser)(cluster.user)
 
     //create database, table, and 2 partitions.
-    val master = NodeFactory.getAwsNode(conf, cluster.master)
+    val master = NodeFactory.getAwsNode(config.target.aws, cluster.master)
     SshHiveAction(master, List(s"create database $testDbName"))
     SshHiveAction(master, List(s"create table $testDbName.$testTableName (name string) partitioned by (month int)"))
     SshHiveAction(master, List(
@@ -53,7 +53,7 @@ class AwsClusterAdvanceTest extends FunSuite with BeforeAndAfter with LoadConfig
   test("Reconfigure a cluster and test the query.") {
     var clusters = ListAwsCliAction(List(), config)
     val cluster = getCluster(clusterId, clusters)
-    val master = NodeFactory.getAwsNode(conf, cluster.master)
+    val master = NodeFactory.getAwsNode(config.target.aws, cluster.master)
     ConfigureAwsCliAction(List(clusterId), config)
     RestartServicesCliAction(List(clusterId), config)
 
