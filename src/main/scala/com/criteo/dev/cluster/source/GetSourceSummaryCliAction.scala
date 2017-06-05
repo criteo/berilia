@@ -25,11 +25,15 @@ object GetSourceSummaryCliAction extends CliAction[List[Either[InvalidTable, Sou
 
   def printSummary(summary: List[Either[InvalidTable, SourceTableInfo]]): Unit = {
     println("Source tables summary")
-    summary.foreach {
-      case Left(InvalidTable(input, message)) =>
-        println(s"$input is invalid, reason: $message")
-      case Right(SourceTableInfo(_, TableHDFSInfo(db, table, size, files, partitions))) =>
-        println(s"$db.$table is available, size: $size Bytes, files: ${files.size}, partitions: $partitions")
+    val (invalid, valid) = summary.partition(_.isLeft)
+    invalid.map(_.left.get).foreach { case InvalidTable(input, message) =>
+      println(s"$input is invalid, reason: $message")
     }
+    valid.map(_.right.get) foreach { case SourceTableInfo(_, TableHDFSInfo(db, table, size, files, partitions)) =>
+      println(s"$db.$table is available, size: $size Bytes, files: ${files.size}, partitions: $partitions")
+    }
+    val totalSize = valid.map(_.right.get.hdfsInfo.size).sum
+    println(s"Invalid tables: ${invalid.size}, valid tables: ${valid.size}")
+    println(s"Total size: $totalSize Bytes")
   }
 }

@@ -7,6 +7,7 @@ case class SourceConfig(
                          s3HDFSScheme: String,
                          defaultSampleProb: Double,
                          defaultPartitionCount: Int,
+                         defaultSampleSize: Option[Long],
                          sampleDatabase: String,
                          gateway: GatewayConfig
                        )
