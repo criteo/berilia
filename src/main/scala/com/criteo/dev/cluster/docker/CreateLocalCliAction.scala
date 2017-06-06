@@ -81,7 +81,7 @@ import org.slf4j.LoggerFactory
     //copy hive aux jars
     val auxJars = GeneralUtilities.getNonEmptyConf(conf, GeneralConstants.auxJarProp)
     if (auxJars.isDefined) {
-      val jarList = GeneralUtilities.getAuxJarTargetList(conf, auxJars.get)
+      val jarList = GeneralUtilities.getAuxJarTargetList(auxJars.get)
       val copyJars = new DockerCopyBuildAction(
         dockerFile = "local-cluster/cluster-copy-jars",
         dockerImage= DockerConstants.localUbuntuClusterImage,

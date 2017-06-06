@@ -47,7 +47,7 @@ object CreateImageCliAction extends CliAction[Unit] {
     ConfigureHostsAction(config.target.aws, List(cluster))
 
     //Install CDH5.5
-    InstallHadoopAction(config.target, config.backCompat, cluster)
+    InstallHadoopAction(config.target, cluster)
 
 
     val description = if (args.length > 1) {

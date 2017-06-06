@@ -16,7 +16,7 @@ object InstallHadoopAction {
 
   private val logger = LoggerFactory.getLogger(InstallHadoopAction.getClass)
 
-  def apply(config: TargetConfig, conf: Map[String, String], cluster: JcloudCluster) = {
+  def apply(config: TargetConfig, cluster: JcloudCluster) = {
     logger.info(s"Installing CDH on ${cluster.size} nodes in parallel.")
     val hadoopVersion = config.common.hadoopVersion
     val masterNode = NodeFactory.getAwsNode(config.aws, cluster.master)
@@ -33,7 +33,7 @@ object InstallHadoopAction {
       //script will check if the specified hadoop version is valid.
       SshAction(masterNode, s"source setup.sh $hadoopVersion")
       SshAction(masterNode, "rm setup.sh")
-      CopyHiveJarAction(config.aws, conf, cluster.master, NodeRole.Master)
+      CopyHiveJarAction(config, cluster.master, NodeRole.Master)
       "" //otherwise there is NPE
     }
 

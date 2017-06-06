@@ -127,7 +127,7 @@ object GeneralUtilities {
     *
     * Returns colon separated list, which will be used as Hive env var HIVE_AUX_JARS_PATH
     */
-  def getAuxJarTargetList(conf: Map[String, String], jarList: String): String = {
+  def getAuxJarTargetList(jarList: String): String = {
     val resolvedJarList = jarList.split(",").map(_.trim()).map (j => s"${GeneralConstants.auxJarTargetDir}/$j")
     resolvedJarList.mkString("\"", ":", "\"")
   }

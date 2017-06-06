@@ -48,10 +48,10 @@ import org.slf4j.LoggerFactory
     }
 
     //Install CDH5.5 (do not start services)
-    InstallHadoopAction(config.target, conf, cluster)
+    InstallHadoopAction(config.target, cluster)
 
     //Copy over Hadoop-configurations
-    CopyConfAction(config.target.aws, conf, cluster, mounts)
+    CopyConfAction(config.target, cluster, mounts)
 
     //Copy over user-data (similar to mount in local cluster mode)
     if (args.length == 2) {

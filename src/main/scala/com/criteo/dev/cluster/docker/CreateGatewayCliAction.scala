@@ -1,5 +1,6 @@
 package com.criteo.dev.cluster.docker
 
+import com.criteo.dev.cluster.aws.AwsUtilities.NodeRole
 import com.criteo.dev.cluster.aws.{AwsConstants, AwsUtilities}
 import com.criteo.dev.cluster.config.GlobalConfig
 import com.criteo.dev.cluster.{CliAction, GeneralConstants, GeneralUtilities, Public}
@@ -69,9 +70,9 @@ import org.slf4j.LoggerFactory
     copyConfAction.run
 
     //copy hive aux jars
-    val auxJars = GeneralUtilities.getNonEmptyConf(conf, GeneralConstants.auxJarProp)
-    if (auxJars.isDefined) {
-      val jarList = GeneralUtilities.getAuxJarTargetList(conf, auxJars.get)
+    val auxJars = config.target.common.hiveAuxJars
+    if (!auxJars.isEmpty) {
+      val jarList = GeneralUtilities.getAuxJarTargetList(auxJars.mkString(","))
       val copyJars = new DockerCopyBuildAction(
         dockerFile = "gateway/client-copy-jars",
         dockerImage= DockerConstants.gatewayImage,

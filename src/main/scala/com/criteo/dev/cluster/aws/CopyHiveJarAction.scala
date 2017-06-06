@@ -3,7 +3,7 @@ package com.criteo.dev.cluster.aws
 import com.criteo.dev.cluster._
 import com.criteo.dev.cluster.aws.AwsUtilities.NodeRole
 import com.criteo.dev.cluster.aws.AwsUtilities.NodeRole._
-import com.criteo.dev.cluster.config.AWSConfig
+import com.criteo.dev.cluster.config.{AWSConfig, TargetConfig}
 import org.jclouds.compute.domain.NodeMetadata
 import org.slf4j.LoggerFactory
 
@@ -19,18 +19,17 @@ object CopyHiveJarAction {
   /**
     *
     * @param config
-    * @param conf for backward compat (remove in favor of config)
     * @param nodeMeta
     * @param nodeRole
     */
-  def apply(config: AWSConfig, conf: Map[String, String], nodeMeta: NodeMetadata, nodeRole: NodeRole): Unit = {
+  def apply(config: TargetConfig, nodeMeta: NodeMetadata, nodeRole: NodeRole): Unit = {
 
-    val target = NodeFactory.getAwsNode(config, nodeMeta)
+    val target = NodeFactory.getAwsNode(config.aws, nodeMeta)
 
     //copy extra hive jars, if set in 'aws.properties'
-    val auxJars = GeneralUtilities.getNonEmptyConf(conf, GeneralConstants.auxJarProp)
-    if (auxJars.isDefined && nodeRole == NodeRole.Master) {
-      val jarList = GeneralUtilities.getAuxJarTargetList(conf, auxJars.get)
+    val auxJars = config.common.hiveAuxJars
+    if (!auxJars.isEmpty && nodeRole == NodeRole.Master) {
+      val jarList = GeneralUtilities.getAuxJarTargetList(auxJars.mkString(","))
 
       //create the base directory on the target
       val createBaseDir = new SshMultiAction(target)
