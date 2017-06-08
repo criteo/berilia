@@ -1,7 +1,7 @@
 #!/bin/bash
 
 BASEDIR=$(dirname "$0")
-export CLASSPATH="${BASEDIR}/lib/*:${BASEDIR}/lib/dev-cluster-1.1.jar"
+export CLASSPATH="${BASEDIR}/lib/*:${BASEDIR}/lib/dev-cluster-1.2-SNAPSHOT.jar"
 java -cp $CLASSPATH $JAVA_OPTS com.criteo.dev.cluster.DevClusterLauncher "$@"
 
 #As JVM cannot change the terminal, we change it here.
