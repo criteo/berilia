@@ -16,14 +16,14 @@ case class GetSourceSummaryAction(config: GlobalConfig, node: Node) {
     val conf = config.backCompat
     val getMetadata = new GetMetadataAction(conf, node)
 
-    val tableSpecs = tables.map { table =>
-      (table.name :: table.partitions.map(_.mkString("(", ",", ")")).mkString(" ") :: Nil).mkString(" ")
-    }
-    val (validTables, invalidTables) = tableSpecs
-      .map(tableSpec => (tableSpec, Try(getMetadata(tableSpec))))
-      .partition(_._2.isSuccess)
+    val (validTables, invalidTables) = tables
+      .map { table =>
+        (table.name, (table.name :: table.partitions.map(_.mkString("(", ",", ")")).mkString(" ") :: Nil).mkString(" "))
+      }
+      .map { case (tableName, spec) => (tableName, spec, Try(getMetadata(spec)))}
+      .partition(_._3.isSuccess)
     val tableAndLocations = validTables
-      .flatMap { case (_, Success(m)) =>
+      .flatMap { case (_, _, Success(m)) =>
         if (m.partitions.size > 0)
           m.partitions.map(p => (m, p.location))
         else
@@ -48,8 +48,8 @@ case class GetSourceSummaryAction(config: GlobalConfig, node: Node) {
         ) :: acc
       }
       .map(Right(_)) ++
-      invalidTables.map { case (tableSpec, Failure(e)) =>
-        Left(InvalidTable(tableSpec, e.getMessage))
+      invalidTables.map { case (tableName, spec, Failure(e)) =>
+        Left(InvalidTable(tableName, spec, e.getMessage))
       }
   }
 }

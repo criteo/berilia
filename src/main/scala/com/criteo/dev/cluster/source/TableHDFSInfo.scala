@@ -9,6 +9,7 @@ case class TableHDFSInfo(
                         )
 
 case class InvalidTable(
+                         name: String,
                          input: String,
                          message: String
                        )

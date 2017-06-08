@@ -39,8 +39,9 @@ object DevClusterLauncher {
         val argList = args.toList.drop(1)
         val realArgs = argList.filterNot(_.startsWith("--"))
         val conf = ConfigLoader(
-          getFileURL(args, "source", "source.conf"),
-          getFileURL(args, "target", "target.conf")
+          getOption(args, "source").map(getFileURL(_)).getOrElse(getFileURL("source.conf")),
+          getOption(args, "target").map(getFileURL(_)).getOrElse(getFileURL("target.conf")),
+          getOption(args, "checkpoint").map(getFileURL(_))
         ).value
         command.get.apply(realArgs, conf)
       } catch {
@@ -53,18 +54,18 @@ object DevClusterLauncher {
     System.exit(0)
   }
 
-  def getFileURL(args: Array[String], argName: String, fallback: String): URL =
-    args
-      .find(_.startsWith(s"--$argName"))
-      .flatMap(_.split("=").drop(1).headOption)
-      .orElse(Some(fallback))
-      .map { path =>
-        val file = new File(path)
-        if (file.exists)
-          file.toURI.toURL
-        else
-          throw new FileNotFoundException(s"$path does not exist")
-      }.get
+  def getFileURL(path: String): URL = {
+    val file = new File(path)
+    if (file.exists)
+      file.toURI.toURL
+    else
+      throw new FileNotFoundException(s"$path does not exist")
+  }
+
+  def getOption(args: Array[String], argName: String): Option[String] = args
+    .find(_.startsWith(s"--$argName"))
+    .flatMap(_.split("=").drop(1).headOption)
+
 
   def printHelp(): Unit = {
     println("This tool provides utilities for creating and managing AWS dev instances, " +
