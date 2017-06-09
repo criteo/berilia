@@ -28,7 +28,7 @@ import sys.process._
 
   override def applyInternal(args: List[String], conf: GlobalConfig): Unit = {
     val instanceId = args(0)
-    var cluster = AwsUtilities.getUserCluster(conf.backCompat, instanceId)
+    val cluster = AwsUtilities.getCluster(conf.backCompat, instanceId)
 
     if (!cluster.master.getStatus().equals(Status.RUNNING)) {
       logger.info("No running clusters found matching criteria.")
