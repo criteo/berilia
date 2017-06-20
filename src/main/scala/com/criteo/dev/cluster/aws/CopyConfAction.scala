@@ -49,9 +49,16 @@ object CopyConfAction {
         targetN = Some(master),
         targetPath = "./conf/")
 
+      ScpAction(
+        sourceN = None,
+        srcPath = s"$srcDir/spark/",
+        targetN = Some(master),
+        targetPath = "./conf/")
+
       val confAction = new SshMultiAction(master)
       confAction.add("sudo cp -r ~/conf/hadoop/conf/* /etc/hadoop/conf")
       confAction.add("sudo cp -r ~/conf/hive/conf/* /etc/hive/conf")
+      confAction.add("sudo cp -r ~/conf/spark/conf/* /etc/spark/conf")
       confAction.add("rm -r ./conf")
 
       //TODO- we could do hadoop-conf template resolution using Apache Velocity.
@@ -70,6 +77,11 @@ object CopyConfAction {
       confAction.add("sudo find /etc/hive/conf/ -name \"*.xml\" -type f -exec sed -i 's/$" +
         GeneralConstants.master + "/" + GeneralConstants.masterHostName + "/' {} +")
       confAction.add("sudo find /etc/hive/conf/ -name \"*.xml\" -type f -exec sed -i 's/$" +
+        GeneralConstants.local + "/" + GeneralConstants.masterHostName + "/' {} +")
+
+      confAction.add("sudo find /etc/spark/conf/ -name \"*.xml\" -type f -exec sed -i 's/$" +
+        GeneralConstants.master + "/" + GeneralConstants.masterHostName + "/' {} +")
+      confAction.add("sudo find /etc/spark/conf/ -name \"*.xml\" -type f -exec sed -i 's/$" +
         GeneralConstants.local + "/" + GeneralConstants.masterHostName + "/' {} +")
 
       confAction.add("sudo find /etc/hadoop/conf/ -name \"*.xml\" -type f -exec sed -i 's;$" +

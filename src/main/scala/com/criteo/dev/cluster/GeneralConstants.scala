@@ -70,7 +70,8 @@ object GeneralConstants {
     ("8088", "ResourceManager"),
     ("19888", "HistoryServer"),
     ("50070", "NameNode"),
-    ("50075", "DataNode")
+    ("50075", "DataNode"),
+    ("18081", "SparkHistoryServer")
   )
 
   def slavePorts = List(

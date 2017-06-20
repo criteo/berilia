@@ -89,6 +89,9 @@ sudo chown yarn /var/lib/hadoop-yarn/cache
 #Install Hive (at end of this, it is only in embedded metastore db mode)
 sudo apt-get -y install hive
 
+#install spark
+echo "Installing spark..."
+sudo apt-get -y install spark-core spark-history-server spark-python
 
 # From docker/local-cluster/cluser-hive-metastore
 
@@ -111,11 +114,7 @@ echo "GRANT ALL PRIVILEGES ON metastore.* TO 'hive'@localhost;" | sudo tee --app
 echo "FLUSH PRIVILEGES;" | sudo tee --append create-metastore.sql
 sudo mv create-metastore.sql /usr/lib/hive/scripts/metastore/upgrade/mysql/create-metastore.sql
 
-#install spark
-echo "Installing spark..."
-sudo apt-get -y install spark-core spark-history-server spark-python
-
-#we disabled start earlier of the services.
+#We disabled start of services before
 sudo service mysql start
 
 cd /usr/lib/hive/scripts/metastore/upgrade/mysql && mysql --user=root --password=root --protocol=tcp < "create-metastore.sql"

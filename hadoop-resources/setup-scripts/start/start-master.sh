@@ -34,3 +34,4 @@ sudo service hive-metastore restart
 sudo -u hdfs hdfs dfs -mkdir -p hdfs:///user/spark/applicationHistory
 sudo -u hdfs hadoop fs -chown -R spark:spark /user/spark
 sudo -u hdfs hdfs dfs -chmod 1777 hdfs:/user/spark/applicationHistory
+sudo service spark-history-server restart
