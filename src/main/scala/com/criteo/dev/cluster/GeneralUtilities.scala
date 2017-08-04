@@ -2,14 +2,14 @@ package com.criteo.dev.cluster
 
 
 import java.io.File
+import java.time.format.DateTimeFormatter
+import java.time.{Instant, ZoneId}
 
 import org.apache.commons.io.FileUtils
 import org.slf4j.LoggerFactory
 
-import scala.collection.JavaConverters._
-import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.util.Random
+import scala.concurrent.Future
 
 /**
   * Utilities used in all phases.
@@ -23,13 +23,12 @@ object GeneralUtilities {
   //Support concurrency to some degree by having each command store temp files in a different temp dir
   //-----
 
-  val tempDir = new ThreadLocal[Integer]()
-
-  def getTempDir() : String = {
-    if (tempDir.get == null) {
-      tempDir.set(Random.nextInt(10000))
-    }
-    s"./temp-${tempDir.get}"
+  def getTempDir(): String = {
+    val date = DateTimeFormatter
+      .ofPattern("yyyyMMdd-HHmmss")
+      .withZone(ZoneId.systemDefault())
+      .format(Instant.now)
+    s"./temp-$date-thread-${Thread.currentThread.getId}"
   }
 
   def prepareDir(dir : String) = {
