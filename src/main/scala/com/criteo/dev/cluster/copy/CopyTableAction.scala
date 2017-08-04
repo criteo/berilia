@@ -18,7 +18,7 @@ class CopyTableAction(config: GlobalConfig, conf: Map[String, String], source: N
   private val logger = LoggerFactory.getLogger(classOf[CopyTableAction])
 
   /**
-    * @param tableInfo source table info
+    * @param sourceTableInfo source table info
     * @return target table info
     */
   def copy(sourceTableInfo: SourceTableInfo): TableInfo = {
@@ -28,9 +28,9 @@ class CopyTableAction(config: GlobalConfig, conf: Map[String, String], source: N
     config.source.tables
       .find(_.name == tableName)
       .map { t =>
-        (t.sampleSize orElse config.source.defaultSampleSize)
-          .map(_.toDouble / hdfsInfo.size)
+        t.sampleSize.map(_.toDouble / hdfsInfo.size)
           .orElse(t.sampleProb)
+          .orElse(config.source.defaultSampleSize.map(_.toDouble / hdfsInfo.size))
           .getOrElse(config.source.defaultSampleProb)
       }
       .map { sampleProb =>
