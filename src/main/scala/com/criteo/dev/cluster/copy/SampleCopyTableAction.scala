@@ -1,12 +1,14 @@
 package com.criteo.dev.cluster.copy
 
 import com.criteo.dev.cluster._
+import com.criteo.dev.cluster.command.{ShellHiveAction, SshHiveAction}
+import com.criteo.dev.cluster.config.GlobalConfig
 import org.slf4j.LoggerFactory
 
 /**
   * Copies data to target via Hive sampling.
   */
-class SampleCopyTableAction(conf: Map[String, String], source: Node, target: Node, sampleProb: Double) {
+class SampleCopyTableAction(config: GlobalConfig, conf: Map[String, String], source: Node, target: Node, sampleProb: Double) {
 
   private val logger = LoggerFactory.getLogger(classOf[SampleCopyTableAction])
 
@@ -22,7 +24,7 @@ class SampleCopyTableAction(conf: Map[String, String], source: Node, target: Nod
 
     logger.info(s"Sampling " + partitions.length + " partitions from " +
       tableInfo.database + "." + tableInfo.ddl.table)
-    createSampleTable(tableInfo, sampleDb, sampleTable)
+    createSampleTable(tableInfo, sampleDb, sampleTable, config.source.isLocalScheme)
 
     //Copy the sampled data to final destination.
     logger.info(s"Copying " + partitions.length + " partitions from " +
@@ -32,13 +34,13 @@ class SampleCopyTableAction(conf: Map[String, String], source: Node, target: Nod
     val res = copyToDest(tableInfo, sampleDb, sampleTable, targetLocation)
 
     //finished copying, delete the temp table.
-    val deleteTempTableAction = new SshHiveAction(source)
+    val deleteTempTableAction = if (config.source.isLocalScheme) new ShellHiveAction() else new SshHiveAction(source)
     val tableToDelete = s"$sampleDb.$sampleTable"
     require(tableToDelete.contains(CopyConstants.tempTableHint)) //paranoid check not to delete the wrong table.
     deleteTempTableAction.add(s"drop table $tableToDelete")
     deleteTempTableAction.run()
 
-    return res
+    res
   }
 
 
@@ -47,7 +49,7 @@ class SampleCopyTableAction(conf: Map[String, String], source: Node, target: Nod
                          sampleDb: String,
                          sampleTable: String,
                          targetLocation: String): TableInfo = {
-    val getTempMetadata = new GetMetadataAction(conf, source, throttle = false)
+    val getTempMetadata = new GetMetadataAction(config, conf, source, throttle = false)
     val tempTableInfo = getTempMetadata(s"$sampleDb.$sampleTable")
     val tempLocation = tempTableInfo.ddl.location.get
     val tempLocationCommon = CopyUtilities.getCommonLocation(tempLocation, tempTableInfo.partitions)
@@ -70,8 +72,8 @@ class SampleCopyTableAction(conf: Map[String, String], source: Node, target: Nod
   }
 
   //create table with sampled data
-  private def createSampleTable(sourceTableInfo: TableInfo, sampleDb: String, sampleTable: String): String = {
-    val descDbAction = new SshHiveAction(source)
+  private def createSampleTable(sourceTableInfo: TableInfo, sampleDb: String, sampleTable: String, isLocalScheme: Boolean): String = {
+    val descDbAction = if (isLocalScheme) new ShellHiveAction else new SshHiveAction(source)
     descDbAction.add(s"describe database $sampleDb")
     val result = descDbAction.run
 
@@ -85,16 +87,16 @@ class SampleCopyTableAction(conf: Map[String, String], source: Node, target: Nod
         location = None))
 
     //create sample table
-    val createAction = new SshHiveAction(source)
+    val createAction = if (isLocalScheme) new ShellHiveAction else new SshHiveAction(source)
     createAction.add(s"use $sampleDb")
     val ddl = sampleTableInfo.ddl
     createAction.add(ddl.format)
     createAction.run
 
     //fire listeners.
-    fireBeforeSample(conf, sourceTableInfo, sampleTableInfo)
+    fireBeforeSample(conf, sourceTableInfo, sampleTableInfo, config.source.isLocalScheme)
 
-    val insertAction = new SshHiveAction(source)
+    val insertAction = if (isLocalScheme) new ShellHiveAction else new SshHiveAction(source)
     insertAction.add(s"use $sampleDb")
     insertAction.add("set hive.exec.dynamic.partition=true")
     insertAction.add("set hive.exec.dynamic.partition.mode=nonstrict")
@@ -129,14 +131,13 @@ class SampleCopyTableAction(conf: Map[String, String], source: Node, target: Nod
     insertAction.run()
   }
 
-  def fireBeforeSample(conf: Map[String, String], tableInfo: TableInfo, sampleTableInfo: TableInfo) = {
+  def fireBeforeSample(conf: Map[String, String], tableInfo: TableInfo, sampleTableInfo: TableInfo, isLocalScheme: Boolean) = {
     val listeners = GeneralUtilities.getNonEmptyConf(conf, CopyConstants.sampleListeners)
     if (listeners.isDefined) {
       listeners.get.split(",").map(_.trim()).foreach(l => {
         val clazz = this.getClass.getClassLoader.loadClass(l)
         val listener = clazz.newInstance().asInstanceOf[SampleTableListener]
-        val copyFileAction = CopyFileActionFactory.getCopyFileAction(conf, source, target)
-        listener.onBeforeSample(tableInfo, sampleTableInfo, source)
+        listener.onBeforeSample(tableInfo, sampleTableInfo, source, isLocalScheme)
       })
     }
   }

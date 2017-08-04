@@ -1,7 +1,8 @@
 package com.criteo.dev.cluster.copy
 
 import com.criteo.dev.cluster.utils.ddl.{IOFormat, ParserConstants, SerDe}
-import com.criteo.dev.cluster.{Node, SshHiveAction}
+import com.criteo.dev.cluster.Node
+import com.criteo.dev.cluster.command.{ShellHiveAction, SshHiveAction}
 import org.slf4j.LoggerFactory
 
 import scala.util.Try
@@ -16,17 +17,22 @@ class GlupSampleListener extends SampleTableListener {
   private val logger = LoggerFactory.getLogger(classOf[GlupSampleListener])
 
   def originalInput = "com.criteo.hadoop.hive.ql.io.GlupInputFormat"
+
   def finalInput = "com.criteo.hadoop.hive.ql.io.GlupInputFormat"
 
   def originalOutput = "org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat"
+
   def finalOutput = "com.criteo.hadoop.hive.ql.io.GlupOutputFormat"
 
-  override def onBeforeSample(tableInfo: TableInfo,
-                     sampleTableInfo: TableInfo,
-                     source: Node) = {
+  override def onBeforeSample(
+                               tableInfo: TableInfo,
+                               sampleTableInfo: TableInfo,
+                               source: Node,
+                               isLocalScheme: Boolean
+                             ) = {
 
     sampleTableInfo.ddl.storageFormat match {
-      case (Some(io : IOFormat)) => {
+      case (Some(io: IOFormat)) => {
         if (io.input.contains(originalInput) && io.output.contains(originalOutput)) {
 
           val alterStmtBase = s"alter table ${sampleTableInfo.ddl.table} "
@@ -34,14 +40,16 @@ class GlupSampleListener extends SampleTableListener {
             s"outputformat '$finalOutput'"
 
           Try {
-            val alterTableAction = new SshHiveAction(source)
+            val alterTableAction = if (isLocalScheme) new ShellHiveAction else new SshHiveAction(source)
             alterTableAction.add(s"use ${sampleTableInfo.database}")
             alterTableAction.add(alterStmtBase + setFormatBase)
 
 //            sampleTableInfo.partitions.foreach(p => {
 //              val alterPartSb = new StringBuilder(alterStmtBase)
-//              alterPartSb.append(s"partition (${CopyUtilities.partitionSpecString(p.partSpec,
-//                sampleTableInfo.ddl.partitionedBy)}) ")
+//              alterPartSb.append(s"partition (${
+//                CopyUtilities.partitionSpecString(p.partSpec,
+//                  sampleTableInfo.ddl.partitionedBy)
+//              }) ")
 //              alterPartSb.append(setFormatBase)
 //              alterTableAction.add(alterPartSb.toString)
 //            })
@@ -57,14 +65,16 @@ class GlupSampleListener extends SampleTableListener {
                 case _ => ""
               }
 
-              val alterTableAction = new SshHiveAction(source)
+              val alterTableAction = if (isLocalScheme) new ShellHiveAction else new SshHiveAction(source)
               alterTableAction.add(s"use ${sampleTableInfo.database}")
               alterTableAction.add(alterStmtBase + setFormatBase + addendum)
 
 //              sampleTableInfo.partitions.foreach(p => {
 //                val alterPartSb = new StringBuilder(alterStmtBase)
-//                alterPartSb.append(s"partition (${CopyUtilities.partitionSpecString(p.partSpec,
-//                  sampleTableInfo.ddl.partitionedBy)}) ")
+//                alterPartSb.append(s"partition (${
+//                  CopyUtilities.partitionSpecString(p.partSpec,
+//                    sampleTableInfo.ddl.partitionedBy)
+//                }) ")
 //                alterPartSb.append(setFormatBase)
 //                alterPartSb.append(addendum)
 //                alterTableAction.add(alterPartSb.toString)

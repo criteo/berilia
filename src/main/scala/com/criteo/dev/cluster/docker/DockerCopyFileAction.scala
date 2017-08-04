@@ -1,6 +1,7 @@
 package com.criteo.dev.cluster.docker
 
-import com.criteo.dev.cluster.{GeneralConstants, GeneralUtilities, Node, ScpAction}
+import com.criteo.dev.cluster.command.ScpAction
+import com.criteo.dev.cluster.{GeneralConstants, GeneralUtilities, Node}
 import com.criteo.dev.cluster.copy._
 import com.criteo.dev.cluster.s3.ScpCopyFileAction
 import org.slf4j.LoggerFactory

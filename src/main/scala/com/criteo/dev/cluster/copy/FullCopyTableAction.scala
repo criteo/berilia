@@ -1,15 +1,13 @@
 package com.criteo.dev.cluster.copy
 
 import com.criteo.dev.cluster._
-import com.criteo.dev.cluster.s3.ScpCopyFileAction
+import com.criteo.dev.cluster.config.GlobalConfig
 import org.slf4j.LoggerFactory
-
-import scala.sys.process.ProcessLogger
 
 /**
   * Copy over all table data.
   */
-class FullCopyTableAction(conf: Map[String, String], source: Node, target: Node) {
+class FullCopyTableAction(config: GlobalConfig, conf: Map[String, String], source: Node, target: Node) {
 
   private val logger = LoggerFactory.getLogger(classOf[FullCopyTableAction])
 

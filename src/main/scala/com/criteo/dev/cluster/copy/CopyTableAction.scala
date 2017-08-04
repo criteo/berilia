@@ -36,10 +36,10 @@ class CopyTableAction(config: GlobalConfig, conf: Map[String, String], source: N
       .map { sampleProb =>
         val res: TableInfo = if (sampleProb >= 1 || hdfsInfo.size <= config.source.copyConfig.sampleThreshold) {
           logger.info(s"Copying $tableName without sampling ")
-          new FullCopyTableAction(conf, source, target).copy(tableInfo)
+          new FullCopyTableAction(config, conf, source, target).copy(tableInfo)
         } else {
           logger.info(s"Copying $tableName with sample prob $sampleProb")
-          new SampleCopyTableAction(conf, source, target, sampleProb).copy(tableInfo)
+          new SampleCopyTableAction(config, conf, source, target, sampleProb).copy(tableInfo)
         }
         // Special handling
         fireEvents(conf, tableInfo)

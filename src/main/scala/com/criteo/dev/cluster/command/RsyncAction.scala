@@ -1,8 +1,9 @@
-package com.criteo.dev.cluster
+package com.criteo.dev.cluster.command
 
+import com.criteo.dev.cluster._
 import org.slf4j.LoggerFactory
 
-import scala.sys.process.{Process, ProcessLogger}
+import scala.sys.process.ProcessLogger
 
 /**
   * For now, only supports copy from local to remote.  Can be enhanced later to support reverse.

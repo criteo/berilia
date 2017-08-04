@@ -1,6 +1,7 @@
 package com.criteo.dev.cluster.source
 
-import com.criteo.dev.cluster.{Node, SshAction}
+import com.criteo.dev.cluster.Node
+import com.criteo.dev.cluster.command.{ShellAction, SshAction}
 
 import scala.annotation.tailrec
 
@@ -21,6 +22,16 @@ object HDFSUtils {
       .map(chunk =>
         SshAction
           .apply(node, s"hdfs dfs -du -s ${chunk.mkString(" ")}", true)
+          .split("\n")
+          .map(_.split(" ").head.toLong)
+      )
+      .flatten
+
+  def getFileSize(locations: List[String]): List[Long] =
+    splitList(locations, DuMaxFileNumber)
+      .map(chunk =>
+        ShellAction
+          .apply(s"hdfs dfs -du -s ${chunk.mkString(" ")}", true)
           .split("\n")
           .map(_.split(" ").head.toLong)
       )

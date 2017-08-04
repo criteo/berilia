@@ -1,6 +1,7 @@
 package com.criteo.dev.cluster.s3
 
-import com.criteo.dev.cluster._
+import com.criteo.dev.cluster.command.SshMultiAction
+import com.criteo.dev.cluster.{command, _}
 import com.criteo.dev.cluster.copy.{CopyConstants, CopyFileAction, CopyUtilities}
 
 /**
@@ -39,7 +40,7 @@ class ScpS3Action(conf: Map[String, String],
       s"mkdir -p $tmpLocationParent" ::
         s"hdfs dfs -get $f $tmpLocationParent" :: Nil
     })
-    SshMultiAction(source, getCommands.toList)
+    command.SshMultiAction(source, getCommands.toList)
   }
 
 

@@ -1,5 +1,7 @@
 package com.criteo.dev.cluster.config
 
+import com.criteo.dev.cluster.copy.CopyConstants
+
 case class SourceConfig(
                          address: String,
                          tables: List[TableConfig],
@@ -10,7 +12,11 @@ case class SourceConfig(
                          defaultSampleSize: Option[Long],
                          sampleDatabase: String,
                          gateway: GatewayConfig
-                       )
+                       ) {
+  lazy val isLocalScheme = copyConfig.scheme == CopyConstants.localScheme
+  lazy val isTunnelScheme = copyConfig.scheme == CopyConstants.tunnelScheme
+  lazy val isBucketScheme = copyConfig.scheme == CopyConstants.bucketScheme
+}
 
 /**
   * Table config

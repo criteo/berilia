@@ -1,9 +1,9 @@
-package com.criteo.dev.cluster
+package com.criteo.dev.cluster.command
 
-import com.criteo.dev.cluster.aws.AwsUtilities
+import com.criteo.dev.cluster.{DevClusterProcess, GeneralUtilities, Node, Public}
 import org.slf4j.LoggerFactory
 
-import scala.sys.process.{Process, ProcessLogger}
+import scala.sys.process.ProcessLogger
 
 /**
   * Executes a remote script.

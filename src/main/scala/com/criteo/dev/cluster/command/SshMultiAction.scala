@@ -1,8 +1,8 @@
-package com.criteo.dev.cluster
+package com.criteo.dev.cluster.command
 
 import java.io.{File, PrintWriter}
 
-import com.criteo.dev.cluster.aws.AwsUtilities
+import com.criteo.dev.cluster._
 import org.slf4j.LoggerFactory
 
 import scala.collection.mutable.ListBuffer
@@ -14,9 +14,9 @@ import scala.sys.process.ProcessLogger
   * Could use a 'here document' but there were issues with that.
   */
 @Public
-case class SshMultiAction(node: Node) {
+case class SshMultiAction(node: Node) extends MultiAction {
 
-  private val logger = LoggerFactory.getLogger(classOf[SshMultiAction])
+  private val logger = LoggerFactory.getLogger(this.getClass)
   private val commands = new ListBuffer[String]
   private val processLogger = ProcessLogger(
     (e: String) => logger.info("err " + e))

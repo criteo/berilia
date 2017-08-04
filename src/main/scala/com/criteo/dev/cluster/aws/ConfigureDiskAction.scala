@@ -1,6 +1,7 @@
 package com.criteo.dev.cluster.aws
 
-import com.criteo.dev.cluster._
+import com.criteo.dev.cluster.command.SshAction
+import com.criteo.dev.cluster.{command, _}
 import com.criteo.dev.cluster.config.AWSConfig
 import org.slf4j.LoggerFactory
 
@@ -47,7 +48,7 @@ object ConfigureDiskAction {
         s"sudo mkdir -p /${GeneralConstants.data}/$i",
         s"sudo mount /dev/$tm /${GeneralConstants.data}/$i")
     }.toList
-    SshMultiAction(node, mountCommands)
+    command.SshMultiAction(node, mountCommands)
 
     0.to(toMount.length - 1).map(i => s"/${GeneralConstants.data}/$i").toList
   }

@@ -3,6 +3,7 @@ package com.criteo.dev.cluster.copy
 import com.criteo.dev.cluster.NodeType.NodeType
 import com.criteo.dev.cluster.aws.{AwsConstants, AwsUtilities}
 import com.criteo.dev.cluster._
+import com.criteo.dev.cluster.command.SshAction
 import com.criteo.dev.cluster.utils.ddl.Column
 
 import scala.util.Random
