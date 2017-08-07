@@ -4,6 +4,8 @@ import com.criteo.dev.cluster.Node
 import com.criteo.dev.cluster.config.{GlobalConfig, TableConfig}
 import com.criteo.dev.cluster.copy.GetMetadataAction
 
+import scala.collection.parallel.ForkJoinTaskSupport
+import scala.concurrent.forkjoin.ForkJoinPool
 import scala.util.{Failure, Success, Try}
 
 case class GetSourceSummaryAction(config: GlobalConfig, node: Node) {
@@ -16,11 +18,15 @@ case class GetSourceSummaryAction(config: GlobalConfig, node: Node) {
     val conf = config.backCompat
     val getMetadata = new GetMetadataAction(config, conf, node)
 
-    val (validTables, invalidTables) = tables
+    // configure parallel execution
+    val parTables = tables.par
+    parTables.tasksupport = new ForkJoinTaskSupport(new ForkJoinPool(config.source.parallelism))
+    val (validTables, invalidTables) = parTables
       .map { table =>
-        (table.name, (table.name :: table.partitions.map(_.mkString("(", ",", ")")).mkString(" ") :: Nil).mkString(" "))
+        val (tableName, spec) = (table.name, (table.name :: table.partitions.map(_.mkString("(", ",", ")")).mkString(" ") :: Nil).mkString(" "))
+        (tableName, spec, Try(getMetadata(spec)))
       }
-      .map { case (tableName, spec) => (tableName, spec, Try(getMetadata(spec)))}
+      .toList
       .partition(_._3.isSuccess)
     val tableAndLocations = validTables
       .flatMap { case (_, _, Success(m)) =>

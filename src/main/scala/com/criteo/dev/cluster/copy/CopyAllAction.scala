@@ -3,6 +3,8 @@ package com.criteo.dev.cluster.copy
 import java.io.{File, PrintWriter}
 import java.time.format.DateTimeFormatter
 import java.time.{Duration, Instant, ZoneId}
+import java.util.concurrent.atomic.AtomicReference
+import java.util.function.UnaryOperator
 
 import com.criteo.dev.cluster._
 import com.criteo.dev.cluster.config.{Checkpoint, CheckpointWriter, GlobalConfig}
@@ -10,6 +12,8 @@ import com.criteo.dev.cluster.s3.{BucketUtilities, DataType, UploadS3Action}
 import com.criteo.dev.cluster.source.{GetSourceSummaryAction, InvalidTable, SourceTableInfo}
 import org.slf4j.LoggerFactory
 
+import scala.collection.parallel.ForkJoinTaskSupport
+import scala.concurrent.forkjoin.ForkJoinPool
 import scala.util.{Failure, Success, Try}
 
 /**
@@ -25,9 +29,9 @@ object CopyAllAction {
     val sourceTables = GeneralUtilities.getNonEmptyConf(conf, CopyConstants.sourceTables)
     val sourceFiles = GeneralUtilities.getNonEmptyConf(conf, CopyConstants.sourceFiles)
 
-    require((sourceTables.isDefined || sourceFiles.isDefined),
-      "No source tables or files configured")
+    require((sourceTables.isDefined || sourceFiles.isDefined), "No source tables or files configured")
 
+    logger.info(s"Copying with parallelism: ${config.source.parallelism}")
     //copy source tables from the checkpoint
     val begin = Instant.now
     val checkpoint = config.checkpoint match {
@@ -42,43 +46,57 @@ object CopyAllAction {
           todo = config.source.tables.map(_.name).toSet
         )
     }
+    val checkpointRef = new AtomicReference[Checkpoint](checkpoint)
+    // get source table metadata and update the checkpoint
     val (invalid, valid) = GetSourceSummaryAction(config, source)(config.source.tables.filter(t => checkpoint.todo.contains(t.name))).partition(_.isLeft)
-    // update the checkpoint file after getting the source summary
-    val updatedCheckpoint = checkpoint.copy(
-      updated = Instant.now,
-      todo = valid.map(_.right.get.tableInfo.fullName).toSet,
-      failed = invalid.map(_.left.get.name).toSet
-    )
-    writeCheckpoint(updatedCheckpoint)
-    val results = valid
-      .map(_.right.get)
-      .foldLeft((updatedCheckpoint, List.empty[Either[CopySuccess, CopyFailure]])) { case ((c, results), sourceTableInfo) =>
+    checkpointRef.getAndUpdate(new UnaryOperator[Checkpoint] {
+      override def apply(t: Checkpoint): Checkpoint = t.copy(
+        updated = Instant.now,
+        todo = valid.map(_.right.get.tableInfo.fullName).toSet,
+        failed = invalid.map(_.left.get.name).toSet
+      )
+    })
+    writeCheckpoint(checkpointRef.get)
+
+    // parallel execution
+    val parValidTables = valid.map(_.right.get).par
+    parValidTables.tasksupport = new ForkJoinTaskSupport(new ForkJoinPool(config.source.parallelism))
+    val results = parValidTables
+      .map(sourceTableInfo => {
         val tableFullName = sourceTableInfo.tableInfo.fullName
         val start = Instant.now
         Try {
+          // copy table
           val copyTableAction = new CopyTableAction(config, conf, source, target)
           val tt = copyTableAction.copy(sourceTableInfo)
           val createMetadataAction = CreateMetadataActionFactory.getCreateMetadataAction(config, conf, source, target)
           createMetadataAction(tt)
         } match {
           case Success(_) =>
-            val cp = c.copy(
-              todo = c.todo - tableFullName,
-              finished = c.finished + tableFullName
-            )
+            Left(sourceTableInfo -> Duration.between(start, Instant.now))
+            val cp = checkpointRef.updateAndGet(new UnaryOperator[Checkpoint] {
+              override def apply(t: Checkpoint): Checkpoint = t.copy(
+                todo = t.todo - tableFullName,
+                finished = t.finished + tableFullName
+              )
+            })
             writeCheckpoint(cp)
-            (cp, Left((sourceTableInfo, Duration.between(start, Instant.now))) :: results)
+            Left(sourceTableInfo -> Duration.between(start, Instant.now))
           case Failure(e) =>
             logger.error(e.getMessage, e)
-            val cp = c.copy(
-              todo = c.todo - tableFullName,
-              failed = c.failed + tableFullName
-            )
+            val cp = checkpointRef.updateAndGet(new UnaryOperator[Checkpoint] {
+              override def apply(t: Checkpoint): Checkpoint = t.copy(
+                todo = t.todo - tableFullName,
+                failed = t.failed + tableFullName
+              )
+            })
             writeCheckpoint(cp)
-            (cp, Right((sourceTableInfo, Duration.between(start, Instant.now), e)) :: results)
+            Right((sourceTableInfo, Duration.between(start, Instant.now), e))
         }
-      }
-    printCopyTableResult(begin, invalid.map(_.left.get), results._2)
+      })
+      .toList
+
+    printCopyTableResult(begin, invalid.map(_.left.get), results)
 
     //copy files
     if (sourceFiles.isDefined) {
@@ -94,8 +112,7 @@ object CopyAllAction {
       }
     }
 
-    logger.info("Cleaning up temp directories")
-    CleanupAction(conf, source, target, config.source.isLocalScheme)
+    CleanupAction(source, target, config.source.isLocalScheme)
   }
 
   def printCopyTableResult(
