@@ -3,6 +3,7 @@ package com.criteo.dev.cluster.s3
 import com.criteo.dev.cluster.command.{ScpAction, SshMultiAction}
 import com.criteo.dev.cluster.copy.{CleanupAction, CopyConstants, CopyFileAction, CopyUtilities}
 import com.criteo.dev.cluster.Node
+import com.criteo.dev.cluster.config.GlobalConfig
 import org.slf4j.LoggerFactory
 
 /**
@@ -15,8 +16,8 @@ import org.slf4j.LoggerFactory
   * For now, it gets the sample HDFS data on the gateway, scp's it over to the target,
   * then puts it in the target hdfs.
   */
-class ScpCopyFileAction(conf: Map[String, String], source: Node, target: Node)
-  extends CopyFileAction(conf, source, target) {
+class ScpCopyFileAction(config: GlobalConfig, source: Node, target: Node)
+  extends CopyFileAction(Map.empty, source, target) {
 
   private val logger = LoggerFactory.getLogger(classOf[ScpCopyFileAction])
 
@@ -62,8 +63,10 @@ class ScpCopyFileAction(conf: Map[String, String], source: Node, target: Node)
       //don't know the name of namenode.. use relative path for HDFS
       val targetLocation = targetBase + f.stripPrefix(sourceBase)
       val targetLocationParent = CopyUtilities.getParent(targetLocation)
-      s"hdfs dfs -mkdir -p $targetLocationParent" ::
-        s"hdfs dfs -put $tmpLocation $targetLocationParent" :: Nil
+      List(
+        s"hdfs dfs -mkdir -p $targetLocationParent",
+        s"hdfs dfs -put ${if (config.source.copyConfig.overwriteIfExists) "-f" else ""} $tmpLocation $targetLocationParent"
+      )
     })
     //To be idempotent, ignore errors if the file already exists
     SshMultiAction(target, putCommands.toList, ignoreError=true, returnResult=false)

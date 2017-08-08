@@ -54,7 +54,7 @@ class CopyTableAction(config: GlobalConfig, conf: Map[String, String], source: N
       listeners.get.split(",").map(_.trim()).foreach(l => {
         val clazz = this.getClass.getClassLoader.loadClass(l)
         val listener = clazz.newInstance().asInstanceOf[CopyTableListener]
-        val copyFileAction = CopyFileActionFactory.getCopyFileAction(conf, source, target)
+        val copyFileAction = CopyFileActionFactory.getCopyFileAction(config, source, target)
         listener.onCopy(tableInfo, copyFileAction, source, target)
       })
     }

@@ -21,7 +21,8 @@ case class CommonConfig(
 case class LocalConfig(
                         clusterUser: String,
                         ports: List[String],
-                        dockerFiles: List[String]
+                        dockerFiles: List[String],
+                        dockerContainerId: String
                       )
 @Public
 case class AWSConfig(

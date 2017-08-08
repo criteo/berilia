@@ -101,7 +101,7 @@ object CopyAllAction {
     //copy files
     if (sourceFiles.isDefined) {
       val files = GeneralUtilities.getConfCSV(conf, CopyConstants.sourceFiles)
-      val copyFileAction = CopyFileActionFactory.getCopyFileAction(conf, source, target)
+      val copyFileAction = CopyFileActionFactory.getCopyFileAction(config, source, target)
       files.foreach(f => copyFileAction(Array(f), f, CopyUtilities.toRelative(f)))
 
       //write in the logs
