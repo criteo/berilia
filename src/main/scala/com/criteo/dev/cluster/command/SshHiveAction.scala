@@ -1,7 +1,8 @@
-package com.criteo.dev.cluster
+package com.criteo.dev.cluster.command
 
 import java.io.{File, PrintWriter}
 
+import com.criteo.dev.cluster._
 import org.slf4j.LoggerFactory
 
 import scala.collection.mutable.ListBuffer
@@ -11,7 +12,7 @@ import scala.sys.process._
   * Special case of SSH Multi action that runs several hive commands.
   */
 @Public
-class SshHiveAction(node: Node, ignoreError: Boolean = false) {
+class SshHiveAction(node: Node, ignoreError: Boolean = false) extends HiveAction {
 
   private final val localTmpQueryFile = s"${GeneralUtilities.getTempDir}/tmphivequery"
   private final val remoteTmpQueryFile = s"~/tmphivequery"  //concurrent hive actions on same node not supported for now

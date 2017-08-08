@@ -1,12 +1,13 @@
 package com.criteo.dev.cluster.copy
 
 import com.criteo.dev.cluster._
+import com.criteo.dev.cluster.command.{ShellHiveAction, SshHiveAction}
 import com.criteo.dev.cluster.utils.ddl.CreateTable
 
 /**
   * Get the partitions of a table.
   */
-class GetPartitionMetadataAction (conf: Map[String, String], node: Node) {
+class GetPartitionMetadataAction (conf: Map[String, String], node: Node, isLocalScheme: Boolean = false) {
 
   def apply(database : String,
             table : String,
@@ -16,12 +17,12 @@ class GetPartitionMetadataAction (conf: Map[String, String], node: Node) {
       return Array.empty[PartitionInfo]
     }
 
-    val sshHiveAction = new SshHiveAction(node)
+    val action = if (isLocalScheme) new ShellHiveAction() else new SshHiveAction(node)
     partitions.foreach { p =>
-      sshHiveAction.add(s"describe formatted $database.$table partition (${CopyUtilities.partitionSpecString(p,
+      action.add(s"describe formatted $database.$table partition (${CopyUtilities.partitionSpecString(p,
         ddl.partitionedBy)})")
     }
-    val result = sshHiveAction.run()
+    val result = action.run()
     val splitResults = result.split("\n")
 
     //Decliately scraping result, which will be like:

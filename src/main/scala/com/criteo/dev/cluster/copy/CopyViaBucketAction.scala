@@ -1,6 +1,7 @@
 package com.criteo.dev.cluster.copy
 
-import com.criteo.dev.cluster.{Node, NodeFactory, SshAction}
+import com.criteo.dev.cluster.command.SshAction
+import com.criteo.dev.cluster.{Node, NodeFactory}
 import com.criteo.dev.cluster.s3._
 
 import scala.util.Random

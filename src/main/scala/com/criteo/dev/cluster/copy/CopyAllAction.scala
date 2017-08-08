@@ -58,7 +58,7 @@ object CopyAllAction {
         Try {
           val copyTableAction = new CopyTableAction(config, conf, source, target)
           val tt = copyTableAction.copy(sourceTableInfo)
-          val createMetadataAction = CreateMetadataActionFactory.getCreateMetadataAction(conf, source, target)
+          val createMetadataAction = CreateMetadataActionFactory.getCreateMetadataAction(config, conf, source, target)
           createMetadataAction(tt)
         } match {
           case Success(_) =>
@@ -69,6 +69,7 @@ object CopyAllAction {
             writeCheckpoint(cp)
             (cp, Left((sourceTableInfo, Duration.between(start, Instant.now))) :: results)
           case Failure(e) =>
+            logger.error(e.getMessage, e)
             val cp = c.copy(
               todo = c.todo - tableFullName,
               failed = c.failed + tableFullName
@@ -94,7 +95,7 @@ object CopyAllAction {
     }
 
     logger.info("Cleaning up temp directories")
-    CleanupAction(conf, source, target)
+    CleanupAction(conf, source, target, config.source.isLocalScheme)
   }
 
   def printCopyTableResult(
@@ -133,8 +134,7 @@ object CopyAllAction {
       pw.close()
       logger.info(s"checkpoint written to $path")
     } catch {
-      case e: Throwable =>
-        logger.error(e.getMessage, e)
+      case e: Throwable => logger.error(e.getMessage, e)
     }
   }
 

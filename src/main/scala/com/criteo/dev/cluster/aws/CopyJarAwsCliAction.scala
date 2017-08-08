@@ -5,6 +5,7 @@ import java.net.{URI, URL}
 
 import com.criteo.dev.cluster.config.GlobalConfig
 import com.criteo.dev.cluster._
+import com.criteo.dev.cluster.command.RsyncAction
 import org.jclouds.compute.domain.NodeMetadata.Status
 import org.slf4j.LoggerFactory
 

@@ -1,9 +1,10 @@
 package com.criteo.dev.cluster.s3
 
+import com.criteo.dev.cluster.command.SshAction
 import com.criteo.dev.cluster.config.GlobalConfig
 import com.criteo.dev.cluster.copy.CopyAllAction
 import com.criteo.dev.cluster.docker.{DockerConstants, DockerRunning, DockerUtilities}
-import com.criteo.dev.cluster.{CliAction, NodeFactory, Public, SshAction}
+import com.criteo.dev.cluster.{CliAction, NodeFactory, Public}
 import org.jclouds.blobstore.domain.{PageSet, StorageMetadata}
 import org.jclouds.blobstore.options.ListContainerOptions
 

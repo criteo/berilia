@@ -14,7 +14,7 @@ case class GetSourceSummaryAction(config: GlobalConfig, node: Node) {
     */
   def apply(tables: List[TableConfig]): List[Either[InvalidTable, SourceTableInfo]] = {
     val conf = config.backCompat
-    val getMetadata = new GetMetadataAction(conf, node)
+    val getMetadata = new GetMetadataAction(config, conf, node)
 
     val (validTables, invalidTables) = tables
       .map { table =>
@@ -30,7 +30,12 @@ case class GetSourceSummaryAction(config: GlobalConfig, node: Node) {
           List((m, m.ddl.location.get))
       }
     tableAndLocations
-      .zip(HDFSUtils.getFileSize(tableAndLocations.map(_._2), node))
+      .zip(
+        if (config.source.isLocalScheme)
+          HDFSUtils.getFileSize(tableAndLocations.map(_._2))
+        else
+          HDFSUtils.getFileSize(tableAndLocations.map(_._2), node)
+      )
       .groupBy { case ((m, _), _) => m }
       .foldLeft(List.empty[SourceTableInfo]) { case (acc, (table, results)) =>
         SourceTableInfo(

@@ -1,6 +1,7 @@
 package com.criteo.dev.cluster.aws
 
 import com.criteo.dev.cluster._
+import com.criteo.dev.cluster.command.{ScpAction, SshAction, SshMultiAction}
 import com.criteo.dev.cluster.config.TargetConfig
 import org.slf4j.LoggerFactory
 

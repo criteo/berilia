@@ -1,7 +1,8 @@
 package com.criteo.dev.cluster.aws
 
 import com.criteo.dev.cluster.config.AWSConfig
-import com.criteo.dev.cluster.{NodeFactory, SshAction}
+import com.criteo.dev.cluster.NodeFactory
+import com.criteo.dev.cluster.command.SshAction
 import org.slf4j.LoggerFactory
 
 /**

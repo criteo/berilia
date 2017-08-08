@@ -3,6 +3,7 @@ package com.criteo.dev.cluster.aws
 import com.criteo.dev.cluster._
 import com.criteo.dev.cluster.aws.AwsUtilities.NodeRole
 import com.criteo.dev.cluster.aws.AwsUtilities.NodeRole._
+import com.criteo.dev.cluster.command.{RsyncAction, SshMultiAction}
 import com.criteo.dev.cluster.config.{AWSConfig, TargetConfig}
 import org.jclouds.compute.domain.NodeMetadata
 import org.slf4j.LoggerFactory

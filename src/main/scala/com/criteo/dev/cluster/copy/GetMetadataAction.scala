@@ -1,5 +1,6 @@
 package com.criteo.dev.cluster.copy
 
+import com.criteo.dev.cluster.config.GlobalConfig
 import com.criteo.dev.cluster.{GeneralConstants, GeneralUtilities, Node}
 import org.slf4j.LoggerFactory
 
@@ -8,7 +9,7 @@ import org.slf4j.LoggerFactory
   *
   * TODO- rewrite this using HiveMetaStoreClient for much better performance.
   */
-class GetMetadataAction(conf : Map[String, String], node : Node, throttle: Boolean = true) {
+class GetMetadataAction(config: GlobalConfig, conf: Map[String, String], node : Node, throttle: Boolean = true) {
 
   private val logger = LoggerFactory.getLogger(classOf[GetMetadataAction])
 
@@ -19,18 +20,18 @@ class GetMetadataAction(conf : Map[String, String], node : Node, throttle: Boole
     dbTablePartSpec match {
       case regex(db, table, partSpec) => {
         //1. Get the table metadata, like location, isPartitioned, and createStmt.
-        val getTableMetadataAction = new GetTableMetadataAction(conf, node)
+        val getTableMetadataAction = new GetTableMetadataAction(conf, node, config.source.isLocalScheme)
         val createTable = getTableMetadataAction(db, table)
 
         //2.  If partitioned, get the list of partitions.
         val partitionList: Array[String] =
           if (createTable.partitionedBy.length != 0) {
             if (partSpec.isEmpty) {
-              ListPartitionAction(conf, node, db, table, None, throttle)
+              ListPartitionAction(conf, node, config.source.isLocalScheme, db, table, None, throttle)
             } else {
               val parenRegex = """\((.*?)\)""".r
               parenRegex.findAllIn(partSpec).flatMap(
-                p => ListPartitionAction(conf, node, db, table, Some(p), throttle)).toArray.distinct
+                p => ListPartitionAction(conf, node, config.source.isLocalScheme, db, table, Some(p), throttle)).toArray.distinct
             }
           } else {
             Array.empty[String]
@@ -42,7 +43,7 @@ class GetMetadataAction(conf : Map[String, String], node : Node, throttle: Boole
         })
 
         //4.  Get partition locations as well
-        val getPartitionAction = new GetPartitionMetadataAction(conf, node)
+        val getPartitionAction = new GetPartitionMetadataAction(conf, node, config.source.isLocalScheme)
         val partitions = getPartitionAction(db, table, createTable, partitionSpecList)
         TableInfo(db, createTable.table, createTable, partitions)
       }

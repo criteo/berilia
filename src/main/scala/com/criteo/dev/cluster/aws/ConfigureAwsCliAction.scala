@@ -1,6 +1,7 @@
 package com.criteo.dev.cluster.aws
 
 import com.criteo.dev.cluster._
+import com.criteo.dev.cluster.command.SshAction
 import com.criteo.dev.cluster.config.GlobalConfig
 
 /**

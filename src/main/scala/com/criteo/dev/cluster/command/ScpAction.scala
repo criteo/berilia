@@ -1,5 +1,6 @@
-package com.criteo.dev.cluster
+package com.criteo.dev.cluster.command
 
+import com.criteo.dev.cluster.{DevClusterProcess, Node, Public}
 import org.slf4j.LoggerFactory
 
 import scala.sys.process._

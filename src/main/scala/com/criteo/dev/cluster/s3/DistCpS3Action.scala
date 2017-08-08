@@ -1,6 +1,7 @@
 package com.criteo.dev.cluster.s3
 
 import com.criteo.dev.cluster._
+import com.criteo.dev.cluster.command.SshAction
 import com.criteo.dev.cluster.copy.{CopyConstants, CopyFileAction, CopyUtilities}
 import org.slf4j.LoggerFactory
 

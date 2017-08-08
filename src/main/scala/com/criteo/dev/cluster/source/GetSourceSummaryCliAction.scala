@@ -14,7 +14,6 @@ object GetSourceSummaryCliAction extends CliAction[List[Either[InvalidTable, Sou
   override def help: String = "Get summary of source tables"
 
   override def applyInternal(args: List[String], config: GlobalConfig): List[Either[InvalidTable, SourceTableInfo]] = {
-    val conf = config.backCompat
     logger.info("Getting the summary of source tables")
     val source = NodeFactory.getSourceFromConf(config.source)
     val getSourceSummary = GetSourceSummaryAction(config, source)

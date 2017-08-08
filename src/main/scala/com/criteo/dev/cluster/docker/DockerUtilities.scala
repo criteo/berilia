@@ -3,6 +3,7 @@ package com.criteo.dev.cluster.docker
 import java.io.{File, PrintWriter}
 
 import com.criteo.dev.cluster._
+import com.criteo.dev.cluster.command.SshAction
 import org.slf4j.LoggerFactory
 
 import scala.sys.process.Process

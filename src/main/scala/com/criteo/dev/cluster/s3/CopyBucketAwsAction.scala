@@ -1,9 +1,10 @@
 package com.criteo.dev.cluster.s3
 
 import com.criteo.dev.cluster.aws.AwsUtilities
+import com.criteo.dev.cluster.command.SshAction
 import com.criteo.dev.cluster.config.GlobalConfig
 import com.criteo.dev.cluster.docker.{DockerConstants, DockerUtilities}
-import com.criteo.dev.cluster.{CliAction, NodeFactory, Public, SshAction}
+import com.criteo.dev.cluster.{CliAction, NodeFactory, Public}
 import org.jclouds.blobstore.options.ListContainerOptions
 import org.jclouds.compute.domain.NodeMetadata.Status
 

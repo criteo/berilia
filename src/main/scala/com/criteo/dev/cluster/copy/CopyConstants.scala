@@ -31,6 +31,8 @@ object CopyConstants {
 
   val bucketScheme = "bucket"
 
+  val localScheme = "local"
+
   def tmpDataDirName = "tmpData"
 
   /** Temporary dir on the src machine **/

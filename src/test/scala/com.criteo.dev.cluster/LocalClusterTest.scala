@@ -1,5 +1,6 @@
 package com.criteo.dev.cluster
 
+import com.criteo.dev.cluster.command.{SshHiveAction, SshMultiAction}
 import com.criteo.dev.cluster.docker._
 import com.criteo.dev.cluster.utils.test.LoadConfig
 import org.scalatest.{BeforeAndAfter, FunSuite}

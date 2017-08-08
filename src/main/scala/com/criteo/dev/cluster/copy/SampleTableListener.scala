@@ -1,6 +1,6 @@
 package com.criteo.dev.cluster.copy
 
-import com.criteo.dev.cluster.{Node, SshHiveAction}
+import com.criteo.dev.cluster.Node
 
 /**
   * Any special handling needed for copy table.  For exmaple, copy over meta files, etc.
@@ -9,7 +9,10 @@ import com.criteo.dev.cluster.{Node, SshHiveAction}
   */
 trait SampleTableListener {
 
-  def onBeforeSample(tableInfo: TableInfo,
-                     sampleTableInfo: TableInfo,
-                     source: Node)
+  def onBeforeSample(
+                      tableInfo: TableInfo,
+                      sampleTableInfo: TableInfo,
+                      source: Node,
+                      isLocalScheme: Boolean
+                    )
 }

@@ -1,8 +1,9 @@
 package com.criteo.dev.cluster.s3
 
 import com.criteo.dev.cluster.aws.AwsUtilities
+import com.criteo.dev.cluster.command.SshHiveAction
 import com.criteo.dev.cluster.copy.CopyUtilities
-import com.criteo.dev.cluster.{Node, NodeFactory, SshHiveAction}
+import com.criteo.dev.cluster.{Node, NodeFactory}
 import org.slf4j.LoggerFactory
 
 /**

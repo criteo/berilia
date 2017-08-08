@@ -1,5 +1,6 @@
 package com.criteo.dev.cluster
 
+import com.criteo.dev.cluster.command.{SshAction, SshHiveAction, SshMultiAction}
 import com.criteo.dev.cluster.docker._
 import com.criteo.dev.cluster.s3._
 import com.criteo.dev.cluster.utils.test.LoadConfig

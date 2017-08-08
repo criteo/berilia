@@ -1,7 +1,8 @@
 package com.criteo.dev.cluster.aws
 
+import com.criteo.dev.cluster.command.SshMultiAction
 import com.criteo.dev.cluster.config.AWSConfig
-import com.criteo.dev.cluster.{GeneralConstants, GeneralUtilities, NodeFactory, SshMultiAction}
+import com.criteo.dev.cluster.{GeneralConstants, GeneralUtilities, NodeFactory}
 import org.jclouds.compute.domain.NodeMetadata
 import org.slf4j.LoggerFactory
 

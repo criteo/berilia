@@ -2,6 +2,7 @@ package com.criteo.dev.cluster.aws
 
 import com.criteo.dev.cluster.aws.AwsUtilities.NodeRole
 import com.criteo.dev.cluster._
+import com.criteo.dev.cluster.command.{ScpAction, SshAction}
 import com.criteo.dev.cluster.config.{AWSConfig, TargetConfig}
 import org.slf4j.LoggerFactory
 
