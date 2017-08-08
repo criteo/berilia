@@ -26,6 +26,7 @@ class SourceConfigParserSpec extends FlatSpec with Matchers {
       conf.tables.filter(_.sampleSize.isDefined).size +
       conf.tables.filter(_.partitionCount.isDefined).size
       - 1 // skip defaultSampleSize
+      - 1 // skip parallelism
     )
     res.size shouldEqual size
     res.get("log.t2.sample.size") shouldBe Some("500")

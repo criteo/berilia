@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory
 /**
   * From local to AWS using rsync
   */
-class RsyncCopyLocalAction(conf: Map[String, String], source: Node, target: Node) extends CopyFileAction(conf, source, target){
+class LocalRsyncCopyAction(conf: Map[String, String], source: Node, target: Node) extends CopyFileAction(conf, source, target){
 
   private val logger = LoggerFactory.getLogger(this.getClass)
 
@@ -25,6 +25,8 @@ class RsyncCopyLocalAction(conf: Map[String, String], source: Node, target: Node
     get(tempDir, sourceFiles, sourceBase)
     copy(tempDir)
     put(tempDir, sourceFiles, sourceBase, targetBase)
+
+    deleteTargetTmpDir(target)
   }
 
   /**
@@ -67,6 +69,11 @@ class RsyncCopyLocalAction(conf: Map[String, String], source: Node, target: Node
     SshMultiAction(target, putCommands.toList, ignoreError=true, returnResult=false)
   }
 
+  def deleteTargetTmpDir(target: Node): Unit = {
+    val dir = CopyConstants.tmpTgtParent + "/" + GeneralUtilities.getTempDir
+    logger.info(s"Removing $dir of target")
+    CopyUtilities.deleteTmp(target, dir)
+  }
 
   def getSrcTmpLocationParent(tmpDir: String, sourceFile: String, sourceBase: String) : String = {
     val partPath = getPartPath(sourceFile, sourceBase)

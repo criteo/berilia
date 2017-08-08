@@ -18,13 +18,10 @@ case class SshMultiAction(node: Node) extends MultiAction {
 
   private val logger = LoggerFactory.getLogger(this.getClass)
   private val commands = new ListBuffer[String]
-  private val processLogger = ProcessLogger(
-    (e: String) => logger.info("err " + e))
 
   //to allow concurrency
   val localTmpShell = s"${GeneralUtilities.getTempDir}/tmp.sh"
-  val remoteTmpShell = s"./tmp.sh"  //Concurrent ssh actions on the same node not supported yet.
-
+  val remoteTmpShell = s"${GeneralUtilities.getTempDir}-tmp.sh"
 
   def add(command : String): Unit = {
     commands.+=(command)
@@ -45,7 +42,6 @@ case class SshMultiAction(node: Node) extends MultiAction {
     localTmpShellFile.setReadable(true)
     localTmpShellFile.deleteOnExit()
 
-    val nodeString = GeneralUtilities.nodeString(node)
     commands.foreach(s => logger.info(s))
 
     ScpAction(None, localTmpShell, Some(node), remoteTmpShell)

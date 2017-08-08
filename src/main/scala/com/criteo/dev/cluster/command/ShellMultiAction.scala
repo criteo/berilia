@@ -15,8 +15,6 @@ import scala.sys.process.ProcessLogger
 case class ShellMultiAction() extends MultiAction {
   private val logger = LoggerFactory.getLogger(this.getClass)
   private val commands = new ListBuffer[String]
-  private val processLogger = ProcessLogger(
-    (e: String) => logger.info("err " + e))
 
   //to allow concurrency
   val localTmpShell = s"${GeneralUtilities.getTempDir}/tmp.sh"

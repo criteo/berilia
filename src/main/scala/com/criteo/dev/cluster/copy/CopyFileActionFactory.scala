@@ -1,7 +1,7 @@
 package com.criteo.dev.cluster.copy
 
 import com.criteo.dev.cluster.docker.DockerCopyFileAction
-import com.criteo.dev.cluster.s3.{DistCpS3Action, RsyncCopyLocalAction, ScpCopyFileAction}
+import com.criteo.dev.cluster.s3.{DistCpS3Action, LocalRsyncCopyAction, ScpCopyFileAction}
 import com.criteo.dev.cluster.{GeneralConstants, GeneralUtilities, Node, NodeFactory}
 
 /**
@@ -17,7 +17,7 @@ object CopyFileActionFactory {
         copyScheme match {
           case CopyConstants.tunnelScheme => new ScpCopyFileAction(conf, source, target)
           case CopyConstants.bucketScheme => new CopyViaBucketAction(conf, source, target)
-          case CopyConstants.localScheme => new RsyncCopyLocalAction(conf, source, target)
+          case CopyConstants.localScheme => new LocalRsyncCopyAction(conf, source, target)
           case _ => throw new IllegalArgumentException(s"Unsupported conf ${CopyConstants.sourceCopyScheme}: $copyScheme")
         }
       }
@@ -25,7 +25,7 @@ object CopyFileActionFactory {
         copyScheme match {
           case CopyConstants.tunnelScheme => new DockerCopyFileAction(conf, source, target)
           case CopyConstants.bucketScheme => new CopyViaBucketAction(conf, source, target)
-          case CopyConstants.localScheme => new RsyncCopyLocalAction(conf, source, target)
+          case CopyConstants.localScheme => new LocalRsyncCopyAction(conf, source, target)
           case _ => throw new IllegalArgumentException(s"Unsupported conf ${CopyConstants.sourceCopyScheme}: $copyScheme")
         }
       }

@@ -16,6 +16,7 @@ object SourceConfigParser {
     config.get[Int]("default.partition.count") ~
     config.get[Option[Long]]("default.sample.size") ~
     config.get[String]("sample.database") ~
+    config.get[Int]("parallelism") ~
     gateway(config)
   )(SourceConfig)
 

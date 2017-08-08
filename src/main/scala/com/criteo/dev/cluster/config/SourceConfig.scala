@@ -11,6 +11,7 @@ case class SourceConfig(
                          defaultPartitionCount: Int,
                          defaultSampleSize: Option[Long],
                          sampleDatabase: String,
+                         parallelism: Int,
                          gateway: GatewayConfig
                        ) {
   lazy val isLocalScheme = copyConfig.scheme == CopyConstants.localScheme
