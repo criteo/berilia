@@ -24,7 +24,8 @@ object TargetConfigParser {
     (
       config.get[String]("local.cluster.user") ~
       config.get[List[String]]("local.ports") ~
-      config.get[List[String]]("local.docker.files")
+      config.get[List[String]]("local.docker.files") ~
+      config.get[String]("local.docker.containerId")
     )(LocalConfig)
 
   def aws(config: Config): Result[AWSConfig] =

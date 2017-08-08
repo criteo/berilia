@@ -13,6 +13,7 @@ object TargetConfigConverter {
     "target.local.cluster.user" -> config.local.clusterUser,
     "target.local.ports" -> config.local.ports.mkString(","),
     "target.local.docker.files" -> config.local.dockerFiles.mkString(","),
+    "target.local.docker.containerId" -> config.local.dockerContainerId,
     "target.aws.access.id" -> config.aws.accessId,
     "target.aws.access.key" -> config.aws.accessKey,
     "target.aws.instance.type" -> config.aws.instanceType,

@@ -34,6 +34,7 @@ object SourceConfigParser {
   def copy(config: Config) = (
     config.get[String]("copy.scheme") ~
     config.get[Long]("copy.sample.threshold") ~
+    config.get[Boolean]("copy.overwriteIfExists") ~
     config.get[List[String]]("copy.listeners").orElse(Success(List.empty)) ~
     config.get[List[String]]("sample.listeners").orElse(Success(List.empty))
   )(CopyConfig)

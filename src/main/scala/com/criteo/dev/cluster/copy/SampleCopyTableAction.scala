@@ -58,7 +58,7 @@ class SampleCopyTableAction(config: GlobalConfig, conf: Map[String, String], sou
       else tempTableInfo.partitions.map(_.location)
     }
 
-    val copyFileAction = CopyFileActionFactory.getCopyFileAction(conf, source, target)
+    val copyFileAction = CopyFileActionFactory.getCopyFileAction(config, source, target)
     copyFileAction(tempLocations, tempLocationCommon, targetLocation)
 
     //here we have unfortunately lost the original source table folder structure (after sampling it).

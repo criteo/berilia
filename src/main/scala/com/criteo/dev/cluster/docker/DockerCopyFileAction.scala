@@ -1,6 +1,7 @@
 package com.criteo.dev.cluster.docker
 
 import com.criteo.dev.cluster.command.ScpAction
+import com.criteo.dev.cluster.config.GlobalConfig
 import com.criteo.dev.cluster.{GeneralConstants, GeneralUtilities, Node}
 import com.criteo.dev.cluster.copy._
 import com.criteo.dev.cluster.s3.ScpCopyFileAction
@@ -10,9 +11,9 @@ import org.slf4j.LoggerFactory
   * Main change is to use scp + docker cp instead of scp -r,
   * as that doesnt work on local docker instances where ssh port is not 22
   */
-class DockerCopyFileAction(conf: Map[String, String],
+class DockerCopyFileAction(config: GlobalConfig,
                            source: Node,
-                           target: Node) extends ScpCopyFileAction(conf, source, target) {
+                           target: Node) extends ScpCopyFileAction(config, source, target) {
 
 
 
@@ -27,7 +28,7 @@ class DockerCopyFileAction(conf: Map[String, String],
 
     DockerCpAction(
       s"$localTmpDir/${CopyConstants.tmpDataDirName}",
-      conf.get(DockerConstants.localContainerId).get,  //hack, should be in node type..
+      config.target.local.dockerContainerId,
       CopyConstants.tmpTgtParent)
     GeneralUtilities.cleanupTempDir
   }

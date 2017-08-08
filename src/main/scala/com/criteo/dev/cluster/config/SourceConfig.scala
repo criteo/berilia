@@ -39,6 +39,7 @@ case class TableConfig(
 case class CopyConfig(
                        scheme: String,
                        sampleThreshold: Long,
+                       overwriteIfExists: Boolean,
                        listeners: List[String],
                        sampleListeners: List[String]
                      )

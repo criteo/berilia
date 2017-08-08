@@ -29,7 +29,7 @@ class FullCopyTableAction(config: GlobalConfig, conf: Map[String, String], sourc
       else partitions.map(_.location)
     }
 
-    val copyFileAction = CopyFileActionFactory.getCopyFileAction(conf, source, target)
+    val copyFileAction = CopyFileActionFactory.getCopyFileAction(config, source, target)
     copyFileAction(sourceLocations, sourceCommon, CopyUtilities.toRelative(sourceCommon))
     tableInfo
   }

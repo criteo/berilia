@@ -1,6 +1,7 @@
 package com.criteo.dev.cluster.s3
 
 import com.criteo.dev.cluster.command.{RsyncAction, ShellMultiAction, SshMultiAction}
+import com.criteo.dev.cluster.config.GlobalConfig
 import com.criteo.dev.cluster.copy.{CopyConstants, CopyFileAction, CopyUtilities}
 import com.criteo.dev.cluster.{GeneralUtilities, Node}
 import org.slf4j.LoggerFactory
@@ -8,7 +9,7 @@ import org.slf4j.LoggerFactory
 /**
   * From local to AWS using rsync
   */
-class LocalRsyncCopyAction(conf: Map[String, String], source: Node, target: Node) extends CopyFileAction(conf, source, target){
+class LocalRsyncCopyAction(config: GlobalConfig, source: Node, target: Node) extends CopyFileAction(Map.empty, source, target){
 
   private val logger = LoggerFactory.getLogger(this.getClass)
 
@@ -62,7 +63,7 @@ class LocalRsyncCopyAction(conf: Map[String, String], source: Node, target: Node
       val targetLocationParent = CopyUtilities.getParent(targetLocation)
       List(
         s"hdfs dfs -mkdir -p $targetLocationParent",
-        s"hdfs dfs -put $tmpLocation $targetLocationParent"
+        s"hdfs dfs -put ${if (config.source.copyConfig.overwriteIfExists) "-f" else ""} $tmpLocation $targetLocationParent"
       )
     })
     //To be idempotent, ignore errors if the file already exists
