@@ -33,6 +33,7 @@ object TargetConfigParser {
       config.get[String]("aws.access.key") ~
       config.get[String]("aws.instance.type") ~
       config.get[String]("aws.volume.spec") ~
+      config.get[Boolean]("aws.auto.volumes") ~
       config.get[String]("aws.user") ~
       config.get[String]("aws.region") ~
       config.get[String]("aws.subnet") ~
