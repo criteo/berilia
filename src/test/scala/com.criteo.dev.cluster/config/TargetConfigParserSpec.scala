@@ -7,6 +7,7 @@ class TargetConfigParserSpec extends FlatSpec with Matchers {
   val config = ConfigFactory.load("target_test")
   "TargetConfigParser" should "parse target config" in {
     val res = TargetConfigParser(config)
+    println(res)
     res.isSuccess shouldBe true
   }
 
@@ -14,7 +15,12 @@ class TargetConfigParserSpec extends FlatSpec with Matchers {
     val tConf = TargetConfigParser(config).value
     val res = TargetConfigConverter(tConf)
     println(res)
-    val size = (tConf.aws.productArity + tConf.local.productArity + tConf.common.productArity)
+    val size = (
+      tConf.aws.productArity +
+      tConf.local.productArity +
+      tConf.common.productArity
+      - 1 // ignore VolumeSpec
+    )
     res.keys.size shouldEqual size
     res.values.toSet.size shouldEqual size
   }

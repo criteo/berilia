@@ -41,8 +41,6 @@ object AwsConstants {
 
   def instanceType = "instance.type"
 
-  def volumeSpec = "volume.spec"
-
   def autoVolume = "auto.volumes"
 
   def getFull(arg: String): String = s"${AwsConstants.awsKeyPrefix}.$arg"

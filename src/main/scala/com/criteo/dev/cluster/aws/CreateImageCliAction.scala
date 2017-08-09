@@ -41,7 +41,7 @@ object CreateImageCliAction extends CliAction[Unit] {
     val baseImage = GeneralUtilities.getConfStrict(conf, AwsConstants.baseImageId, GeneralConstants.targetAwsProps)
 
     //create AWS instance(s) from OS base image.
-    val cluster = CreateClusterAction(conf, 2, baseImage, baseImage)
+    val cluster = CreateClusterAction(config, 2, baseImage, baseImage)
 
     //configure some hosts
     ConfigureHostsAction(config.target.aws, List(cluster))

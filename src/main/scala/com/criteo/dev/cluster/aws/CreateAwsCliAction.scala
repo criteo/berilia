@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory
     val baseImage = GeneralUtilities.getConfStrict(conf, AwsConstants.baseImageId, GeneralConstants.targetAwsProps)
 
     //create AWS instance(s) from OS base image.
-    val cluster = CreateClusterAction(conf, nodes, baseImage, baseImage)
+    val cluster = CreateClusterAction(config, nodes, baseImage, baseImage)
 
     //configure hosts.
     ConfigureHostsAction(config.target.aws, List(cluster))
