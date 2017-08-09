@@ -44,9 +44,12 @@ object ConfigureDiskAction {
     //then we will take the ones up to the first one that has a mount entry.
     val toMount = lines.reverse.takeWhile(l => l.split("\\s+").length <= 6).map(l => l.split("\\s+")(0))
     val mountCommands = toMount.zipWithIndex.flatMap { case (tm, i) =>
-      List(s"sudo /sbin/mkfs.ext4 /dev/$tm",
+      List(
+        s"sudo echo -e 'o\\nn\\np\\n1\\n\\n\\nw' | sudo fdisk /dev/$tm", // create one partition (n, p, 1, default start, default end of sector)
+        s"sudo /sbin/mkfs.ext4 /dev/${tm}1", // make fs
         s"sudo mkdir -p /${GeneralConstants.data}/$i",
-        s"sudo mount /dev/$tm /${GeneralConstants.data}/$i")
+        s"sudo mount /dev/${tm}1 /${GeneralConstants.data}/$i" // mount
+      )
     }.toList
     command.SshMultiAction(node, mountCommands)
 

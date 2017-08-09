@@ -30,6 +30,7 @@ case class AWSConfig(
                       accessKey: String,
                       instanceType: String,
                       volumeSpec: String,
+                      autoVolumes: Boolean,
                       user: String,
                       region: String,
                       subnet: String,

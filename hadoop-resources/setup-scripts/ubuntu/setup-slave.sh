@@ -61,7 +61,7 @@ sudo apt-get update
 sudo apt-get install -y hadoop-yarn-nodemanager hadoop-hdfs-datanode
 
 #Prepare disks (if configured in aws)
-if [ -d "/data" ]; then sudo chown -R hdfs /data; fi
+if sudo [ -d "/data" ]; then sudo chown -R hdfs:hdfs /data; fi
 
 #Make YARN directories
 sudo mkdir -p /var/lib/hadoop-yarn/cache
