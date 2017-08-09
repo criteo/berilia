@@ -69,7 +69,7 @@ sudo apt-get install -y hadoop-mapreduce-historyserver
 sudo apt-get install -y hadoop-yarn-nodemanager hadoop-hdfs-datanode
 
 #Prepare disks (if configured in aws)
-if [ -d "/data" ]; then sudo chown -R hdfs /data; fi
+if sudo [ -d "/data" ]; then sudo chown -R hdfs:hdfs /data; fi
 
 #Format namenode
 sudo -u hdfs hdfs namenode -format -force
