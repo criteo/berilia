@@ -23,15 +23,21 @@ object GeneralUtilities {
   //Support concurrency to some degree by having each command store temp files in a different temp dir
   //-----
 
+  private val tempDir = new ThreadLocal[String]
+
   def getTempDir(): String = {
-    val date = DateTimeFormatter
-      .ofPattern("yyyyMMdd-HHmmss")
-      .withZone(ZoneId.systemDefault())
-      .format(Instant.now)
-    s"./temp-$date-thread-${Thread.currentThread.getId}"
+    if (tempDir.get == null)
+      tempDir.set {
+        val date = DateTimeFormatter
+          .ofPattern("yyyyMMdd-HHmmss")
+          .withZone(ZoneId.systemDefault())
+          .format(Instant.now)
+        s"./temp-$date-thread-${Thread.currentThread.getId}"
+      }
+    tempDir.get
   }
 
-  def prepareDir(dir : String) = {
+  def prepareDir(dir: String) = {
     val tmpDirectoryFile = new File(dir)
     FileUtils.deleteDirectory(tmpDirectoryFile)
     val success = tmpDirectoryFile.mkdir()
@@ -44,7 +50,7 @@ object GeneralUtilities {
 
   def cleanupTempDir = FileUtils.deleteDirectory(new File(s"${GeneralUtilities.getHomeDir}/$getTempDir"))
 
-  def getFuture[T](body: =>T) : Future[T] = Future {
+  def getFuture[T](body: => T): Future[T] = Future {
     prepareTempDir
     val ret = body
     cleanupTempDir
@@ -55,10 +61,10 @@ object GeneralUtilities {
     * Get a CSV from given configuration
     *
     * @param conf configuration
-    * @param key key to get in the configuration
+    * @param key  key to get in the configuration
     * @return array of values, empty if config is not defined.
     */
-  def getConfCSV (conf: Map[String, String], key : String): Array[String] = {
+  def getConfCSV(conf: Map[String, String], key: String): Array[String] = {
     val stringList = getNonEmptyConf(conf, key)
     if (stringList.isDefined) {
       stringList.get.split(",").map(s => s.trim())
@@ -67,26 +73,26 @@ object GeneralUtilities {
     }
   }
 
-  def getConfCSVStrict (conf: Map[String, String], key : String, expectedFile: String): Array[String] = {
+  def getConfCSVStrict(conf: Map[String, String], key: String, expectedFile: String): Array[String] = {
     val stringList = getConfStrict(conf, key, expectedFile)
     stringList.split(",").map(s => s.trim())
   }
 
   /**
-    * @param conf conf to lookup
-    * @param key configuration key
+    * @param conf         conf to lookup
+    * @param key          configuration key
     * @param expectedFile where this conf should be defined.  It's used in the error message.
     * @return conf, or throws an exception if it is not defined.
     */
-  def getConfStrict(conf: Map[String, String], key: String, expectedFile: String) : String = {
+  def getConfStrict(conf: Map[String, String], key: String, expectedFile: String): String = {
     val result = conf.get(key)
-    require (result.isDefined && !result.get.trim.isEmpty,
+    require(result.isDefined && !result.get.trim.isEmpty,
       s"Please configure $key in file [$expectedFile].")
     result.get
   }
 
 
-  def getNonEmptyConf(conf: Map[String, String], key: String) : Option[String] = {
+  def getNonEmptyConf(conf: Map[String, String], key: String): Option[String] = {
     if (!conf.get(key).isDefined || conf.get(key).get.isEmpty) {
       return None
     }
@@ -99,7 +105,7 @@ object GeneralUtilities {
     * @param node metadata of the node
     * @return result string
     */
-  def nodeString(node: Node) : String = {
+  def nodeString(node: Node): String = {
     val sb = new StringBuilder()
     val nodeKey = node.key
     if (nodeKey.isDefined) {
@@ -127,7 +133,7 @@ object GeneralUtilities {
     * Returns colon separated list, which will be used as Hive env var HIVE_AUX_JARS_PATH
     */
   def getAuxJarTargetList(jarList: String): String = {
-    val resolvedJarList = jarList.split(",").map(_.trim()).map (j => s"${GeneralConstants.auxJarTargetDir}/$j")
+    val resolvedJarList = jarList.split(",").map(_.trim()).map(j => s"${GeneralConstants.auxJarTargetDir}/$j")
     resolvedJarList.mkString("\"", ":", "\"")
   }
 
@@ -142,7 +148,7 @@ object GeneralUtilities {
     }
   }
 
-  def getDataDir(mounts: List[String]) : String = {
+  def getDataDir(mounts: List[String]): String = {
     if (!mounts.isEmpty) {
       mounts.map(m => s"""file://$m""").mkString(", ")
     } else {
