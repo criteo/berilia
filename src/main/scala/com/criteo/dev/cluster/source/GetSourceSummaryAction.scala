@@ -20,7 +20,7 @@ case class GetSourceSummaryAction(config: GlobalConfig, node: Node) {
 
     // configure parallel execution
     val parTables = tables.par
-    parTables.tasksupport = new ForkJoinTaskSupport(new ForkJoinPool(config.source.parallelism))
+    parTables.tasksupport = new ForkJoinTaskSupport(new ForkJoinPool(config.source.parallelism.table))
     val (validTables, invalidTables) = parTables
       .map { table =>
         val (tableName, spec) = (table.name, (table.name :: table.partitions.map(_.mkString("(", ",", ")")).mkString(" ") :: Nil).mkString(" "))

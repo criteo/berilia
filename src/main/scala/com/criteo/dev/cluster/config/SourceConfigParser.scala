@@ -16,7 +16,7 @@ object SourceConfigParser {
     config.get[Int]("default.partition.count") ~
     config.get[Option[Long]]("default.sample.size") ~
     config.get[String]("sample.database") ~
-    config.get[Int]("parallelism") ~
+    parallelism(config) ~
     gateway(config)
   )(SourceConfig)
 
@@ -44,4 +44,9 @@ object SourceConfigParser {
     config.get[List[String]]("gateway.docker.ports") ~
     config.get[Config]("gateway").map(mapify(_) -- List("docker.files", "docker.ports"))
   )(GatewayConfig)
+
+  def parallelism(config: Config) = (
+    config.get[Int]("parallelism.table") ~
+    config.get[Int]("parallelism.partition")
+  )(ParallelismConfig)
 }

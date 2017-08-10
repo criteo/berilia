@@ -60,7 +60,7 @@ object CopyAllAction {
 
     // parallel execution
     val parValidTables = valid.map(_.right.get).par
-    parValidTables.tasksupport = new ForkJoinTaskSupport(new ForkJoinPool(config.source.parallelism))
+    parValidTables.tasksupport = new ForkJoinTaskSupport(new ForkJoinPool(config.source.parallelism.table))
     val results = parValidTables
       .map(sourceTableInfo => {
         val tableFullName = sourceTableInfo.tableInfo.fullName

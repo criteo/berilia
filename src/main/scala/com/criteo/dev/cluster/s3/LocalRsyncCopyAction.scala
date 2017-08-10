@@ -6,6 +6,9 @@ import com.criteo.dev.cluster.copy.{CopyConstants, CopyFileAction, CopyUtilities
 import com.criteo.dev.cluster.{GeneralUtilities, Node}
 import org.slf4j.LoggerFactory
 
+import scala.collection.parallel.ForkJoinTaskSupport
+import scala.concurrent.forkjoin.ForkJoinPool
+
 /**
   * From local to AWS using rsync
   */
@@ -34,15 +37,17 @@ class LocalRsyncCopyAction(config: GlobalConfig, source: Node, target: Node) ext
     * Gets data from source HDFS (to temp)
     */
   def get(tmpDir: String, sourceFiles: Array[String], sourceBase: String) = {
-    val getCommands = sourceFiles.flatMap(f => {
+    val parSourceFiles = sourceFiles.par
+    logger.info(s"Getting ${sourceFiles.size} partition files, parallelism: ${config.source.parallelism.partition}")
+    parSourceFiles.tasksupport = new ForkJoinTaskSupport(new ForkJoinPool(config.source.parallelism.partition))
+    parSourceFiles.map { f =>
       val tmpLocationParent = getSrcTmpLocationParent(tmpDir, f, sourceBase)
-      List(
+      val commands = List(
         s"mkdir -p $tmpLocationParent",
         s"hdfs dfs -get $f $tmpLocationParent"
       )
-    })
-    //make local multi action
-    ShellMultiAction(getCommands.toList)
+      ShellMultiAction(commands)
+    }
   }
 
   /**
