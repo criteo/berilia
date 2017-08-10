@@ -24,12 +24,13 @@ case class LocalConfig(
                         dockerFiles: List[String],
                         dockerContainerId: String
                       )
+
 @Public
 case class AWSConfig(
                       accessId: String,
                       accessKey: String,
                       instanceType: String,
-                      volumeSpec: String,
+                      volumeSpec: VolumeSpec,
                       autoVolumes: Boolean,
                       user: String,
                       region: String,
@@ -40,3 +41,14 @@ case class AWSConfig(
                       baseImageId: String,
                       s3BucketPrefix: String
                     )
+
+@Public
+case class VolumeSpec(
+                       master: List[Volume],
+                       slave: List[Volume]
+                     )
+
+case class Volume(
+                   name: String,
+                   size: Int // in GB
+                 )

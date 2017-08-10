@@ -2,6 +2,7 @@ package com.criteo.dev.cluster.aws
 
 import java.util.{Collections, Properties}
 
+import com.criteo.dev.cluster.config._
 import com.criteo.dev.cluster.{GeneralConstants, GeneralUtilities}
 import org.jclouds.aws.ec2.compute.AWSEC2TemplateOptions
 import org.jclouds.compute.domain.NodeMetadata
@@ -22,16 +23,21 @@ object CreateClusterAction {
   private val logger = LoggerFactory.getLogger(CreateClusterAction.getClass)
 
 
-  def apply(conf: Map[String, String], nodes: Int, masterImage: String, slaveImage: String): JcloudCluster = {
+  def apply(config: GlobalConfig, nodes: Int, masterImage: String, slaveImage: String): JcloudCluster = {
     logger.info(s"Creating $nodes node(s) in parallel.")
+    val conf = config.backCompat
     val createMaster = GeneralUtilities.getFuture {
-      val master: NodeMetadata = AwsUtilities.retryAwsAction(new RetryableCreate(conf, masterImage))
+      val master: NodeMetadata = AwsUtilities.retryAwsAction(
+        new RetryableCreate(config.target.aws, conf, config.target.aws.volumeSpec.master, masterImage)
+      )
       logger.info(s"Successfully created master ${master.getId}")
       master
     }
 
     val createSlaves = (1 to (nodes - 1)).map(i => GeneralUtilities.getFuture {
-      val slave: NodeMetadata = AwsUtilities.retryAwsAction(new RetryableCreate(conf, slaveImage))
+      val slave: NodeMetadata = AwsUtilities.retryAwsAction(
+        new RetryableCreate(config.target.aws, conf, config.target.aws.volumeSpec.slave, slaveImage)
+      )
       logger.info(s"Successfully created slave ${slave.getId}")
       slave
     })
@@ -39,7 +45,7 @@ object CreateClusterAction {
     val master = Await.result(createMaster, Duration.Inf)
     val slaves = createSlaves.map(sf => Await.result(sf, Duration.Inf))
 
-    val cluster = new JcloudCluster(master, collection.mutable.Set(slaves.toArray:_*))
+    val cluster = new JcloudCluster(master, collection.mutable.Set(slaves.toArray: _*))
     tagCluster(conf, cluster)
     cluster
   }
@@ -78,25 +84,25 @@ object CreateClusterAction {
   }
 }
 
-class RetryableCreate(conf: Map[String, String], imageId: String) extends Retryable[NodeMetadata] {
+class RetryableCreate(config: AWSConfig, conf: Map[String, String], volumes: List[Volume], imageId: String) extends Retryable[NodeMetadata] {
 
-  def action() : NodeMetadata = {
+  def action(): NodeMetadata = {
 
     //set some AWS properties
-    val keyPair = AwsUtilities.getAwsProp(conf, AwsConstants.keyPair)
-    val region = AwsUtilities.getAwsProp(conf, AwsConstants.region)
-    val instanceType = AwsUtilities.getAwsProp(conf, AwsConstants.instanceType)
-    val securityGroup = AwsUtilities.getAwsProp(conf, AwsConstants.securityGroup)
-    val subnet = AwsUtilities.getAwsProp(conf, AwsConstants.subnet)
+    val keyPair = config.keyPair
+    val region = config.region
+    val instanceType = config.instanceType
+    val securityGroup = config.securityGroup
+    val subnet = config.subnet
 
     val mComputeService = AwsUtilities.getComputeService(conf)
 
     val expireTime = DateTime.now(DateTimeZone.UTC) + AwsConstants.extensionTime
     val expireTimeString = AwsUtilities.dtToString(expireTime)
 
-    var template = mComputeService.templateBuilder.hardwareId(instanceType).
+    val template = mComputeService.templateBuilder.hardwareId(instanceType).
       imageId(s"$region/$imageId").build
-    template.getOptions.as(classOf[AWSEC2TemplateOptions])
+    template.getOptions.asInstanceOf[AWSEC2TemplateOptions]
       .keyPair(keyPair)
       .securityGroupIds(securityGroup)
       .subnetId(subnet)
@@ -107,20 +113,8 @@ class RetryableCreate(conf: Map[String, String], imageId: String) extends Retrya
       .userMetadata(AwsConstants.expireTime, expireTimeString)
       .userMetadata(AwsConstants.createTime, AwsUtilities.getCurrentTime())
 
-    val volumeConf = AwsConstants.getFull(AwsConstants.volumeSpec)
-    val volumeSpec = conf.get(AwsConstants.getFull(AwsConstants.volumeSpec))
-    if (volumeSpec.isDefined) {
-      volumeSpec.get.split(',').foreach(v => {
-        val regex = """([A-Za-z0-9\/]*)=([0-9]*)""".r
-        v.trim match {
-          case regex(volName, volSize) => {
-            template.getOptions.as(classOf[AWSEC2TemplateOptions])
-                .mapNewVolumeToDeviceName(volName, Integer.valueOf(volSize), true)
-          }
-          case _ => throw new IllegalArgumentException(s"Error parsing $volumeConf, please specify in " +
-            s"comma-separated list of elements volume=size")
-        }
-      })
+    volumes.foreach {
+      case Volume(name, size) => template.getOptions.asInstanceOf[AWSEC2TemplateOptions].mapNewVolumeToDeviceName(name, size, true)
     }
 
     val result: java.util.Set[_ <: NodeMetadata] = mComputeService.createNodesInGroup(

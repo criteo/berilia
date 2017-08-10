@@ -17,7 +17,6 @@ object TargetConfigConverter {
     "target.aws.access.id" -> config.aws.accessId,
     "target.aws.access.key" -> config.aws.accessKey,
     "target.aws.instance.type" -> config.aws.instanceType,
-    "target.aws.volume.spec" -> config.aws.volumeSpec,
     "target.aws.auto.volumes" -> config.aws.autoVolumes.toString,
     "target.aws.user" -> config.aws.user,
     "target.aws.region" -> config.aws.region,
