@@ -11,7 +11,7 @@ case class SourceConfig(
                          defaultPartitionCount: Int,
                          defaultSampleSize: Option[Long],
                          sampleDatabase: String,
-                         parallelism: Int,
+                         parallelism: ParallelismConfig,
                          gateway: GatewayConfig
                        ) {
   lazy val isLocalScheme = copyConfig.scheme == CopyConstants.localScheme
@@ -49,3 +49,8 @@ case class GatewayConfig(
                           dockerFiles: List[String],
                           conf: Map[String, String]
                         )
+
+case class ParallelismConfig(
+                              table: Int,
+                              partition: Int
+                            )
