@@ -31,13 +31,12 @@ object GeneralUtilities {
     tempDir.get
   }
 
-  def getTempPrefix(): String = {
-    val date = DateTimeFormatter
-      .ofPattern("yyyyMMdd-HHmmss")
-      .withZone(ZoneId.systemDefault())
-      .format(Instant.now)
-    s"temp-$date-thread-${Thread.currentThread.getId}"
-  }
+  def getTempPrefix(): String = s"temp_${getSimpleDate}_thread_${Thread.currentThread.getId}"
+
+  def getSimpleDate(): String = DateTimeFormatter
+    .ofPattern("yyyyMMdd_HHmmss")
+    .withZone(ZoneId.systemDefault())
+    .format(Instant.now)
 
   def prepareDir(dir: String) = {
     val tmpDirectoryFile = new File(dir)
