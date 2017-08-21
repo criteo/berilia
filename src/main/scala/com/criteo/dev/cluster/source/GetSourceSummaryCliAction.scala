@@ -1,7 +1,9 @@
 package com.criteo.dev.cluster.source
 
+import java.io.{File, PrintWriter}
+
 import com.criteo.dev.cluster.config.GlobalConfig
-import com.criteo.dev.cluster.{CliAction, NodeFactory}
+import com.criteo.dev.cluster.{CliAction, GeneralUtilities, NodeFactory}
 import org.slf4j.LoggerFactory
 
 object GetSourceSummaryCliAction extends CliAction[List[Either[InvalidTable, SourceTableInfo]]] {
@@ -19,6 +21,7 @@ object GetSourceSummaryCliAction extends CliAction[List[Either[InvalidTable, Sou
     val getSourceSummary = GetSourceSummaryAction(config, source)
     val summary = getSourceSummary(config.source.tables)
     printSummary(summary)
+    exportToCSV(summary, s"${GeneralUtilities.getHomeDir}/source_summary_${GeneralUtilities.getSimpleDate}.csv")
     summary
   }
 
@@ -34,5 +37,22 @@ object GetSourceSummaryCliAction extends CliAction[List[Either[InvalidTable, Sou
     val totalSize = valid.map(_.right.get.hdfsInfo.size).sum
     println(s"Invalid tables: ${invalid.size}, valid tables: ${valid.size}")
     println(s"Total size: $totalSize Bytes")
+  }
+
+  def exportToCSV(summary: List[Either[InvalidTable, SourceTableInfo]], filepath: String): Unit = {
+    logger.info(s"writing source summary to $filepath")
+    val file = new File(filepath)
+    val printWriter = new PrintWriter(file)
+    val headers = List("name", "bytes", "files", "partitions", "error")
+    printWriter.println(headers.mkString(","))
+    summary foreach {
+      case Right(SourceTableInfo(table, TableHDFSInfo(_, _, size, files, partitions))) =>
+        printWriter.println(List(table.fullName, size, files.size, partitions, "").mkString(","))
+      case Left(InvalidTable(name, _, message)) =>
+        printWriter.println(List(name, "", "", "", message).mkString(","))
+    }
+    printWriter.flush()
+    printWriter.close()
+    logger.info(s"source summary has been written to $filepath")
   }
 }
