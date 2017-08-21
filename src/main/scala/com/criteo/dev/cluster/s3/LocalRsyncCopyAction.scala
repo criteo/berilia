@@ -30,7 +30,9 @@ class LocalRsyncCopyAction(config: GlobalConfig, source: Node, target: Node) ext
     copy(tempDir)
     put(tempDir, sourceFiles, sourceBase, targetBase)
 
+    // clean up
     deleteTargetTmpDir(target)
+    GeneralUtilities.cleanupTempDir
   }
 
   /**

@@ -27,14 +27,16 @@ object GeneralUtilities {
 
   def getTempDir(): String = {
     if (tempDir.get == null)
-      tempDir.set {
-        val date = DateTimeFormatter
-          .ofPattern("yyyyMMdd-HHmmss")
-          .withZone(ZoneId.systemDefault())
-          .format(Instant.now)
-        s"./temp-$date-thread-${Thread.currentThread.getId}"
-      }
+      tempDir.set(s"./$getTempPrefix")
     tempDir.get
+  }
+
+  def getTempPrefix(): String = {
+    val date = DateTimeFormatter
+      .ofPattern("yyyyMMdd-HHmmss")
+      .withZone(ZoneId.systemDefault())
+      .format(Instant.now)
+    s"temp-$date-thread-${Thread.currentThread.getId}"
   }
 
   def prepareDir(dir: String) = {
