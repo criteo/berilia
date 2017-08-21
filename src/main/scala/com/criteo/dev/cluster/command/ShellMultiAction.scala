@@ -17,17 +17,15 @@ case class ShellMultiAction() extends MultiAction {
   private val commands = new ListBuffer[String]
 
   //to allow concurrency
-  val localTmpShell = s"${GeneralUtilities.getTempDir}-tmp.sh"
+  val filepath = s"${GeneralUtilities.getHomeDir}/${GeneralUtilities.getTempPrefix}.sh"
 
   def add(command: String): Unit = {
     commands.+=(command)
   }
 
   def run(returnResult: Boolean = false, ignoreError: Boolean = false): String = {
-    //cleanup tmp files, ignore errors in these commands.
-    GeneralUtilities.prepareTempDir
-    val localTmpShellFile = new File(s"${GeneralUtilities.getHomeDir}/$localTmpShell")
-    ShellAction("rm " + localTmpShell, returnResult = false, true)
+    val localTmpShellFile = new File(filepath)
+    ShellAction(s"rm $filepath", returnResult = false, true)
 
     //Write a temp shell script
     val writer = new PrintWriter(localTmpShellFile)
@@ -36,11 +34,10 @@ case class ShellMultiAction() extends MultiAction {
 
     localTmpShellFile.setExecutable(true)
     localTmpShellFile.setReadable(true)
+    localTmpShellFile.deleteOnExit()
 
     commands.foreach(s => logger.info(s))
-    val res = ShellAction(localTmpShell, returnResult, ignoreError)
-    localTmpShellFile.delete()
-    res
+    ShellAction(filepath, returnResult, ignoreError)
   }
 }
 

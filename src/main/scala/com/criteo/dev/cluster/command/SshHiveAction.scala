@@ -14,22 +14,18 @@ import scala.sys.process._
 @Public
 class SshHiveAction(node: Node, ignoreError: Boolean = false) extends HiveAction {
 
-  private final val localTmpQueryFile = s"${GeneralUtilities.getTempDir}/tmphivequery"
-  private final val remoteTmpQueryFile = s"~/tmphivequery"  //concurrent hive actions on same node not supported for now
+  private final val localFilepath = s"${GeneralUtilities.getHomeDir}/${GeneralUtilities.getTempPrefix}-hivequery"
+  private final val remoteFilepath = s"~/${GeneralUtilities.getTempPrefix}-hivequery"  //concurrent hive actions on same node not supported for now
 
   private val commands = new ListBuffer[String]
   private val logger = LoggerFactory.getLogger(classOf[SshHiveAction])
-
-  private val processLogger = ProcessLogger(
-    (e: String) => logger.info("err " + e))
 
   def add(action: String): Unit = {
     commands.+=(action)
   }
 
   def run(): String = {
-    GeneralUtilities.prepareTempDir
-    val localQueryFile = new File(s"${GeneralUtilities.getHomeDir}/$localTmpQueryFile")
+    val localQueryFile = new File(localFilepath)
     val writer = new PrintWriter(localQueryFile)
     commands.foreach(s => {
       writer.write(s"$s;\n")
@@ -41,11 +37,11 @@ class SshHiveAction(node: Node, ignoreError: Boolean = false) extends HiveAction
     localQueryFile.setReadable(true)
     localQueryFile.deleteOnExit()
 
-    ScpAction(None, localTmpQueryFile, Some(node), remoteTmpQueryFile)
+    ScpAction(None, localFilepath, Some(node), remoteFilepath)
     val ignoreErrorFlag = if (ignoreError) "-hiveconf hive.cli.errors.ignore=true" else ""
 
-    val ret = SshAction(node, s"hive $ignoreErrorFlag -f $remoteTmpQueryFile", returnResult = true, ignoreError)
-    GeneralUtilities.cleanupTempDir
+    val ret = SshAction(node, s"hive $ignoreErrorFlag -f $remoteFilepath", returnResult = true, ignoreError)
+    SshAction(node, s"rm $remoteFilepath")
     ret
   }
 

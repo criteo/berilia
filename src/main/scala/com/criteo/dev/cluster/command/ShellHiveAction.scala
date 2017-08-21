@@ -12,18 +12,17 @@ import scala.collection.mutable.ListBuffer
   */
 @Public
 class ShellHiveAction(ignoreError: Boolean = false) extends HiveAction {
-  private final val localTmpQueryFile = s"${GeneralUtilities.getTempDir}/tmphivequery"
-
   private val commands = new ListBuffer[String]
   private val logger = LoggerFactory.getLogger(this.getClass)
+
+  private final val filepath = s"${GeneralUtilities.getHomeDir}/${GeneralUtilities.getTempPrefix}-hivequery"
 
   def add(action: String): Unit = {
     commands += action
   }
 
   def run(): String = {
-    GeneralUtilities.prepareTempDir
-    val localQueryFile = new File(s"${GeneralUtilities.getHomeDir}/$localTmpQueryFile")
+    val localQueryFile = new File(filepath)
     val writer = new PrintWriter(localQueryFile)
     commands.foreach(s => {
       writer.write(s"$s;\n")
@@ -36,8 +35,6 @@ class ShellHiveAction(ignoreError: Boolean = false) extends HiveAction {
     localQueryFile.deleteOnExit()
 
     val ignoreErrorFlag = if (ignoreError) "-hiveconf hive.cli.errors.ignore=true" else ""
-    val ret = ShellAction(s"hive $ignoreErrorFlag -f $localTmpQueryFile", returnResult = true, ignoreError)
-    GeneralUtilities.cleanupTempDir
-    ret
+    ShellAction(s"hive $ignoreErrorFlag -f $filepath", returnResult = true, ignoreError)
   }
 }
