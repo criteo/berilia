@@ -1,8 +1,11 @@
 package com.criteo.dev.cluster.copy
 
+import com.criteo.dev.cluster.Node
 import com.criteo.dev.cluster.config.GlobalConfig
-import com.criteo.dev.cluster.{GeneralConstants, GeneralUtilities, Node}
 import org.slf4j.LoggerFactory
+
+import scala.collection.parallel.ForkJoinTaskSupport
+import scala.concurrent.forkjoin.ForkJoinPool
 
 /**
   * Gets the metadata from Hive.
@@ -30,8 +33,11 @@ class GetMetadataAction(config: GlobalConfig, conf: Map[String, String], node : 
               ListPartitionAction(conf, node, config.source.isLocalScheme, db, table, None, throttle)
             } else {
               val parenRegex = """\((.*?)\)""".r
-              parenRegex.findAllIn(partSpec).flatMap(
-                p => ListPartitionAction(conf, node, config.source.isLocalScheme, db, table, Some(p), throttle)).toArray.distinct
+              val parPartSpecs = parenRegex.findAllIn(partSpec).toList.par
+              parPartSpecs.tasksupport = new ForkJoinTaskSupport(new ForkJoinPool(config.source.parallelism.partition))
+              parPartSpecs.flatMap(p =>
+                ListPartitionAction(conf, node, config.source.isLocalScheme, db, table, Some(p), throttle)
+              ).distinct.toArray
             }
           } else {
             Array.empty[String]
