@@ -13,5 +13,6 @@ class CheckpointParserSpec extends FlatSpec with Matchers {
     res.value.finished shouldEqual Set("db.t1", "db.t2")
     res.value.todo shouldEqual Set("db.t3")
     res.value.failed shouldEqual Set("db.t0")
+    res.value.invalid shouldEqual Set("db.t4")
   }
 }

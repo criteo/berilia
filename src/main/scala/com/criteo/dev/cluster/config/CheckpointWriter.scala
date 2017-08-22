@@ -13,6 +13,7 @@ object CheckpointWriter {
       .withValue("todo", ConfigValueFactory.fromIterable(todo.asJava))
       .withValue("finished", ConfigValueFactory.fromIterable(finished.asJava))
       .withValue("failed", ConfigValueFactory.fromIterable(failed.asJava))
+      .withValue("invalid", ConfigValueFactory.fromIterable(invalid.asJava))
   }
 
   def render(checkpoint: Checkpoint, configRenderOptions: ConfigRenderOptions = ConfigRenderOptions.concise): String = {
