@@ -10,6 +10,7 @@ import com.criteo.dev.cluster._
 import com.criteo.dev.cluster.config.{Checkpoint, CheckpointWriter, GlobalConfig}
 import com.criteo.dev.cluster.s3.{BucketUtilities, DataType, UploadS3Action}
 import com.criteo.dev.cluster.source.{GetSourceSummaryAction, InvalidTable, SourceTableInfo}
+import com.typesafe.config.ConfigRenderOptions
 import org.slf4j.LoggerFactory
 
 import scala.collection.parallel.ForkJoinTaskSupport
@@ -34,12 +35,13 @@ object CopyAllAction {
     logger.info(s"Copying with parallelism: ${config.source.parallelism}")
     //copy source tables from the checkpoint
     val begin = Instant.now
-    val checkpoint = config.checkpoint match {
+    val checkpoint: Checkpoint = config.checkpoint match {
       case Some(c) =>
-        logger.info(s"Copying from a checkpoint, todo: ${c.todo.size}, finished: ${c.finished.size}, failed: ${c.failed.size}")
-        c
+        logger.info(s"Copying from an existing checkpoint, todo: ${c.todo.size}, finished: ${c.finished.size}, failed: ${c.failed.size}, invalid: ${c.invalid.size}")
+        // if new tables are defined in source but not in the checkpoint, include them in "todo"
+        c.copy(todo = c.todo ++ config.source.tables.map(_.name).toSet)
       case None =>
-        logger.info(s"Copying all")
+        logger.info(s"Copying with a new checkpoint")
         Checkpoint(
           begin,
           begin,
@@ -48,12 +50,16 @@ object CopyAllAction {
     }
     val checkpointRef = new AtomicReference[Checkpoint](checkpoint)
     // get source table metadata and update the checkpoint
-    val (invalid, valid) = GetSourceSummaryAction(config, source)(config.source.tables.filter(t => checkpoint.todo.contains(t.name))).partition(_.isLeft)
+    val (invalid, valid) = GetSourceSummaryAction(config, source)(
+      // retrieve "todo" and "failed" tables
+      config.source.tables.filter(t => checkpoint.todo.contains(t.name) || checkpoint.failed.contains(t.name))
+    ).partition(_.isLeft)
     checkpointRef.getAndUpdate(new UnaryOperator[Checkpoint] {
       override def apply(t: Checkpoint): Checkpoint = t.copy(
         updated = Instant.now,
         todo = valid.map(_.right.get.tableInfo.fullName).toSet,
-        failed = invalid.map(_.left.get.name).toSet
+        failed = Set.empty,
+        invalid = invalid.map(_.left.get.name).toSet ++ checkpoint.invalid
       )
     })
     writeCheckpoint(checkpointRef.get)
@@ -73,9 +79,9 @@ object CopyAllAction {
           createMetadataAction(tt)
         } match {
           case Success(_) =>
-            Left(sourceTableInfo -> Duration.between(start, Instant.now))
             val cp = checkpointRef.updateAndGet(new UnaryOperator[Checkpoint] {
               override def apply(t: Checkpoint): Checkpoint = t.copy(
+                updated = Instant.now,
                 todo = t.todo - tableFullName,
                 finished = t.finished + tableFullName
               )
@@ -86,6 +92,7 @@ object CopyAllAction {
             logger.error(e.getMessage, e)
             val cp = checkpointRef.updateAndGet(new UnaryOperator[Checkpoint] {
               override def apply(t: Checkpoint): Checkpoint = t.copy(
+                updated = Instant.now,
                 todo = t.todo - tableFullName,
                 failed = t.failed + tableFullName
               )
@@ -135,13 +142,13 @@ object CopyAllAction {
         )
     }
     logger.info(
-      s"Data copy finished, skipped: ${invalidTables.size}, success: ${copyResult.filter(_.isLeft).size}, failure: ${copyResult.filter(_.isRight).size}"
+      s"Data copy finished, invalid: ${invalidTables.size}, success: ${copyResult.filter(_.isLeft).size}, failure: ${copyResult.filter(_.isRight).size}"
     )
-    logger.info(s"Total time elapsed ${Duration.between(start, Instant.now).getSeconds} seconds")
+    logger.info(s"Total time elapsed: ${Duration.between(start, Instant.now).getSeconds} seconds")
   }
 
-  def writeCheckpoint(checkpoint: Checkpoint): Unit = {
-    val out = CheckpointWriter.render(checkpoint)
+  def writeCheckpoint(checkpoint: Checkpoint): Unit = this.synchronized {
+    val out = CheckpointWriter.render(checkpoint, ConfigRenderOptions.defaults().setJson(true).setFormatted(true).setOriginComments(false))
     val path = s"./checkpoint_${dateFormatter.format(checkpoint.created)}.json"
     val file = new File(path)
     try {
@@ -149,7 +156,7 @@ object CopyAllAction {
       val pw = new PrintWriter(file)
       pw.print(out)
       pw.close()
-      logger.info(s"checkpoint written to $path")
+      logger.info(s"Checkpoint written to $path")
     } catch {
       case e: Throwable => logger.error(e.getMessage, e)
     }

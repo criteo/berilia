@@ -13,6 +13,7 @@ object CheckpointParser {
       config.get[Long]("updated").map(Instant.ofEpochMilli(_)) ~
       config.get[Set[String]]("todo") ~
       config.get[Set[String]]("finished") ~
-      config.get[Set[String]]("failed")
+      config.get[Set[String]]("failed") ~
+      config.get[Set[String]]("invalid")
     )(Checkpoint)
 }
