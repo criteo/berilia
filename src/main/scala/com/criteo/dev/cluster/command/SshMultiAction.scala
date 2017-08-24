@@ -21,7 +21,7 @@ case class SshMultiAction(node: Node) extends MultiAction {
 
   //to allow concurrency
   val localFilepath = s"${GeneralUtilities.getHomeDir}/${GeneralUtilities.getTempPrefix}.sh"
-  val remoteFilePath = s"${GeneralUtilities.getHomeDir}/${GeneralUtilities.getTempPrefix}.sh"
+  val remoteFilePath = s"/tmp/${GeneralUtilities.getTempPrefix}.sh"
 
   def add(command : String): Unit = {
     commands.+=(command)

@@ -15,7 +15,7 @@ import scala.sys.process._
 class SshHiveAction(node: Node, ignoreError: Boolean = false) extends HiveAction {
 
   private final val localFilepath = s"${GeneralUtilities.getHomeDir}/${GeneralUtilities.getTempPrefix}-hivequery"
-  private final val remoteFilepath = s"~/${GeneralUtilities.getTempPrefix}-hivequery"  //concurrent hive actions on same node not supported for now
+  private final val remoteFilepath = s"/tmp/${GeneralUtilities.getTempPrefix}-hivequery"  //concurrent hive actions on same node not supported for now
 
   private val commands = new ListBuffer[String]
   private val logger = LoggerFactory.getLogger(classOf[SshHiveAction])
