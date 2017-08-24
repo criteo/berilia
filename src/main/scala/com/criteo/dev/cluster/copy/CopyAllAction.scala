@@ -37,9 +37,13 @@ object CopyAllAction {
     val begin = Instant.now
     val checkpoint: Checkpoint = config.checkpoint match {
       case Some(c) =>
-        logger.info(s"Copying from an existing checkpoint, todo: ${c.todo.size}, finished: ${c.finished.size}, failed: ${c.failed.size}, invalid: ${c.invalid.size}")
+        logger.info(
+          s"Copying from an existing checkpoint, todo: ${c.todo.size}, finished: ${c.finished.size}, failed: ${c.failed.size}, invalid: ${c.invalid.size}"
+        )
         // if new tables are defined in source but not in the checkpoint, include them in "todo"
-        c.copy(todo = c.todo ++ config.source.tables.map(_.name).toSet)
+        val newEntries = config.source.tables.map(_.name).toSet -- c.finished -- c.failed -- c.invalid
+        logger.info(s"Adding ${newEntries.size} new entries to todo")
+        c.copy(todo = c.todo ++ newEntries)
       case None =>
         logger.info(s"Copying with a new checkpoint")
         Checkpoint(
@@ -50,8 +54,8 @@ object CopyAllAction {
     }
     val checkpointRef = new AtomicReference[Checkpoint](checkpoint)
     // get source table metadata and update the checkpoint
+    logger.info(s"Adding ${checkpoint.failed.size} failed entries to todo for retry")
     val (invalid, valid) = GetSourceSummaryAction(config, source)(
-      // retrieve "todo" and "failed" tables
       config.source.tables.filter(t => checkpoint.todo.contains(t.name) || checkpoint.failed.contains(t.name))
     ).partition(_.isLeft)
     checkpointRef.getAndUpdate(new UnaryOperator[Checkpoint] {
