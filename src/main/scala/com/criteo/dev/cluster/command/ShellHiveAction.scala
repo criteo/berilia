@@ -35,6 +35,8 @@ class ShellHiveAction(ignoreError: Boolean = false) extends HiveAction {
     localQueryFile.deleteOnExit()
 
     val ignoreErrorFlag = if (ignoreError) "-hiveconf hive.cli.errors.ignore=true" else ""
-    ShellAction(s"hive $ignoreErrorFlag -f $filepath", returnResult = true, ignoreError)
+    val res = ShellAction(s"hive $ignoreErrorFlag -f $filepath", returnResult = true, ignoreError)
+    localQueryFile.delete()
+    res
   }
 }

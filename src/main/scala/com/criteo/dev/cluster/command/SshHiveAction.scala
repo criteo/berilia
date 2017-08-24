@@ -40,9 +40,10 @@ class SshHiveAction(node: Node, ignoreError: Boolean = false) extends HiveAction
     ScpAction(None, localFilepath, Some(node), remoteFilepath)
     val ignoreErrorFlag = if (ignoreError) "-hiveconf hive.cli.errors.ignore=true" else ""
 
-    val ret = SshAction(node, s"hive $ignoreErrorFlag -f $remoteFilepath", returnResult = true, ignoreError)
+    val res = SshAction(node, s"hive $ignoreErrorFlag -f $remoteFilepath", returnResult = true, ignoreError)
     SshAction(node, s"rm $remoteFilepath")
-    ret
+    localQueryFile.delete()
+    res
   }
 
   override def toString = {

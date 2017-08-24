@@ -31,10 +31,10 @@ object GeneralUtilities {
     tempDir.get
   }
 
-  def getTempPrefix(): String = s"temp_${getSimpleDate}_thread_${Thread.currentThread.getId}"
+  def getTempPrefix(): String = s"temp_${getSimpleDate}_${Thread.currentThread.getName}"
 
   def getSimpleDate(): String = DateTimeFormatter
-    .ofPattern("yyyyMMdd_HHmmss")
+    .ofPattern("yyyyMMdd_HHmmss_SSS")
     .withZone(ZoneId.systemDefault())
     .format(Instant.now)
 

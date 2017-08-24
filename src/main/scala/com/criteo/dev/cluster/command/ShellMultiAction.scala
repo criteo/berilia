@@ -37,7 +37,9 @@ case class ShellMultiAction() extends MultiAction {
     localTmpShellFile.deleteOnExit()
 
     commands.foreach(s => logger.info(s))
-    ShellAction(filepath, returnResult, ignoreError)
+    val res = ShellAction(filepath, returnResult, ignoreError)
+    localTmpShellFile.delete()
+    res
   }
 }
 

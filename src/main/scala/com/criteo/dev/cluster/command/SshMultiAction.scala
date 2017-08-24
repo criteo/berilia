@@ -43,9 +43,10 @@ case class SshMultiAction(node: Node) extends MultiAction {
     commands.foreach(s => logger.info(s))
 
     ScpAction(None, localFilepath, Some(node), remoteFilePath)
-    val result = SshAction(node, s"source $remoteFilePath", returnResult, ignoreError)
+    val res = SshAction(node, s"source $remoteFilePath", returnResult, ignoreError)
     SshAction(node, s"rm $remoteFilePath", returnResult = false, true)
-    result
+    localTmpShellFile.delete()
+    res
   }
 }
 
