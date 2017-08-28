@@ -16,7 +16,7 @@ object CheckpointWriter {
       .withValue("invalid", ConfigValueFactory.fromIterable(invalid.asJava))
   }
 
-  def render(checkpoint: Checkpoint, configRenderOptions: ConfigRenderOptions = ConfigRenderOptions.concise): String = {
-    apply(checkpoint).root.render(configRenderOptions)
+  def render(checkpoint: Checkpoint): String = {
+    apply(checkpoint).root.render(ConfigRenderOptions.defaults().setJson(false).setOriginComments(false))
   }
 }

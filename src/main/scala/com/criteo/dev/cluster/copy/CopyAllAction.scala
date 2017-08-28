@@ -152,8 +152,8 @@ object CopyAllAction {
   }
 
   def writeCheckpoint(checkpoint: Checkpoint): Unit = this.synchronized {
-    val out = CheckpointWriter.render(checkpoint, ConfigRenderOptions.defaults().setJson(true).setFormatted(true).setOriginComments(false))
-    val path = s"./checkpoint_${dateFormatter.format(checkpoint.created)}.json"
+    val out = CheckpointWriter.render(checkpoint)
+    val path = s"${GeneralUtilities.getHomeDir}/checkpoint_${dateFormatter.format(checkpoint.created)}.conf"
     val file = new File(path)
     try {
       logger.info(s"Writing checkpoint to $path")
