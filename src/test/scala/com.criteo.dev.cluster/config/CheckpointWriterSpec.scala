@@ -15,7 +15,22 @@ class CheckpointWriterSpec extends FlatSpec with Matchers {
       Set("db.t3"),
       Set("db.t4")
     )
-    val res = CheckpointWriter(checkpoint).root.render(ConfigRenderOptions.concise())
-    res shouldEqual """{"created":1000,"failed":["db.t3"],"finished":["db.t2"],"invalid":["db.t4"],"todo":["db.t1"],"updated":2000}"""
+    val res = CheckpointWriter.render(checkpoint)
+    res shouldEqual
+      """|created=1000
+        |failed=[
+        |    "db.t3"
+        |]
+        |finished=[
+        |    "db.t2"
+        |]
+        |invalid=[
+        |    "db.t4"
+        |]
+        |todo=[
+        |    "db.t1"
+        |]
+        |updated=2000
+        |""".stripMargin
   }
 }
