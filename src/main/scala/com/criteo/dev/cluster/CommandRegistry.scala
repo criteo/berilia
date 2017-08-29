@@ -1,6 +1,7 @@
 package com.criteo.dev.cluster
 
 import com.criteo.dev.cluster.aws._
+import com.criteo.dev.cluster.copy.CleanupAWSCliAction
 import com.criteo.dev.cluster.docker._
 import com.criteo.dev.cluster.source.GetSourceSummaryCliAction
 import com.criteo.dev.cluster.s3._
@@ -45,7 +46,8 @@ object CommandRegistry {
       TagAwsCliAction,
       UntagAwsCliAction,
       QueryTagAwsCliAction,
-      CopyJarAwsCliAction
+      CopyJarAwsCliAction,
+      CleanupAWSCliAction
     ),
     Some(GeneralConstants.awsType))
 

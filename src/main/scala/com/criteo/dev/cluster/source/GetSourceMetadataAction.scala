@@ -8,13 +8,17 @@ import scala.collection.parallel.ForkJoinTaskSupport
 import scala.concurrent.forkjoin.ForkJoinPool
 import scala.util.{Failure, Success, Try}
 
-case class GetSourceSummaryAction(config: GlobalConfig, node: Node) {
+/**
+  * Get the summary with HDFS file info of the source tables
+  */
+case class GetSourceMetadataAction(config: GlobalConfig, node: Node) {
   /**
-    * Get the summary with HDFS file info of the source tables
     *
-    * @return The table information related to HDFS
+    * @param tables         List of tables
+    * @param useLocalScheme Whether get metadata from local environment
+    * @return
     */
-  def apply(tables: List[TableConfig]): List[Either[InvalidTable, SourceTableInfo]] = {
+  def apply(tables: List[TableConfig], useLocalScheme: Boolean = config.source.isLocalScheme): List[Either[InvalidTable, FullTableInfo]] = {
     val conf = config.backCompat
     val getMetadata = new GetMetadataAction(config, conf, node)
 
@@ -24,7 +28,7 @@ case class GetSourceSummaryAction(config: GlobalConfig, node: Node) {
     val (validTables, invalidTables) = parTables
       .map { table =>
         val (tableName, spec) = (table.name, (table.name :: table.partitions.map(_.mkString("(", ",", ")")).mkString(" ") :: Nil).mkString(" "))
-        (tableName, spec, Try(getMetadata(spec)))
+        (tableName, spec, Try(getMetadata(spec, useLocalScheme)))
       }
       .toList
       .partition(_._3.isSuccess)
@@ -37,14 +41,14 @@ case class GetSourceSummaryAction(config: GlobalConfig, node: Node) {
       }
     tableAndLocations
       .zip(
-        if (config.source.isLocalScheme)
+        if (useLocalScheme)
           HDFSUtils.getFileSize(tableAndLocations.map(_._2))
         else
           HDFSUtils.getFileSize(tableAndLocations.map(_._2), node)
       )
       .groupBy { case ((m, _), _) => m }
-      .foldLeft(List.empty[SourceTableInfo]) { case (acc, (table, results)) =>
-        SourceTableInfo(
+      .foldLeft(List.empty[FullTableInfo]) { case (acc, (table, results)) =>
+        FullTableInfo(
           table,
           TableHDFSInfo(
             table.database,

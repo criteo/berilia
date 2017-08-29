@@ -8,7 +8,7 @@ case class TableInfo(
                       ddl: CreateTable,
                       partitions: Array[PartitionInfo]
                     ) {
-  def fullName = s"$database.$name"
+  lazy val fullName = s"$database.$name"
 }
 
 case class PartitionInfo(location: String, partSpec: PartSpec)

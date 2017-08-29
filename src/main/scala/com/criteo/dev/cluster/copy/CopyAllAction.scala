@@ -9,7 +9,7 @@ import java.util.function.UnaryOperator
 import com.criteo.dev.cluster._
 import com.criteo.dev.cluster.config.{Checkpoint, CheckpointWriter, GlobalConfig}
 import com.criteo.dev.cluster.s3.{BucketUtilities, DataType, UploadS3Action}
-import com.criteo.dev.cluster.source.{GetSourceSummaryAction, InvalidTable, SourceTableInfo}
+import com.criteo.dev.cluster.source.{GetSourceMetadataAction, InvalidTable, FullTableInfo}
 import com.typesafe.config.ConfigRenderOptions
 import org.slf4j.LoggerFactory
 
@@ -23,8 +23,8 @@ import scala.util.{Failure, Success, Try}
 object CopyAllAction {
 
   private val logger = LoggerFactory.getLogger(CopyAllAction.getClass)
-  type CopySuccess = (SourceTableInfo, Duration)
-  type CopyFailure = (SourceTableInfo, Duration, Throwable)
+  type CopySuccess = (FullTableInfo, Duration)
+  type CopyFailure = (FullTableInfo, Duration, Throwable)
 
   def apply(config: GlobalConfig, conf: Map[String, String], source: Node, target: Node) = {
     val sourceTables = GeneralUtilities.getNonEmptyConf(conf, CopyConstants.sourceTables)
@@ -55,7 +55,7 @@ object CopyAllAction {
     val checkpointRef = new AtomicReference[Checkpoint](checkpoint)
     // get source table metadata and update the checkpoint
     logger.info(s"Adding ${checkpoint.failed.size} failed entries to todo for retry")
-    val (invalid, valid) = GetSourceSummaryAction(config, source)(
+    val (invalid, valid) = GetSourceMetadataAction(config, source)(
       config.source.tables.filter(t => checkpoint.todo.contains(t.name) || checkpoint.failed.contains(t.name))
     ).partition(_.isLeft)
     checkpointRef.getAndUpdate(new UnaryOperator[Checkpoint] {
@@ -129,7 +129,7 @@ object CopyAllAction {
   def printCopyTableResult(
                             start: Instant,
                             invalidTables: List[InvalidTable],
-                            copyResult: List[Either[(SourceTableInfo, Duration), (SourceTableInfo, Duration, Throwable)]]
+                            copyResult: List[Either[(FullTableInfo, Duration), (FullTableInfo, Duration, Throwable)]]
                           ) = {
     invalidTables.foreach { i =>
       logger.info(s"Skipped copying ${i.input} ${i.message}")

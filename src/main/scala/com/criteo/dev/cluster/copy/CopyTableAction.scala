@@ -2,7 +2,7 @@ package com.criteo.dev.cluster.copy
 
 import com.criteo.dev.cluster._
 import com.criteo.dev.cluster.config.GlobalConfig
-import com.criteo.dev.cluster.source.SourceTableInfo
+import com.criteo.dev.cluster.source.FullTableInfo
 import org.slf4j.LoggerFactory
 
 /**
@@ -21,7 +21,7 @@ class CopyTableAction(config: GlobalConfig, conf: Map[String, String], source: N
     * @param sourceTableInfo source table info
     * @return target table info
     */
-  def copy(sourceTableInfo: SourceTableInfo): TableInfo = {
+  def copy(sourceTableInfo: FullTableInfo): TableInfo = {
     val tableInfo = sourceTableInfo.tableInfo
     val hdfsInfo = sourceTableInfo.hdfsInfo
     val tableName = s"${tableInfo.database}.${tableInfo.name}"
