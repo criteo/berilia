@@ -33,7 +33,8 @@ case class TableConfig(
                         sampleProb: Option[Double],
                         sampleSize: Option[Long],
                         partitions: List[List[String]],
-                        partitionCount: Option[Int]
+                        partitionCount: Option[Int],
+                        skipCleanup: Boolean
                       )
 
 case class CopyConfig(

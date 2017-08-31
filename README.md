@@ -163,6 +163,10 @@ Usage: dev-cluster restart-services-aws [cluster.id]
 Extends expiry time of cluster with given cluster.id
 Usage: dev-cluster extend-aws [cluster.id]
 
+* cleanup-aws
+Remove the tables/partitions specified in the source config in the cluster
+Usage: dev-cluster cleanup-aws [cluster.id]
+
 </pre>
 
 ## Copy Operations

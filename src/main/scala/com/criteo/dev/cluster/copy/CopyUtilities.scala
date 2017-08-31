@@ -87,9 +87,9 @@ object CopyUtilities {
   }
 
   private def getPartCol(cols: List[Column], partColName: String) : Column = {
-    val results = cols.filter(_.name.equalsIgnoreCase(partColName))
-    require (results.length == 1, s"Invalid column: $partColName")
-    results(0)
+    val result = cols.find(_.name.equalsIgnoreCase(partColName))
+    require (result.isDefined, s"Invalid column: $partColName")
+    result.get
   }
 
   private def partSpecStrings(partSpecs: PartSpec, partCols: List[Column], sep: String): String = {

@@ -28,7 +28,8 @@ object SourceConfigParser {
     config.get[Option[Double]]("sample.prob") ~
     config.get[Option[Long]]("sample.size") ~
     config.get[List[List[String]]]("partitions").orElse(Success(List.empty)) ~
-    config.get[Option[Int]]("partition.count")
+    config.get[Option[Int]]("partition.count") ~
+    config.get[Boolean]("skip.cleanup").orElse(Success(false))
   )(TableConfig)
 
   def copy(config: Config) = (
