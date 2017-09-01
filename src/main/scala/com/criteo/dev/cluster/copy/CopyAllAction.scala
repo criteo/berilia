@@ -66,7 +66,7 @@ object CopyAllAction {
         invalid = invalid.map(_.left.get.name).toSet ++ checkpoint.invalid
       )
     })
-    writeCheckpoint(checkpointRef.get)
+    writeCheckpoint(checkpointRef.get, begin)
 
     // parallel execution
     val parValidTables = valid.map(_.right.get).par
@@ -83,6 +83,7 @@ object CopyAllAction {
           createMetadataAction(tt)
         } match {
           case Success(_) =>
+            logger.info(s"Copying of $tableFullName has succeeded")
             val cp = checkpointRef.updateAndGet(new UnaryOperator[Checkpoint] {
               override def apply(t: Checkpoint): Checkpoint = t.copy(
                 updated = Instant.now,
@@ -90,10 +91,11 @@ object CopyAllAction {
                 finished = t.finished + tableFullName
               )
             })
-            writeCheckpoint(cp)
+            writeCheckpoint(cp, begin)
             Left(sourceTableInfo -> Duration.between(start, Instant.now))
           case Failure(e) =>
             logger.error(e.getMessage, e)
+            logger.info(s"Copying of $tableFullName has failed")
             val cp = checkpointRef.updateAndGet(new UnaryOperator[Checkpoint] {
               override def apply(t: Checkpoint): Checkpoint = t.copy(
                 updated = Instant.now,
@@ -101,7 +103,7 @@ object CopyAllAction {
                 failed = t.failed + tableFullName
               )
             })
-            writeCheckpoint(cp)
+            writeCheckpoint(cp, begin)
             Right((sourceTableInfo, Duration.between(start, Instant.now), e))
         }
       })
@@ -126,7 +128,7 @@ object CopyAllAction {
     CleanupAction(source, target, config.source.isLocalScheme)
   }
 
-  def printCopyTableResult(
+  private def printCopyTableResult(
                             start: Instant,
                             invalidTables: List[InvalidTable],
                             copyResult: List[Either[(FullTableInfo, Duration), (FullTableInfo, Duration, Throwable)]]
@@ -146,17 +148,19 @@ object CopyAllAction {
         )
     }
     logger.info(
-      s"Data copy finished, invalid: ${invalidTables.size}, success: ${copyResult.filter(_.isLeft).size}, failure: ${copyResult.filter(_.isRight).size}"
+      s"Data copy finished, success: ${copyResult.filter(_.isLeft).size}, failure: ${copyResult.filter(_.isRight).size}, invalid: ${invalidTables.size}"
     )
-    logger.info(s"Total time elapsed: ${Duration.between(start, Instant.now).getSeconds} seconds")
+    logger.info(s"Total time elapsed: ${pretty(Duration.between(start, Instant.now))}")
   }
 
-  def writeCheckpoint(checkpoint: Checkpoint): Unit = this.synchronized {
+  private def writeCheckpoint(checkpoint: Checkpoint, begin: Instant): Unit = this.synchronized {
     val out = CheckpointWriter.render(checkpoint)
     val path = s"${GeneralUtilities.getHomeDir}/checkpoint_${dateFormatter.format(checkpoint.created)}.conf"
     val file = new File(path)
     try {
       logger.info(s"Writing checkpoint to $path")
+      logger.info(s"finished: ${checkpoint.finished}, failed: ${checkpoint.failed}, todo: ${checkpoint.todo}, invalid: ${checkpoint.invalid}")
+      logger.info(s"Time elapsed: ${pretty(Duration.between(begin, Instant.now))}")
       val pw = new PrintWriter(file)
       pw.print(out)
       pw.close()
@@ -164,6 +168,11 @@ object CopyAllAction {
     } catch {
       case e: Throwable => logger.error(e.getMessage, e)
     }
+  }
+
+  private def pretty(duration: Duration): String = {
+    val seconds = duration.getSeconds
+    "%d:%02d:%02d".format(seconds / 3600, (seconds % 3600) / 60, seconds % 60)
   }
 
   private val dateFormatter = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss").withZone(ZoneId.systemDefault())
