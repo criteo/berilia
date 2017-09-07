@@ -12,39 +12,38 @@ object CleanupHiveAction {
   private val logger = LoggerFactory.getLogger(this.getClass)
 
   def apply(config: GlobalConfig, target: Node): Try[CleanResult] = {
-    val action = GetSourceMetadataAction(config, target)
+    val getMetadata = new GetMetadataAction(config, config.backCompat, target)
     val hiveScript = new SshHiveAction(target)
     val shellScript = new SshMultiAction(target)
-    action(
-      config.source.tables.filter(t => {
-        if (t.skipCleanup) {
-          logger.info(s"Skip ${t.name}")
-          false
-        } else true
-      }),
-      useLocalScheme = false
-    ) map {
-      case Left(invalid) =>
-        logger.info(s"${invalid.name} is invalid, skip cleaning")
-      case Right(FullTableInfo(tableInfo, hdfsInfo)) =>
-        logger.info(s"Cleaning up ${tableInfo.fullName}")
-        // remove tables/partitions
-        val partitions = tableInfo.partitions.map { part =>
-          s"PARTITION (${CopyUtilities.partitionSpecString(part.partSpec, tableInfo.ddl.partitionedBy)})"
-        }.mkString(", ")
-        val statement = if (partitions.isEmpty)
-          s"DROP TABLE ${tableInfo.fullName}"
-        else
-          s"ALTER TABLE ${tableInfo.fullName} DROP $partitions"
-        logger.info(s"Add Hive statement: $statement")
-        hiveScript.add(statement)
-        // remove files
-        hdfsInfo.files.foreach { case HDFSFileInfo(path, _) =>
-          val command = s"hdfs dfs -rm -r $path"
-          logger.info(s"Add HDFS command: $command")
-          shellScript.add(command)
+    config.source.tables.filter(t => {
+      if (t.skipCleanup) {
+        logger.info(s"Skip ${t.name}")
+        false
+      } else true
+    }).foreach(table =>
+      Try {
+        getMetadata(table.name, false)
+      } match {
+        case Success(t) => {
+          t.ddl.location match {
+            case Some(location) =>
+              // remove file
+              val command = s"hdfs dfs -rm -r -f $location"
+              logger.info(s"Add HDFS command: $command")
+              shellScript.add(command)
+              // drop table
+              val statement = s"DROP TABLE ${t.fullName}"
+              logger.info(s"Add Hive statement: $statement")
+              hiveScript.add(statement)
+            case None =>
+              logger.info(s"Cannot get the location of ${t.fullName}, skip cleaning")
+          }
         }
-    }
+        case Failure(e) => {
+          logger.info(s"${table.name} is not valid, skip cleaning, message: ${e.getMessage}")
+        }
+      }
+    )
     val res = for {
       hive <- Try(hiveScript.run())
       shell <- Try(shellScript.run())
