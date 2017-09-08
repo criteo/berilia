@@ -40,8 +40,8 @@ class LocalRsyncCopyAction(config: GlobalConfig, source: Node, target: Node) ext
     */
   def get(tmpDir: String, sourceFiles: Array[String], sourceBase: String) = {
     val parSourceFiles = sourceFiles.par
-    logger.info(s"Getting ${sourceFiles.size} partition files, parallelism: ${config.source.parallelism.partition}")
-    parSourceFiles.tasksupport = new ForkJoinTaskSupport(new ForkJoinPool(config.source.parallelism.partition))
+    logger.info(s"Getting ${sourceFiles.size} partition files, parallelism: ${config.app.parallelism.partition}")
+    parSourceFiles.tasksupport = new ForkJoinTaskSupport(new ForkJoinPool(config.app.parallelism.partition))
     parSourceFiles.map { f =>
       val tmpLocationParent = getSrcTmpLocationParent(tmpDir, f, sourceBase)
       val commands = List(
@@ -70,7 +70,7 @@ class LocalRsyncCopyAction(config: GlobalConfig, source: Node, target: Node) ext
       val targetLocationParent = CopyUtilities.getParent(targetLocation)
       List(
         s"hdfs dfs -mkdir -p $targetLocationParent",
-        s"hdfs dfs -put ${if (config.source.copyConfig.overwriteIfExists) "-f" else ""} $tmpLocation $targetLocationParent"
+        s"hdfs dfs -put ${if (config.app.copyConfig.overwriteIfExists) "-f" else ""} $tmpLocation $targetLocationParent"
       )
     })
     //To be idempotent, ignore errors if the file already exists

@@ -5,28 +5,23 @@ import java.net.URL
 import com.criteo.dev.cluster.Public
 import com.typesafe.config.{Config, ConfigFactory}
 import configs.Result
-import configs.Result.Success
 import configs.syntax._
 
 @Public
 object ConfigLoader {
   def apply(
-             source: URL,
-             target: URL,
+             app: URL,
              checkpoint: Option[URL]
            ): Result[GlobalConfig] = apply(
-    ConfigFactory.parseURL(source).resolve(),
-    ConfigFactory.parseURL(target).resolve(),
+    ConfigFactory.parseURL(app).resolve(),
     checkpoint.map(ConfigFactory.parseURL(_).resolve)
   )
 
   def apply(
-             source: Config,
-             target: Config,
+             app: Config,
              checkpoint: Option[Config]
            ): Result[GlobalConfig] = (
-    SourceConfigParser(source) ~
-    TargetConfigParser(target) ~
-    checkpoint.fold(Success(None): Result[Option[Checkpoint]])(CheckpointParser.apply(_).map(Some(_)))
-  )(GlobalConfig(_,_,_)).map(_.withBackCompat)
+    AppConfigParser(app) ~
+    OptionsParser(checkpoint)
+  )(GlobalConfig(_,_)).map(_.withBackCompat)
 }

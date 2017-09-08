@@ -1,15 +1,13 @@
 package com.criteo.dev.cluster.config
 
 case class GlobalConfig(
-                         source: SourceConfig,
-                         target: TargetConfig,
-                         checkpoint: Option[Checkpoint],
+                         app: AppConfig,
+                         options: Options,
                          backCompat: Map[String, String] = Map.empty
                        ) {
-  def withBackCompat() = GlobalConfig(
-    source,
-    target,
-    checkpoint,
-    SourceConfigConverter(source) ++ TargetConfigConverter(target)
+  def withBackCompat(): GlobalConfig = GlobalConfig(
+    app,
+    options,
+    AppConfigConverter(app)
   )
 }

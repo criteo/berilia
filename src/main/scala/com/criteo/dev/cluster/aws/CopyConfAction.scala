@@ -2,7 +2,7 @@ package com.criteo.dev.cluster.aws
 
 import com.criteo.dev.cluster._
 import com.criteo.dev.cluster.command.{ScpAction, SshAction, SshMultiAction}
-import com.criteo.dev.cluster.config.TargetConfig
+import com.criteo.dev.cluster.config.AppConfig
 import org.slf4j.LoggerFactory
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -18,16 +18,16 @@ object CopyConfAction {
 
   /**
     *
-    * @param targetConf
+    * @param config
     * @param cluster
     * @param mount
     * @return
     */
-  def apply(targetConf: TargetConfig, cluster: JcloudCluster, mount: List[String]) = {
+  def apply(config: AppConfig, cluster: JcloudCluster, mount: List[String]) = {
     logger.info(s"Copying Hadoop configuration to ${cluster.size} nodes in parallel.")
 
     val srcDir = {
-      val confOverride = targetConf.common.hadoopConfDir
+      val confOverride = config.environment.hadoopConfDir
       if (!confOverride.isEmpty) {
         s"${GeneralConstants.hadoopConfSrcDir}/$confOverride"
       } else {
@@ -36,7 +36,7 @@ object CopyConfAction {
     }
 
     val masterFuture = GeneralUtilities.getFuture {
-      val master = NodeFactory.getAwsNode(targetConf.aws, cluster.master)
+      val master = NodeFactory.getAwsNode(config.aws, cluster.master)
       SshAction(master, "mkdir -p ./conf")
       ScpAction(
         sourceN=None,
@@ -68,8 +68,8 @@ object CopyConfAction {
       confAction.add("sudo find /etc/hadoop/conf/ -name \"*.xml\" -type f -exec sed -i 's/$" +
         GeneralConstants.local + "/" + GeneralConstants.masterHostName + "/' {} +")
 
-      val keyId = targetConf.aws.accessId
-      val key = targetConf.aws.accessKey
+      val keyId = config.aws.accessId
+      val key = config.aws.accessKey
       confAction.add("sudo find /etc/hadoop/conf/ -name \"*.xml\" -type f -exec sed -i 's/$" +
         GeneralConstants.accessKey + "/" + keyId + "/' {} +")
       confAction.add("sudo find /etc/hadoop/conf/ -name \"*.xml\" -type f -exec sed -i 's/$" +
@@ -92,7 +92,7 @@ object CopyConfAction {
     }
 
     val allFutures = Set(masterFuture) ++ cluster.slaves.map(s => GeneralUtilities.getFuture {
-      val slaveNode = NodeFactory.getAwsNode(targetConf.aws, s)
+      val slaveNode = NodeFactory.getAwsNode(config.aws, s)
       SshAction(slaveNode, "mkdir -p ./conf")
       ScpAction(
         sourceN=None,
@@ -111,8 +111,8 @@ object CopyConfAction {
       confAction.add("sudo find /etc/hadoop/conf/ -name \"*.xml\" -type f -exec sed -i 's/$" +
         GeneralConstants.local + "/" + slaveHost + "/' {} +")
 
-      val keyId = targetConf.aws.accessId
-      val key = targetConf.aws.accessKey
+      val keyId = config.aws.accessId
+      val key = config.aws.accessKey
       confAction.add("sudo find /etc/hadoop/conf/ -name \"*.xml\" -type f -exec sed -i 's/$" +
         GeneralConstants.accessKey + "/" + keyId + "/' {} +")
       confAction.add("sudo find /etc/hadoop/conf/ -name \"*.xml\" -type f -exec sed -i 's/$" +

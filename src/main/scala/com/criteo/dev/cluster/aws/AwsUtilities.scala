@@ -4,7 +4,7 @@ import java.util
 import java.util.Properties
 
 import com.criteo.dev.cluster.aws.AwsUtilities.NodeRole.NodeRole
-import com.criteo.dev.cluster.config.CommonConfig
+import com.criteo.dev.cluster.config.EnvironmentConfig
 import com.criteo.dev.cluster.s3.BucketUtilities
 import com.criteo.dev.cluster.{GeneralConstants, GeneralUtilities}
 import com.google.common.base.Predicate
@@ -449,8 +449,8 @@ object AwsUtilities {
 
   //Generic setup stuff
 
-  def getOsSetupScript(commonConfig: CommonConfig, nodeRole: NodeRole) = {
-    val osString = commonConfig.baseOS
+  def getOsSetupScript(environment: EnvironmentConfig, nodeRole: NodeRole) = {
+    val osString = environment.baseOS
     osString match {
       case GeneralConstants.ubuntu_trusty => {
         nodeRole match {

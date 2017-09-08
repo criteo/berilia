@@ -18,13 +18,13 @@ case class GetSourceMetadataAction(config: GlobalConfig, node: Node) {
     * @param useLocalScheme Whether get metadata from local environment
     * @return
     */
-  def apply(tables: List[TableConfig], useLocalScheme: Boolean = config.source.isLocalScheme): List[Either[InvalidTable, FullTableInfo]] = {
+  def apply(tables: List[TableConfig], useLocalScheme: Boolean = config.app.isLocalScheme): List[Either[InvalidTable, FullTableInfo]] = {
     val conf = config.backCompat
     val getMetadata = new GetMetadataAction(config, conf, node)
 
     // configure parallel execution
     val parTables = tables.par
-    parTables.tasksupport = new ForkJoinTaskSupport(new ForkJoinPool(config.source.parallelism.table))
+    parTables.tasksupport = new ForkJoinTaskSupport(new ForkJoinPool(config.app.parallelism.table))
     val (validTables, invalidTables) = parTables
       .map { table =>
         val (tableName, spec) = (table.name, (table.name :: table.partitions.map(_.mkString("(", ",", ")")).mkString(" ") :: Nil).mkString(" "))

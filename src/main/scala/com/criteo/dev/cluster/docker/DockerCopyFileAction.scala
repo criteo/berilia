@@ -28,7 +28,7 @@ class DockerCopyFileAction(config: GlobalConfig,
 
     DockerCpAction(
       s"$localTmpDir/${CopyConstants.tmpDataDirName}",
-      config.target.local.dockerContainerId,
+      config.app.local.dockerContainerId,
       CopyConstants.tmpTgtParent)
     GeneralUtilities.cleanupTempDir
   }

@@ -32,7 +32,7 @@ import org.slf4j.LoggerFactory
     require(runningDockerMeta.length == 1, s"Cannot find running docker container with id $dockerContainerId")
 
     //add some conf arguments expected by the SshHive command to construct the target node.
-    val target = NodeFactory.getDockerNode(config.target.local, runningDockerMeta(0))
+    val target = NodeFactory.getDockerNode(config.app.local, runningDockerMeta(0))
     RunS3DdlAction(target, bucketId, copiedLocally = false, conf)
     DockerUtilities.printClusterDockerContainerInfo(conf, runningDockerMeta)
   }

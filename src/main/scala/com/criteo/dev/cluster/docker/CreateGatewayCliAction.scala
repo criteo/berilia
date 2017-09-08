@@ -70,7 +70,7 @@ import org.slf4j.LoggerFactory
     copyConfAction.run
 
     //copy hive aux jars
-    val auxJars = config.target.common.hiveAuxJars
+    val auxJars = config.app.environment.hiveAuxJars
     if (!auxJars.isEmpty) {
       val jarList = GeneralUtilities.getAuxJarTargetList(auxJars.mkString(","))
       val copyJars = new DockerCopyBuildAction(

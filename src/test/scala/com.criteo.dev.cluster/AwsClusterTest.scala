@@ -63,7 +63,7 @@ class AwsClusterTest extends FunSuite with BeforeAndAfter with LoadConfig {
     val clusterMeta = getCluster(clusterId, awsClusters)
 
     //Run some Hive commands on the AWS cluster master.
-    val master = NodeFactory.getAwsNode(config.target.aws, clusterMeta.master)
+    val master = NodeFactory.getAwsNode(config.app.aws, clusterMeta.master)
 
     //create database, verify
     SshHiveAction(master, List(s"create database $testDbName"))
@@ -128,7 +128,7 @@ class AwsClusterTest extends FunSuite with BeforeAndAfter with LoadConfig {
     CopyAwsCliAction(List(newClusterId), config.copy(backCompat = oldSourceConf))
 
     //verify.  As we only copied 2 partitions out of 4, it should be half the data
-    val awsNode = NodeFactory.getAwsNode(config.target.aws, newCluster.master)
+    val awsNode = NodeFactory.getAwsNode(config.app.aws, newCluster.master)
     val results = SshHiveAction(awsNode, List(s"select count(*) from $testDbName.$testTableName"))
     assertResult("4") (results.stripLineEnd)
 
@@ -162,7 +162,7 @@ class AwsClusterTest extends FunSuite with BeforeAndAfter with LoadConfig {
     assertResult(AwsRunning) (clusterMeta.master.status)
 
     //Run the same query as in the last test.  Data should still be in the cluster.
-    val awsNode = NodeFactory.getAwsNode(config.target.aws, clusterMeta.master)
+    val awsNode = NodeFactory.getAwsNode(config.app.aws, clusterMeta.master)
     val results = SshHiveAction(awsNode, List(s"select count(*) from $testDbName.$testTableName"))
     assertResult("8") (results.stripLineEnd)
   }

@@ -31,7 +31,7 @@ import scala.collection.JavaConverters._
 
     require(master.getStatus().equals(Status.RUNNING), "No clusters found in RUNNING state matching criteria.")
 
-    val target = NodeFactory.getAwsNode(config.target.aws, master)
+    val target = NodeFactory.getAwsNode(config.app.aws, master)
 
     //copy the data over
     val folders = BucketUtilities.getAllFolders(conf, bucketId, target.nodeType)

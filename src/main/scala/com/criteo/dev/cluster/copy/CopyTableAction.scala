@@ -25,16 +25,16 @@ class CopyTableAction(config: GlobalConfig, conf: Map[String, String], source: N
     val tableInfo = sourceTableInfo.tableInfo
     val hdfsInfo = sourceTableInfo.hdfsInfo
     val tableName = s"${tableInfo.database}.${tableInfo.name}"
-    config.source.tables
+    config.app.tables
       .find(_.name == tableName)
       .map { t =>
         t.sampleSize.map(_.toDouble / hdfsInfo.size)
           .orElse(t.sampleProb)
-          .orElse(config.source.defaultSampleSize.map(_.toDouble / hdfsInfo.size))
-          .getOrElse(config.source.defaultSampleProb)
+          .orElse(config.app.defaultSampleSize.map(_.toDouble / hdfsInfo.size))
+          .getOrElse(config.app.defaultSampleProb)
       }
       .map { sampleProb =>
-        val res: TableInfo = if (sampleProb >= 1 || hdfsInfo.size <= config.source.copyConfig.sampleThreshold) {
+        val res: TableInfo = if (sampleProb >= 1 || hdfsInfo.size <= config.app.copyConfig.sampleThreshold) {
           logger.info(s"Copying $tableName without sampling ")
           new FullCopyTableAction(config, conf, source, target).copy(tableInfo)
         } else {

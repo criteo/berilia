@@ -34,7 +34,7 @@ import scala.sys.process.Process
       DevClusterProcess.process  (command).!!
 
       //add other required confs needed by the setup action (target ip, port)
-      val dockerCluster = NodeFactory.getDockerNode(config.target.local, d)
+      val dockerCluster = NodeFactory.getDockerNode(config.app.local, d)
       DockerUtilities.blockOnSsh(dockerCluster)
       StartServiceAction(dockerCluster, NodeRole.Master)
 

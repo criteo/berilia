@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory
     val conf = config.backCompat
 
     build(conf)
-    start(args, config.target.local, conf)
+    start(args, config.app.local, conf)
   }
 
   def prereqs = {

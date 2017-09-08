@@ -1,14 +1,13 @@
 package com.criteo.dev.cluster.aws
 
-import com.criteo.dev.cluster.aws.AwsUtilities.NodeRole
 import com.criteo.dev.cluster._
+import com.criteo.dev.cluster.aws.AwsUtilities.NodeRole
 import com.criteo.dev.cluster.command.{ScpAction, SshAction}
-import com.criteo.dev.cluster.config.{AWSConfig, TargetConfig}
+import com.criteo.dev.cluster.config.AppConfig
 import org.slf4j.LoggerFactory
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
-import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
   * Installs hadoop on a given cluster, in parallel.
@@ -17,13 +16,13 @@ object InstallHadoopAction {
 
   private val logger = LoggerFactory.getLogger(InstallHadoopAction.getClass)
 
-  def apply(config: TargetConfig, cluster: JcloudCluster) = {
+  def apply(config: AppConfig, cluster: JcloudCluster) = {
     logger.info(s"Installing CDH on ${cluster.size} nodes in parallel.")
-    val hadoopVersion = config.common.hadoopVersion
+    val hadoopVersion = config.environment.hadoopVersion
     val masterNode = NodeFactory.getAwsNode(config.aws, cluster.master)
 
     val installMaster = GeneralUtilities.getFuture {
-      val setupMaster = AwsUtilities.getOsSetupScript(config.common, NodeRole.Master)
+      val setupMaster = AwsUtilities.getOsSetupScript(config.environment, NodeRole.Master)
       logger.info(s"Running $setupMaster on master ${masterNode.ip}")
       ScpAction(
         sourceN = None,
@@ -41,7 +40,7 @@ object InstallHadoopAction {
     val installSlaves = cluster.slaves.map(slaveMeta => {
       GeneralUtilities.getFuture {
         val slaveNode = NodeFactory.getAwsNode(config.aws, slaveMeta)
-        val slaveSetup = AwsUtilities.getOsSetupScript(config.common, NodeRole.Slave)
+        val slaveSetup = AwsUtilities.getOsSetupScript(config.environment, NodeRole.Slave)
         logger.info(s"Running $slaveSetup on slave: ${slaveNode.ip}")
         ScpAction(
           sourceN = None,

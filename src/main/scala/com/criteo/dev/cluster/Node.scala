@@ -1,10 +1,9 @@
 package com.criteo.dev.cluster
 
 import com.criteo.dev.cluster.NodeType.NodeType
+import com.criteo.dev.cluster.aws.{AwsNodeMeta, AwsUtilities}
+import com.criteo.dev.cluster.config.{AWSConfig, AppConfig, LocalConfig}
 import com.criteo.dev.cluster.docker.{DockerConstants, DockerMeta, DockerUtilities}
-import com.criteo.dev.cluster.aws.{AwsConstants, AwsNodeMeta, AwsUtilities}
-import com.criteo.dev.cluster.config.{AWSConfig, LocalConfig, SourceConfig, TargetConfig}
-import com.criteo.dev.cluster.copy.CopyConstants
 import org.jclouds.compute.domain.NodeMetadata
 
 
@@ -18,7 +17,7 @@ object NodeType extends Enumeration {
 
 object NodeFactory {
 
-  def getSourceFromConf(config: SourceConfig): Node = {
+  def getSourceFromConf(config: AppConfig): Node = {
     val ip = config.address
     new Node(ip, None, None, None, NodeType.User)
   }

@@ -16,10 +16,10 @@ object GetSourceSummaryCliAction extends CliAction[List[Either[InvalidTable, Ful
   override def help: String = "Get summary of source tables"
 
   override def applyInternal(args: List[String], config: GlobalConfig): List[Either[InvalidTable, FullTableInfo]] = {
-    logger.info(s"Getting the summary of source tables, parallelism ${config.source.parallelism}")
-    val source = NodeFactory.getSourceFromConf(config.source)
+    logger.info(s"Getting the summary of source tables, parallelism ${config.app.parallelism}")
+    val source = NodeFactory.getSourceFromConf(config.app)
     val getSourceSummary = GetSourceMetadataAction(config, source)
-    val summary = getSourceSummary(config.source.tables)
+    val summary = getSourceSummary(config.app.tables)
     printSummary(summary)
     exportToCSV(summary, s"${GeneralUtilities.getHomeDir}/source_summary_${GeneralUtilities.getSimpleDate}.csv")
     summary

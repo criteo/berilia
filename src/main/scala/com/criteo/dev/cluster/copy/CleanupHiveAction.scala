@@ -15,7 +15,7 @@ object CleanupHiveAction {
     val getMetadata = new GetMetadataAction(config, config.backCompat, target)
     val hiveScript = new SshHiveAction(target)
     val shellScript = new SshMultiAction(target)
-    config.source.tables.filter(t => {
+    config.app.tables.filter(t => {
       if (t.skipCleanup) {
         logger.info(s"Skip ${t.name}")
         false

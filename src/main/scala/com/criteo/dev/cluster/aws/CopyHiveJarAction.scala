@@ -4,7 +4,7 @@ import com.criteo.dev.cluster._
 import com.criteo.dev.cluster.aws.AwsUtilities.NodeRole
 import com.criteo.dev.cluster.aws.AwsUtilities.NodeRole._
 import com.criteo.dev.cluster.command.{RsyncAction, SshMultiAction}
-import com.criteo.dev.cluster.config.{AWSConfig, TargetConfig}
+import com.criteo.dev.cluster.config.AppConfig
 import org.jclouds.compute.domain.NodeMetadata
 import org.slf4j.LoggerFactory
 
@@ -23,12 +23,12 @@ object CopyHiveJarAction {
     * @param nodeMeta
     * @param nodeRole
     */
-  def apply(config: TargetConfig, nodeMeta: NodeMetadata, nodeRole: NodeRole): Unit = {
+  def apply(config: AppConfig, nodeMeta: NodeMetadata, nodeRole: NodeRole): Unit = {
 
     val target = NodeFactory.getAwsNode(config.aws, nodeMeta)
 
     //copy extra hive jars, if set in 'aws.properties'
-    val auxJars = config.common.hiveAuxJars
+    val auxJars = config.environment.hiveAuxJars
     if (!auxJars.isEmpty && nodeRole == NodeRole.Master) {
       val jarList = GeneralUtilities.getAuxJarTargetList(auxJars.mkString(","))
 

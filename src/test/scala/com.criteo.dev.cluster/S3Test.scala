@@ -52,7 +52,7 @@ class S3Test extends FunSuite with BeforeAndAfter with LoadConfig {
     //Create a docker cluster
     val dockerMeta = CreateLocalCliAction(List(), config)
 
-    val dockerNode = NodeFactory.getDockerNode(config.target.local, dockerMeta)
+    val dockerNode = NodeFactory.getDockerNode(config.app.local, dockerMeta)
 
     //create database, verify
     SshHiveAction(dockerNode, List(s"create database $testDbName"))
@@ -121,7 +121,7 @@ class S3Test extends FunSuite with BeforeAndAfter with LoadConfig {
 
   test("Create a new docker cluster and point data to it.") {
     val dockerMeta = CreateLocalCliAction(List(), config)
-    val dockerNode = NodeFactory.getDockerNode(config.target.local, dockerMeta)
+    val dockerNode = NodeFactory.getDockerNode(config.app.local, dockerMeta)
     AttachBucketLocalCliAction(List(testBucketName, dockerMeta.id), config)
     val resultPartitions = SshHiveAction(dockerNode, List(s"show partitions $testDbName.$testTableName"))
     val partitions = resultPartitions.split("\n")

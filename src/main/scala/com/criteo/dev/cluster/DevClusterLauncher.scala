@@ -39,8 +39,7 @@ object DevClusterLauncher {
         val argList = args.toList.drop(1)
         val realArgs = argList.filterNot(_.startsWith("--"))
         val conf = ConfigLoader(
-          getOption(args, "source").map(getFileURL(_)).getOrElse(getFileURL("source.conf")),
-          getOption(args, "target").map(getFileURL(_)).getOrElse(getFileURL("target.conf")),
+          getOption(args, "config").map(getFileURL(_)).getOrElse(getFileURL("app.conf")),
           getOption(args, "checkpoint").map(getFileURL(_))
         ).value
         command.get.apply(realArgs, conf)

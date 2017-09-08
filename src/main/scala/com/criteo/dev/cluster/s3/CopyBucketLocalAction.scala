@@ -34,7 +34,7 @@ import scala.collection.JavaConverters._
     val runningDockerMeta = dockerMeta.filter(_.dockerState == DockerRunning)
     require(runningDockerMeta.length == 1, s"Cannot find running docker container with id $dockerContainerId")
 
-    val target = NodeFactory.getDockerNode(config.target.local, runningDockerMeta(0))
+    val target = NodeFactory.getDockerNode(config.app.local, runningDockerMeta(0))
 
     //copy the data over
     val folders = BucketUtilities.getAllFolders(conf, bucketId, target.nodeType)

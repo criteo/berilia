@@ -28,7 +28,7 @@ object CreateClusterAction {
     val conf = config.backCompat
     val createMaster = GeneralUtilities.getFuture {
       val master: NodeMetadata = AwsUtilities.retryAwsAction(
-        new RetryableCreate(config.target.aws, conf, config.target.aws.volumeSpec.master, masterImage)
+        new RetryableCreate(config.app.aws, conf, config.app.aws.volumeSpec.master, masterImage)
       )
       logger.info(s"Successfully created master ${master.getId}")
       master
@@ -36,7 +36,7 @@ object CreateClusterAction {
 
     val createSlaves = (1 to (nodes - 1)).map(i => GeneralUtilities.getFuture {
       val slave: NodeMetadata = AwsUtilities.retryAwsAction(
-        new RetryableCreate(config.target.aws, conf, config.target.aws.volumeSpec.slave, slaveImage)
+        new RetryableCreate(config.app.aws, conf, config.app.aws.volumeSpec.slave, slaveImage)
       )
       logger.info(s"Successfully created slave ${slave.getId}")
       slave

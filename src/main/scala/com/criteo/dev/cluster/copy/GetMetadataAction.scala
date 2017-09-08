@@ -16,7 +16,7 @@ class GetMetadataAction(config: GlobalConfig, conf: Map[String, String], node : 
 
   private val logger = LoggerFactory.getLogger(classOf[GetMetadataAction])
 
-  def apply(dbTablePartSpec: String, useLocalScheme: Boolean = config.source.isLocalScheme) : TableInfo = {
+  def apply(dbTablePartSpec: String, useLocalScheme: Boolean = config.app.isLocalScheme) : TableInfo = {
     //parse the configured source tables of form "$db.$table (part1=$part1, part2=$part2) (part1=$part1, part2=$part3)"
     val regex = """(\S*)\.(\S*)\s*(.*)""".r
 
@@ -34,7 +34,7 @@ class GetMetadataAction(config: GlobalConfig, conf: Map[String, String], node : 
             } else {
               val parenRegex = """\((.*?)\)""".r
               val parPartSpecs = parenRegex.findAllIn(partSpec).toList.par
-              parPartSpecs.tasksupport = new ForkJoinTaskSupport(new ForkJoinPool(config.source.parallelism.partition))
+              parPartSpecs.tasksupport = new ForkJoinTaskSupport(new ForkJoinPool(config.app.parallelism.partition))
               parPartSpecs.flatMap(p =>
                 ListPartitionAction(conf, node, useLocalScheme, db, table, Some(p), throttle)
               ).distinct.toArray

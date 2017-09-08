@@ -32,16 +32,16 @@ object CopyAllAction {
 
     require((sourceTables.isDefined || sourceFiles.isDefined), "No source tables or files configured")
 
-    logger.info(s"Copying with parallelism: ${config.source.parallelism}")
+    logger.info(s"Copying with parallelism: ${config.app.parallelism}")
     //copy source tables from the checkpoint
     val begin = Instant.now
-    val checkpoint: Checkpoint = config.checkpoint match {
+    val checkpoint: Checkpoint = config.options.checkpoint match {
       case Some(c) =>
         logger.info(
           s"Copying from an existing checkpoint, todo: ${c.todo.size}, finished: ${c.finished.size}, failed: ${c.failed.size}, invalid: ${c.invalid.size}"
         )
         // if new tables are defined in source but not in the checkpoint, include them in "todo"
-        val newEntries = config.source.tables.map(_.name).toSet -- c.finished -- c.failed -- c.invalid
+        val newEntries = config.app.tables.map(_.name).toSet -- c.finished -- c.failed -- c.invalid
         logger.info(s"Adding ${newEntries.size} new entries to todo")
         c.copy(todo = c.todo ++ newEntries)
       case None =>
@@ -49,14 +49,14 @@ object CopyAllAction {
         Checkpoint(
           begin,
           begin,
-          todo = config.source.tables.map(_.name).toSet
+          todo = config.app.tables.map(_.name).toSet
         )
     }
     val checkpointRef = new AtomicReference[Checkpoint](checkpoint)
     // get source table metadata and update the checkpoint
     logger.info(s"Adding ${checkpoint.failed.size} failed entries to todo for retry")
     val (invalid, valid) = GetSourceMetadataAction(config, source)(
-      config.source.tables.filter(t => checkpoint.todo.contains(t.name) || checkpoint.failed.contains(t.name))
+      config.app.tables.filter(t => checkpoint.todo.contains(t.name) || checkpoint.failed.contains(t.name))
     ).partition(_.isLeft)
     checkpointRef.getAndUpdate(new UnaryOperator[Checkpoint] {
       override def apply(t: Checkpoint): Checkpoint = t.copy(
@@ -70,7 +70,7 @@ object CopyAllAction {
 
     // parallel execution
     val parValidTables = valid.map(_.right.get).par
-    parValidTables.tasksupport = new ForkJoinTaskSupport(new ForkJoinPool(config.source.parallelism.table))
+    parValidTables.tasksupport = new ForkJoinTaskSupport(new ForkJoinPool(config.app.parallelism.table))
     val results = parValidTables
       .map(sourceTableInfo => {
         val tableFullName = sourceTableInfo.tableInfo.fullName
@@ -125,7 +125,7 @@ object CopyAllAction {
       }
     }
 
-    CleanupAction(source, target, config.source.isLocalScheme)
+    CleanupAction(source, target, config.app.isLocalScheme)
   }
 
   private def printCopyTableResult(

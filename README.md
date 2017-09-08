@@ -66,12 +66,11 @@ Create and manage single-node Hadoop/Hive dev cluster on local Docker, with abil
 * Supported on Mac using Docker for Mac (newer) or Docker Toolbox (docker-machine).
 
 ##### Configuration
-Files: Samples provided in [./conf/source.conf] (./conf/target.conf]
+Files: Samples provided in [./conf/app.conf] (./conf/app.conf]
 * In general, source is for data source (copy data to dev cluster)
 * In general, target is for dev cluster (here, put settings for AWS account, docker, etc)
-* dev-cluster will look in local directory for file named "source.conf" and "target.conf"
-* To run with other configuration for source, run --source=./path/to/conf/file.
-* To run with other configuration for target, run --target=./path/to/conf/file.
+* dev-cluster will look in local directory for file named "app.conf" and "app.conf"
+* To run with other configuration, run --config=./path/to/conf/file.
 
 ##### Notes
 * Local clusters run in background and use the resources of the local machine
@@ -164,7 +163,7 @@ Extends expiry time of cluster with given cluster.id
 Usage: dev-cluster extend-aws [cluster.id]
 
 * cleanup-aws
-Remove the tables/partitions specified in the source config in the cluster
+Remove the tables/partitions specified in the app.config in the cluster
 Usage: dev-cluster cleanup-aws [cluster.id]
 
 </pre>
@@ -317,10 +316,9 @@ All these berilia functionalities can be accessed as a Scala library, instead of
 
 Config files can be specified with the command line options:
 
-* `--source=/path/to/source.conf` for source configurations
-* `--target=/path/to/target.conf` for target configurations
+* `--config=/path/to/app.conf` for app.configurations
 
-By default, Berilia will search `source.conf` and `target.conf` in the working directory.
+By default, Berilia uses `app.conf` in the working directory.
 
 ## Configuring AWS
 Working with AWS dev clusters require the following configuration.
@@ -348,7 +346,7 @@ Working with AWS dev clusters require the following configuration.
 
 * For some special file-formats, some special handling is needed after the data is copied.
   * For example, Pail-format tables require the Pail.meta file to be copied as well.
-* You may drop a jar under ./lib with custom listener(s) and specify the fully-qualified class-names in [./source.conf] (./source.conf) in "source.copy.listeners".
+* You may drop a jar under ./lib with custom listener(s) and specify the fully-qualified class-names in [./app.conf] (./app.conf) in "source.copy.listeners".
 
 
 ## Configuring Hadoop Configuration
@@ -356,7 +354,7 @@ Working with AWS dev clusters require the following configuration.
 * The tool provides a default configuration file set located at [./hadoop-resources/hadoop-conf/cluster-default] (./hadoop-resources/hadoop-conf/cluster-default) that is a minimum configuration for working Hadoop/Hive cluster.
 * You may choose to override with your own configuration files.
   * Make sure you copy the original configuration files and then refrain from modifying existing properties required for functioning of the cluster.
-  * Copy it under [./hadoop-resources/hadoop-conf] (./hadoop-resources//hadoop-conf), and provide the relative location in [./target.conf] (./target.conf) in "target.hadoop.conf.dir".
+  * Copy it under [./hadoop-resources/hadoop-conf] (./hadoop-resources//hadoop-conf), and provide the relative location in [./app.conf] (./app.conf) in "target.hadoop.conf.dir".
   * The Hadoop configuration files may be templated.  Existing templates are listed below:
 <pre>
 $master:    cluster master name
@@ -367,7 +365,7 @@ $accessKey: AWS access key (for S3 storage access)
 
 ## Configuring Hive Aux Jars
 
-* Add the jar(s) to the [./hadoop-resources/aux-jars] (./hadoop-resources/aux-jars) and specify the list of jar short-names in [./target.conf] (./target.conf) in property "target.hive.aux.jars"
+* Add the jar(s) to the [./hadoop-resources/aux-jars] (./hadoop-resources/aux-jars) and specify the list of jar short-names in [./app.conf] (./app.conf) in property "target.hive.aux.jars"
 * The tool will create clusters that has the jar, and automatically appends this jar path to the HIVE_AUX_JAR_PATH env variable (via generated hive-env.sh)
 
 
@@ -380,7 +378,7 @@ $accessKey: AWS access key (for S3 storage access)
 ## Configuring Gateway Docker Add-ons
 
 * Add custom docker files in the directory [./docker/contrib-gateway] (./docker/contrib-gateway),
-and specify the list of DockerFiles in [./source.conf] (./source.conf) in "gateway.docker.files".
+and specify the list of DockerFiles in [./app.conf] (./app.conf) in "gateway.docker.files".
 These will be run to finalize the gateway image.
   * Dockerfiles must begin with line "FROM dev_cluster/gateway".
 * You may also specify comma-separated list of ports that the gateway will expose under "gateway.docker.ports".
@@ -391,7 +389,7 @@ These will be run to finalize the gateway image.
 ## Configuring Local-Cluster Docker Add-ons
 
 * Add custom docker files in the directory [./docker/contrib-gateway] (./docker/contrib-gateway),
-and specify the list of DockerFiles in [./source.conf] (./source.conf) in "target.local.docker.files".
+and specify the list of DockerFiles in [./app.conf] (./app.conf) in "target.local.docker.files".
 These will be run to finalize the local-cluster image.
   * Dockerfiles must begin with line "FROM dev_cluster/local".
   * Note to set an env variable that will be set upon SSH into the cluster, do not use ENV command.
@@ -406,7 +404,7 @@ These will be run to finalize the local-cluster image.
 * Currently, only Ubuntu trusty (14.04) dev clusters/gateways are created.
 * Hadoop components installed include hadoop-hdfs, hadoop-yarn, and hive.
 * Scripts are located in [./hadoop-resources/setup-scripts/ubuntu] (./hadoop-resources/setup-scripts/ubuntu) and could be modified by hand to install new services.
-* CDH5 is supported, and any CDH5 version may be specified in [./conf/target.conf] (./conf/target.conf) under "target.hadoop.version"
+* CDH5 is supported, and any CDH5 version may be specified in [./conf/app.conf] (./conf/app.conf) under "target.hadoop.version"
 * TODO- make it easier to install new tools or customize different installation strategies like Chef, Bigtop.
 
 # How to Contribute

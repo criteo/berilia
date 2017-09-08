@@ -20,11 +20,11 @@ import com.criteo.dev.cluster.{CliAction, NodeFactory, Public}
     require(runningDockerMeta.length == 1, s"Cannot find running docker container with id $dockerContainerId")
 
     //add some conf arguments expected by the DockerCopyFileAction command, as this is the argument used by 'docker cp'
-    val target = NodeFactory.getDockerNode(config.target.local, runningDockerMeta(0))
-    val source = NodeFactory.getSourceFromConf(config.source)
+    val target = NodeFactory.getDockerNode(config.app.local, runningDockerMeta(0))
+    val source = NodeFactory.getSourceFromConf(config.app)
 
     //TODO- hack, the docker id should go into "target" Node object, but currently Node does not have sub-classes
-    CopyAllAction(config, conf + (config.target.local.dockerContainerId -> runningDockerMeta(0).id), source, target)
+    CopyAllAction(config, conf + (config.app.local.dockerContainerId -> runningDockerMeta(0).id), source, target)
 
     DockerUtilities.printClusterDockerContainerInfo(conf, dockerMeta)
   }

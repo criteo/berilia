@@ -65,7 +65,7 @@ class ScpCopyFileAction(config: GlobalConfig, source: Node, target: Node)
       val targetLocationParent = CopyUtilities.getParent(targetLocation)
       List(
         s"hdfs dfs -mkdir -p $targetLocationParent",
-        s"hdfs dfs -put ${if (config.source.copyConfig.overwriteIfExists) "-f" else ""} $tmpLocation $targetLocationParent"
+        s"hdfs dfs -put ${if (config.app.copyConfig.overwriteIfExists) "-f" else ""} $tmpLocation $targetLocationParent"
       )
     })
     //To be idempotent, ignore errors if the file already exists

@@ -19,7 +19,7 @@ import scala.util.{Failure, Success}
   override def applyInternal(args: List[String], config: GlobalConfig): Unit = {
     val instanceId = args(0)
     val cluster = AwsUtilities.getCluster(config.backCompat, instanceId)
-    val target = NodeFactory.getAwsNode(config.target.aws, cluster.master)
+    val target = NodeFactory.getAwsNode(config.app.aws, cluster.master)
 
     CleanupHiveAction(config, target) match {
       case Success(CleanResult(hive, hdfs)) =>

@@ -43,7 +43,7 @@ class LocalClusterTest extends FunSuite with BeforeAndAfter with LoadConfig {
     val dockerMeta = getDockerMeta(dockerId, dockerMetas)
 
     //Run some Hive commands on the docker cluster.
-    val dockerNode = NodeFactory.getDockerNode(config.target.local, dockerMeta)
+    val dockerNode = NodeFactory.getDockerNode(config.app.local, dockerMeta)
 
     //create database, verify
     SshHiveAction(dockerNode, List(s"create database $testDbName"))
@@ -103,7 +103,7 @@ class LocalClusterTest extends FunSuite with BeforeAndAfter with LoadConfig {
     assertResult(DockerRunning) (dockerMeta.dockerState)
 
     //Run the same query as in the last test.  Data should still be in the cluster.
-    val dockerNode = NodeFactory.getDockerNode(config.target.local, dockerMeta)
+    val dockerNode = NodeFactory.getDockerNode(config.app.local, dockerMeta)
     val results = SshHiveAction(dockerNode, List(s"select count(*) from $testDbName.$testTableName"))
     assertResult("8") (results.stripLineEnd)
   }
@@ -128,7 +128,7 @@ class LocalClusterTest extends FunSuite with BeforeAndAfter with LoadConfig {
     CopyLocalCliAction(List(newDockerId), config.copy(backCompat = newSourceConf))
 
     //verify.  As we only copied 2 partitions out of 4, it should be half the data
-    val dockerNode = NodeFactory.getDockerNode(config.target.local, newDockerMeta)
+    val dockerNode = NodeFactory.getDockerNode(config.app.local, newDockerMeta)
     val results = SshHiveAction(dockerNode, List(s"select count(*) from $testDbName.$testTableName"))
     assertResult("4") (results.stripLineEnd)
 
@@ -147,11 +147,11 @@ class LocalClusterTest extends FunSuite with BeforeAndAfter with LoadConfig {
 
     val dockerMetas = ListDockerCliAction(List(), config)
     val dockerMeta = getDockerMeta(dockerId, dockerMetas)
-    val dockerNode = NodeFactory.getDockerNode(config.target.local, dockerMeta)
+    val dockerNode = NodeFactory.getDockerNode(config.app.local, dockerMeta)
 
       val newDockerMeta = CreateLocalCliAction(List(), config)
 
-    val newDockerNode = NodeFactory.getDockerNode(config.target.local, newDockerMeta)
+    val newDockerNode = NodeFactory.getDockerNode(config.app.local, newDockerMeta)
 
     //create partition table with 4 partitions, and two unpartitioned tables, to test both case.
     SshHiveAction(dockerNode, List(s"create database if not exists dev_cluster_sample",

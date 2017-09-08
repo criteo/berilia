@@ -24,7 +24,7 @@ class SampleCopyTableAction(config: GlobalConfig, conf: Map[String, String], sou
 
     logger.info(s"Sampling " + partitions.length + " partitions from " +
       tableInfo.database + "." + tableInfo.ddl.table)
-    createSampleTable(tableInfo, sampleDb, sampleTable, config.source.isLocalScheme)
+    createSampleTable(tableInfo, sampleDb, sampleTable, config.app.isLocalScheme)
 
     //Copy the sampled data to final destination.
     logger.info(s"Copying " + partitions.length + " partitions from " +
@@ -34,7 +34,7 @@ class SampleCopyTableAction(config: GlobalConfig, conf: Map[String, String], sou
     val res = copyToDest(tableInfo, sampleDb, sampleTable, targetLocation)
 
     //finished copying, delete the temp table.
-    val deleteTempTableAction = if (config.source.isLocalScheme) new ShellHiveAction() else new SshHiveAction(source)
+    val deleteTempTableAction = if (config.app.isLocalScheme) new ShellHiveAction() else new SshHiveAction(source)
     val tableToDelete = s"$sampleDb.$sampleTable"
     require(tableToDelete.contains(CopyConstants.tempTableHint)) //paranoid check not to delete the wrong table.
     deleteTempTableAction.add(s"drop table $tableToDelete")
@@ -94,7 +94,7 @@ class SampleCopyTableAction(config: GlobalConfig, conf: Map[String, String], sou
     createAction.run
 
     //fire listeners.
-    fireBeforeSample(conf, sourceTableInfo, sampleTableInfo, config.source.isLocalScheme)
+    fireBeforeSample(conf, sourceTableInfo, sampleTableInfo, config.app.isLocalScheme)
 
     val insertAction = if (isLocalScheme) new ShellHiveAction else new SshHiveAction(source)
     insertAction.add(s"use $sampleDb")

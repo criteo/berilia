@@ -27,7 +27,7 @@ object CopyBucketCliAction extends CliAction[Unit] {
     val s3Client = BucketUtilities.getS3Client(conf)
     require(s3Client.bucketExists(bucketId), s"Bucket $bucketId not found.")
     val target = NodeFactory.getS3Node(bucketId)
-    val source = NodeFactory.getSourceFromConf(config.source)
+    val source = NodeFactory.getSourceFromConf(config.app)
 
     //parse source-tables.
     CopyAllAction(config, conf, source, target)
